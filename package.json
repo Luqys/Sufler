@@ -1,0 +1,41 @@
+{
+  "name": "visualn3o",
+  "version": "0.1.0",
+  "description": "Środowisko pracy z Claude Code: edytor, terminale, panele skilli i MCP",
+  "main": "out/main/index.js",
+  "author": "Szymon Zielonka",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json --composite false && tsc --noEmit -p tsconfig.web.json --composite false",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "e2e": "electron-vite build && playwright test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^43.3.0",
+    "electron-vite": "^5.0.0",
+    "eslint": "^10.8.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "playwright": "^1.62.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.66.0",
+    "vite": "^7.3.6",
+    "vitest": "^4.1.10"
+  },
+  "allowScripts": {
+    "electron": true,
+    "esbuild": true
+  }
+}

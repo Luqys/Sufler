@@ -1,0 +1,256 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  color-scheme: light dark;
+  --bg: #f5f5f7;
+  --panel: #ececef;
+  --panel-alt: #e3e3e8;
+  --border: #d2d2d8;
+  --text: #1d1d1f;
+  --muted: #7c7c84;
+  --accent: #c15f3c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1e1f24;
+    --panel: #25262c;
+    --panel-alt: #2b2c33;
+    --border: #36373f;
+    --text: #e8e8ea;
+    --muted: #8e8e96;
+    --accent: #d97757;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+  overflow: hidden;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.dragging-vertical {
+  cursor: col-resize;
+}
+
+body.dragging-horizontal {
+  cursor: row-resize;
+}
+
+.shell {
+  display: grid;
+  grid-template-rows: 38px minmax(0, 1fr);
+  height: 100%;
+}
+
+.titlebar {
+  -webkit-app-region: drag;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.workbench {
+  display: grid;
+  min-height: 0;
+}
+
+.center {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* --- Splittery --- */
+
+.splitter {
+  position: relative;
+  z-index: 10;
+}
+
+.splitter.vertical {
+  cursor: col-resize;
+}
+
+.splitter.horizontal {
+  cursor: row-resize;
+}
+
+.splitter::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  transition: background 0.15s ease 0.1s;
+}
+
+.splitter.vertical::after {
+  left: 2px;
+  right: 2px;
+}
+
+.splitter.horizontal::after {
+  top: 2px;
+  bottom: 2px;
+}
+
+.splitter:hover::after,
+body.dragging-vertical .splitter.vertical::after,
+body.dragging-horizontal .splitter.horizontal::after {
+  background: var(--accent);
+}
+
+/* --- Sidebar --- */
+
+.sidebar {
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--panel);
+}
+
+.icon-rail {
+  width: 44px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-top: 10px;
+  background: var(--panel-alt);
+}
+
+.rail-btn {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.rail-btn:hover {
+  color: var(--text);
+}
+
+.rail-btn.active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.sidebar-view {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.view-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.placeholder {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* --- Edytor --- */
+
+.editor-area {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  background: var(--bg);
+}
+
+.editor-empty {
+  text-align: center;
+  max-width: 320px;
+}
+
+.editor-empty-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--muted);
+  opacity: 0.55;
+  margin-bottom: 6px;
+}
+
+/* --- Doki --- */
+
+.dock {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--panel);
+}
+
+.dock-header {
+  height: 34px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dock-add {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.dock-add:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.dock-body {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  text-align: center;
+}
