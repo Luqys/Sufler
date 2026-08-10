@@ -32,8 +32,8 @@ test('graf wiedzy: notatki, linki i autorzy ostatnich zmian', async () => {
   const app = await launchApp(makeConfigHome(), project);
   const page = await app.firstWindow();
 
+  // Klik w „Wiedzę" na pasku ikon od razu otwiera graf.
   await page.getByTestId('rail-knowledge').click();
-  await page.getByTestId('knowledge-graph-open').click();
 
   await expect(page.getByTestId('tab-active')).toContainText('Graf wiedzy');
   await expect(page.getByTestId('graph-view')).toBeVisible();

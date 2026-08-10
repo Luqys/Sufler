@@ -70,8 +70,16 @@ const RAIL_ITEMS: RailItem[] = [
 ];
 
 export function Sidebar(): ReactElement {
-  const { root, vault } = useWorkspace();
+  const { root, vault, openKnowledgeGraph } = useWorkspace();
   const [view, setView] = useState<SidebarView>('files');
+
+  const selectView = (id: SidebarView): void => {
+    setView(id);
+    // Wiedza od razu pokazuje graf w obszarze edytora (panel zostaje w sidebarze).
+    if (id === 'knowledge') {
+      openKnowledgeGraph();
+    }
+  };
 
   return (
     <aside className="sidebar" data-testid="sidebar">
@@ -84,7 +92,7 @@ export function Sidebar(): ReactElement {
             title={item.label}
             data-testid={`rail-${item.id}`}
             aria-pressed={view === item.id}
-            onClick={() => setView(item.id)}
+            onClick={() => selectView(item.id)}
           >
             {item.icon}
           </button>
