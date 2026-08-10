@@ -510,6 +510,21 @@ body.dragging-horizontal .splitter.horizontal::after {
   opacity: 0.6;
 }
 
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.status-dot.done {
+  background: #f59e0b;
+}
+
+.status-dot.attention {
+  background: #3b82f6;
+}
+
 .dock-add-wrap {
   position: relative;
   flex: none;

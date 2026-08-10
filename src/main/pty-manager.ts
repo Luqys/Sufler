@@ -16,6 +16,11 @@ export async function createPty(
   options: { kind: TabKind; cwd: string },
 ): Promise<PtyCreateResult> {
   const env = await resolveShellEnv();
+  // Hak testowy (e2e): pozwala podstawić katalog z atrapą binarki `claude`.
+  const prepend = process.env['VISUALN3O_PATH_PREPEND'];
+  if (prepend) {
+    env['PATH'] = `${prepend}:${env['PATH'] ?? ''}`;
+  }
   const shell = env['SHELL'] || '/bin/zsh';
   const command = options.kind === 'claude' ? 'claude' : shell;
   try {

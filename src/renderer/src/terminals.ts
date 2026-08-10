@@ -13,6 +13,8 @@ export interface TerminalInstance {
   fit: FitAddon;
   host: HTMLDivElement;
   ptyId: number;
+  /** Dodatkowy odbiorca surowego wyjścia pty (np. heurystyka statusu Claude). */
+  onOutput?: (chunk: string) => void;
 }
 
 const instances = new Map<string, TerminalInstance>();
@@ -39,6 +41,7 @@ window.api.onPtyData(({ ptyId, data }) => {
   const instance = byPtyId.get(ptyId);
   if (instance) {
     instance.term.write(data);
+    instance.onOutput?.(data);
   } else {
     const pending = pendingOutput.get(ptyId) ?? [];
     pending.push(data);
@@ -51,7 +54,11 @@ window.api.onPtyExit(({ ptyId }) => {
   instance?.term.write('\r\n\x1b[2m[proces zakończony]\x1b[0m\r\n');
 });
 
-export function createTerminalInstance(tabId: string, ptyId: number): TerminalInstance {
+export function createTerminalInstance(
+  tabId: string,
+  ptyId: number,
+  onOutput?: (chunk: string) => void,
+): TerminalInstance {
   const host = document.createElement('div');
   host.className = 'terminal-host';
   const term = new Terminal({
@@ -65,7 +72,7 @@ export function createTerminalInstance(tabId: string, ptyId: number): TerminalIn
   term.loadAddon(fit);
   term.open(host);
   term.onData((data) => window.api.ptyWrite(ptyId, data));
-  const instance: TerminalInstance = { term, fit, host, ptyId };
+  const instance: TerminalInstance = { term, fit, host, ptyId, onOutput };
   instances.set(tabId, instance);
   byPtyId.set(ptyId, instance);
   const pending = pendingOutput.get(ptyId);
@@ -73,6 +80,7 @@ export function createTerminalInstance(tabId: string, ptyId: number): TerminalIn
     pendingOutput.delete(ptyId);
     for (const chunk of pending) {
       term.write(chunk);
+      onOutput?.(chunk);
     }
   }
   return instance;

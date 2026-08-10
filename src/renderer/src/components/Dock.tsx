@@ -57,6 +57,7 @@ export function Dock({ id, title }: DockProps): ReactElement {
                 tab.status === 'exited' ? ' exited' : ''
               }`}
               draggable
+              data-status={tab.status}
               title={`${tab.title} — ${tab.cwd}`}
               onClick={() => activateTab(id, tab.id)}
               onDragStart={(event) => {
@@ -64,6 +65,18 @@ export function Dock({ id, title }: DockProps): ReactElement {
                 event.dataTransfer.effectAllowed = 'move';
               }}
             >
+              {tab.kind === 'claude' &&
+                tab.id !== dock.activeId &&
+                (tab.status === 'idle' || tab.status === 'needs-input') && (
+                  <span
+                    className={`status-dot ${tab.status === 'idle' ? 'done' : 'attention'}`}
+                    title={
+                      tab.status === 'idle'
+                        ? 'Claude skończył pracę'
+                        : 'Claude czeka na zgodę'
+                    }
+                  />
+                )}
               <span className="dock-tab-title">{tab.title}</span>
               <button
                 type="button"
@@ -96,6 +109,17 @@ export function Dock({ id, title }: DockProps): ReactElement {
                 <button
                   type="button"
                   role="menuitem"
+                  data-testid={`${id}-menu-new-claude`}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    addTab(id, 'claude');
+                  }}
+                >
+                  Sesja Claude
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
                   data-testid={`${id}-menu-new-terminal`}
                   onClick={() => {
                     setMenuOpen(false);
@@ -103,9 +127,6 @@ export function Dock({ id, title }: DockProps): ReactElement {
                   }}
                 >
                   Terminal
-                </button>
-                <button type="button" role="menuitem" disabled title="Dostępne od M4">
-                  Sesja Claude
                 </button>
               </div>
             </>

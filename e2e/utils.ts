@@ -25,7 +25,11 @@ export function makeConfigHome(): string {
   return mkdtempSync(join(tmpdir(), 'vn3o-e2e-'));
 }
 
-export function launchApp(configHome: string, projectRoot?: string): Promise<ElectronApplication> {
+export function launchApp(
+  configHome: string,
+  projectRoot?: string,
+  extraEnv?: Record<string, string>,
+): Promise<ElectronApplication> {
   const env: Record<string, string> = {};
   for (const [key, value] of Object.entries(process.env)) {
     if (value !== undefined) {
@@ -39,5 +43,32 @@ export function launchApp(configHome: string, projectRoot?: string): Promise<Ele
     delete env['VISUALN3O_ROOT'];
   }
   delete env['ELECTRON_RENDERER_URL'];
+  Object.assign(env, extraEnv);
   return electron.launch({ args: ['.'], env });
+}
+
+/**
+ * Atrapa binarki `claude` do hermetycznych testów M4: wypisuje sygnały statusu
+ * rozpoznawane przez heurystykę i odpowiada na wpisywane linie.
+ */
+export function makeFakeClaudeBin(): string {
+  const dir = mkdtempSync(join(tmpdir(), 'vn3o-bin-'));
+  const script = `#!/bin/zsh
+echo "── Claude Code (atrapa) ──"
+echo "? for shortcuts"
+while IFS= read -r line; do
+  if [[ "$line" == perm* ]]; then
+    echo "Do you want to allow this tool?"
+    echo "  1. Yes"
+    echo "  2. No"
+  else
+    echo "esc to interrupt"
+    sleep 0.2
+    echo "odpowiedz: $line"
+    echo "? for shortcuts"
+  fi
+done
+`;
+  writeFileSync(join(dir, 'claude'), script, { mode: 0o755 });
+  return dir;
 }

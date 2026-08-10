@@ -8,6 +8,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from 'react';
+import { createClaudeStatusTracker } from '../../shared/claude-status';
 import {
   activateTab as activateTabState,
   addTab as addTabState,
@@ -61,7 +62,21 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
           return;
         }
         const id = `tab-${nextTabNumber++}`;
-        createTerminalInstance(id, result.ptyId);
+        // Wskaźnik statusu (SPEC.md): heurystyka na strumieniu wyjściowym pty,
+        // tylko dla zakładek `claude`.
+        const onOutput =
+          kind === 'claude'
+            ? createClaudeStatusTracker((activity) => {
+                applyDocks((state) => {
+                  const found = findTab(state, id);
+                  if (!found || found.tab.status === 'exited') {
+                    return state;
+                  }
+                  return updateTabState(state, id, { status: activity });
+                });
+              }).push
+            : undefined;
+        createTerminalInstance(id, result.ptyId, onOutput);
         applyDocks((state) =>
           addTabState(state, dock, {
             id,
