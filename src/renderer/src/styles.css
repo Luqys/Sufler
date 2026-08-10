@@ -3266,3 +3266,29 @@ body.dragging-horizontal .splitter.horizontal::after {
 .skill-item-on:hover {
   background: color-mix(in srgb, #16a34a 14%, transparent);
 }
+
+/* --- M49: drobny szlif nakładki grafu i kreatorów skilli --- */
+
+.graph-overlay .bar-btn:focus:not(:focus-visible),
+.graph-search:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.graph-mode {
+  justify-content: flex-start;
+}
+
+.graph-mode-btn {
+  flex: 0 0 auto;
+}
+
+.skills-toolbar {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.skills-toolbar .bar-btn {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 6px;
+  padding-right: 6px;
+}
