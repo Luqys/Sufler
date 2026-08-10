@@ -16,7 +16,7 @@ export function saveClipboardImage(): SaveClipboardImageResult {
   if (image.isEmpty()) {
     return { ok: false };
   }
-  const dir = join(tmpdir(), 'neodesk-obrazki');
+  const dir = join(tmpdir(), 'sufler-obrazki');
   mkdirSync(dir, { recursive: true });
   const stamp = new Date()
     .toISOString()

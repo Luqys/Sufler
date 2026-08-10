@@ -4,13 +4,13 @@ import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import { launchApp, makeConfigHome, makeFixtureProject } from './utils';
 
-test('nazwa Neodesk i motyw matrixowy: paleta UI, terminal, zapis stanu', async () => {
+test('nazwa Sufler i motyw matrixowy: paleta UI, terminal, zapis stanu', async () => {
   const configHome = makeConfigHome();
   const app = await launchApp(configHome, makeFixtureProject());
   const page = await app.firstWindow();
 
   // Branding po zmianie nazwy.
-  await expect(page.locator('.titlebar-title')).toContainText('Neodesk');
+  await expect(page.locator('.titlebar-title')).toContainText('Sufler');
 
   // Ustawienia → motyw Matrix nakłada data-flavor na <html>.
   await page.keyboard.press('Meta+,');
@@ -30,12 +30,12 @@ test('nazwa Neodesk i motyw matrixowy: paleta UI, terminal, zapis stanu', async 
     )
     .toBe('rgb(5, 11, 6)');
 
-  // Wybór trafia do state.json w nowym katalogu konfiguracji (neodesk).
+  // Wybór trafia do state.json w nowym katalogu konfiguracji (sufler).
   await expect
     .poll(() => {
       try {
         const raw = JSON.parse(
-          readFileSync(join(configHome, 'neodesk', 'state.json'), 'utf8'),
+          readFileSync(join(configHome, 'sufler', 'state.json'), 'utf8'),
         ) as { appearance?: { mode?: string } };
         return raw.appearance?.mode ?? null;
       } catch {

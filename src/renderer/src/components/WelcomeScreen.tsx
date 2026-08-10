@@ -51,14 +51,14 @@ export function WelcomeScreen({ onPicked }: WelcomeScreenProps): ReactElement {
 
   return (
     <div className="shell">
-      <header className="titlebar">Neodesk</header>
+      <header className="titlebar">Sufler</header>
       <div className="welcome" data-testid="welcome">
         <div className="welcome-card">
           <div className="welcome-hero">
             <span className="welcome-mark-halo" aria-hidden>
               <img src={logoUrl} alt="" className="welcome-mark-logo" />
             </span>
-            <div className="welcome-logo">Neodesk</div>
+            <div className="welcome-logo">Sufler</div>
             <span className="welcome-tagline">
               <span className="welcome-tagline-spark" aria-hidden>
                 ✳

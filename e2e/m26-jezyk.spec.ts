@@ -32,7 +32,7 @@ test('język UI: przełączenie na angielski działa w całej aplikacji i zapisu
     .poll(() => {
       try {
         const raw = JSON.parse(
-          readFileSync(join(configHome, 'neodesk', 'state.json'), 'utf8'),
+          readFileSync(join(configHome, 'sufler', 'state.json'), 'utf8'),
         ) as { appearance?: { language?: string } };
         return raw.appearance?.language ?? null;
       } catch {

@@ -1,5 +1,5 @@
-appId: io.n3osystem.neodesk
-productName: Neodesk
+appId: io.n3osystem.sufler
+productName: Sufler
 directories:
   output: dist
 files:

@@ -170,7 +170,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
   return (
     <div className="shell">
       <header className="titlebar">
-        <span className="titlebar-title">Neodesk — {baseName(root)}</span>
+        <span className="titlebar-title">Sufler — {baseName(root)}</span>
         <div className="titlebar-actions">
           <button
             type="button"

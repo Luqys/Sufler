@@ -7,7 +7,7 @@ export function applyAccent(accent: AccentId): void {
 }
 
 /** Zdarzenie dla modułów poza Reactem (xterm, Monaco) — zmiana smaku motywu. */
-export const FLAVOR_EVENT = 'neodesk:flavor';
+export const FLAVOR_EVENT = 'sufler:flavor';
 
 /**
  * Smak motywu: 'matrix' nakłada zieloną paletę przez atrybut na <html>.

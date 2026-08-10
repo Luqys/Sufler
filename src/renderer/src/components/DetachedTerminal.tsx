@@ -25,7 +25,7 @@ export function DetachedTerminal(): ReactElement {
         setError(t('detached.gone'));
         return;
       }
-      document.title = `${info.title} — Neodesk`;
+      document.title = `${info.title} — Sufler`;
       const id = `detached-${ptyId}`;
       const instance = createTerminalInstance(id, ptyId);
       if (info.serialized) {

@@ -23,7 +23,7 @@ export function EditorArea(): ReactElement {
         <EditorTabs />
         <div className="editor-empty-wrap">
           <div className="editor-empty">
-            <div className="editor-empty-title">Neodesk</div>
+            <div className="editor-empty-title">Sufler</div>
             <p className="placeholder">{t('editor.empty')}</p>
           </div>
         </div>

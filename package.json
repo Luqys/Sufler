@@ -1,5 +1,5 @@
 {
-  "name": "neodesk",
+  "name": "sufler",
   "version": "0.1.0",
   "description": "Środowisko pracy z Claude Code: edytor, terminale, panele skilli i MCP",
   "main": "out/main/index.js",

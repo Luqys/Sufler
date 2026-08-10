@@ -50,7 +50,7 @@ function createWindow(): void {
     minWidth: 960,
     minHeight: 600,
     show: false,
-    title: 'Neodesk',
+    title: 'Sufler',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 14, y: 11 },
     // Vibrancy sidebara (SPEC.md, M9) — tło okna musi zostać przezroczyste,

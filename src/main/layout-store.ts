@@ -8,17 +8,24 @@ function configBase(): string {
 }
 
 export function configDir(): string {
-  return join(configBase(), 'neodesk');
+  return join(configBase(), 'sufler');
 }
 
-/** Jednorazowa migracja po zmianie nazwy aplikacji: ~/.config/visualn3o → neodesk. */
+/**
+ * Jednorazowa migracja po zmianach nazwy aplikacji:
+ * ~/.config/neodesk (M25) albo ~/.config/visualn3o (do M24) → sufler.
+ * Nowsza nazwa ma pierwszeństwo, przenosimy pierwszy istniejący katalog.
+ */
 export function migrateLegacyConfigDir(): void {
-  const legacy = join(configBase(), 'visualn3o');
-  if (existsSync(legacy) && !existsSync(configDir())) {
-    try {
-      renameSync(legacy, configDir());
-    } catch {
-      // Nie udało się przenieść — start z domyślną konfiguracją.
+  for (const name of ['neodesk', 'visualn3o']) {
+    const legacy = join(configBase(), name);
+    if (existsSync(legacy) && !existsSync(configDir())) {
+      try {
+        renameSync(legacy, configDir());
+        return;
+      } catch {
+        // Nie udało się przenieść — próbujemy starszego katalogu albo startujemy z domyślną.
+      }
     }
   }
 }

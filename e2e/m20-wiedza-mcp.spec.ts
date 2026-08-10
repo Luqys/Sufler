@@ -56,7 +56,7 @@ test('serwer MCP grafu wiedzy podaje schemat połączeń i treść notatek', asy
       clientInfo: { name: 'test-e2e', version: '1.0' },
     },
   });
-  expect(init).toContain('neodesk-graf-wiedzy');
+  expect(init).toContain('sufler-graf-wiedzy');
 
   // Tryb bezstanowy: każde żądanie to świeży serwer — wywołanie idzie solo.
   const graph = await mcpCall({

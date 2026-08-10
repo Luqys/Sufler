@@ -92,7 +92,7 @@ export const PL = {
   'settings.vaultPick': 'Wybierz vault…',
   'settings.vaultClear': 'Odepnij',
   'settings.config': 'Konfiguracja',
-  'settings.configPath': 'Układ i stan aplikacji: ~/.config/neodesk/ (layout.json, state.json)',
+  'settings.configPath': 'Układ i stan aplikacji: ~/.config/sufler/ (layout.json, state.json)',
 
   // Motywy i akcenty
   'theme.system': 'Systemowy',
@@ -413,7 +413,7 @@ export const EN: Record<StringKey, string> = {
   'settings.vaultPick': 'Choose vault…',
   'settings.vaultClear': 'Unlink',
   'settings.config': 'Configuration',
-  'settings.configPath': 'Layout and app state: ~/.config/neodesk/ (layout.json, state.json)',
+  'settings.configPath': 'Layout and app state: ~/.config/sufler/ (layout.json, state.json)',
 
   'theme.system': 'System',
   'theme.light': 'Light',

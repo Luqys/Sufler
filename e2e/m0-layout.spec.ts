@@ -89,7 +89,7 @@ test('okno otwiera się z czterema obszarami układu i domyślnymi rozmiarami', 
 test('rozmiary paneli po przeciągnięciu splitterów przeżywają restart aplikacji', async () => {
   const configHome = makeConfigHome();
   const project = makeFixtureProject();
-  const layoutFile = join(configHome, 'neodesk', 'layout.json');
+  const layoutFile = join(configHome, 'sufler', 'layout.json');
 
   let app = await launchApp(configHome, project);
   let page = await openWorkbench(app);
