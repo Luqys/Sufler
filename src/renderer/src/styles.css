@@ -2545,30 +2545,6 @@ body.dragging-horizontal .splitter.horizontal::after {
   color: var(--git-untracked);
 }
 
-.tree-root-header {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 12px 8px 4px 12px;
-  border-top: 1px solid var(--border);
-  margin-top: 8px;
-}
-
-.tree-root-header .view-title {
-  flex: 1;
-  min-width: 0;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tree-add-vault {
-  color: var(--muted);
-  margin-top: 10px;
-  padding-left: 10px;
-}
-
 /* --- Panel wyszukiwania --- */
 
 .search-panel {

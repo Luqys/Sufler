@@ -172,8 +172,6 @@ const api: WindowApi = {
   },
   resolveNoteLinks: (names: string[]): Promise<Record<string, string | null>> =>
     ipcRenderer.invoke(IPC.ObsidianResolveLinks, names),
-  openNoteInObsidian: (path: string): Promise<boolean> =>
-    ipcRenderer.invoke(IPC.ObsidianOpenNote, path),
   sendToDailyNote: (content: string): Promise<SendToNoteResult> =>
     ipcRenderer.invoke(IPC.ObsidianSendDaily, content),
   getObsidianConfig: (): Promise<ObsidianRestConfig> =>

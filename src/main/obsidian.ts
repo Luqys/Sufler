@@ -1,11 +1,9 @@
 /**
  * Warstwa 3 integracji z Obsidianem (M36): indeks nazwa→ścieżka dla
- * wikilinków, deep link `obsidian://open` i PATCH do notatki dziennej
- * przez plugin Local REST API.
+ * wikilinków i PATCH do notatki dziennej przez plugin Local REST API.
  */
-import { shell } from 'electron';
 import { readdirSync, statSync } from 'node:fs';
-import { basename, join, relative } from 'node:path';
+import { join } from 'node:path';
 import type { SendToNoteResult } from '../shared/ipc';
 import { buildAppendRequest, type ObsidianRestConfig } from '../shared/obsidian-rest';
 import { noteIndexKey } from '../shared/wikilinks';
@@ -79,19 +77,6 @@ export function resolveNoteLinks(names: string[]): Record<string, string | null>
     result[name] = index.get(noteIndexKey(name)) ?? null;
   }
   return result;
-}
-
-/** Cmd+klik na notatce vaulta w drzewie → otwarcie w prawdziwym Obsidianie. */
-export function openNoteInObsidian(absPath: string): boolean {
-  const vault = getVaultPath();
-  if (!vault || !absPath.startsWith(`${vault}/`)) {
-    return false;
-  }
-  const url =
-    `obsidian://open?vault=${encodeURIComponent(basename(vault))}` +
-    `&file=${encodeURIComponent(relative(vault, absPath).replace(/\.md$/, ''))}`;
-  void shell.openExternal(url);
-  return true;
 }
 
 export function getObsidianConfig(): ObsidianRestConfig {

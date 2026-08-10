@@ -72,7 +72,7 @@ const RAIL_ITEMS: RailItem[] = [
 ];
 
 export function Sidebar(): ReactElement {
-  const { root, vault, openKnowledgeGraph } = useWorkspace();
+  const { root, openKnowledgeGraph } = useWorkspace();
   const t = useT();
   const [view, setView] = useState<SidebarView>('files');
 
@@ -103,7 +103,7 @@ export function Sidebar(): ReactElement {
       </nav>
       <section className="sidebar-view">
         <div className={`view-panel${view === 'files' ? '' : ' hidden'}`}>
-          <FileTree key={`${root}|${vault ?? ''}`} />
+          <FileTree key={root} />
         </div>
         <div className={`view-panel pad${view === 'search' ? '' : ' hidden'}`}>
           <h2 className="view-title">{t('sidebar.view.search')}</h2>

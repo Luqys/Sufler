@@ -71,7 +71,7 @@ export interface RevealTarget {
 
 interface WorkspaceValue {
   root: string;
-  /** Vault Obsidiana — drugi korzeń drzewa plików (warstwa 1 integracji). */
+  /** Vault Obsidiana — źródło indeksu wikilinków; ustawiany w Ustawieniach. */
   vault: string | null;
   /** Grupy edytora (M31) — podział przestrzeni roboczej na kolumny. */
   groups: EditorGroupsState;

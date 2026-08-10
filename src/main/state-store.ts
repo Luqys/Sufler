@@ -6,7 +6,7 @@ import { configDir } from './layout-store';
 export interface AppState {
   /** Ostatnio otwierane foldery projektów (najnowszy pierwszy) — ekran startowy. */
   recentRoots?: string[];
-  /** Ścieżka vaulta Obsidiana (drugi korzeń drzewa plików). */
+  /** Ścieżka vaulta Obsidiana (indeks wikilinków). */
   vaultPath?: string;
   /** Motyw i akcent (normalizowane w shared/appearance). */
   appearance?: unknown;

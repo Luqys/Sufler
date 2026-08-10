@@ -145,10 +145,6 @@ export const PL = {
   'ft.openProject': 'Otwórz folder projektu…',
   'ft.refresh': 'Odśwież drzewo',
   'ft.showIgnored': 'Pokaż pliki ignorowane przez .gitignore',
-  'ft.notes': 'Notatki',
-  'ft.vaultDetach': 'Odepnij vault Obsidiana',
-  'ft.vaultAddTitle': 'Vault Obsidiana jako drugi korzeń drzewa',
-  'ft.vaultAdd': '+ Dodaj vault Obsidiana…',
 
   // Panel git
   'git.statusAdded': 'dodany',
@@ -545,10 +541,6 @@ export const EN: Record<StringKey, string> = {
   'ft.openProject': 'Open project folder…',
   'ft.refresh': 'Refresh tree',
   'ft.showIgnored': 'Show files ignored by .gitignore',
-  'ft.notes': 'Notes',
-  'ft.vaultDetach': 'Unlink the Obsidian vault',
-  'ft.vaultAddTitle': 'Obsidian vault as a second tree root',
-  'ft.vaultAdd': '+ Add an Obsidian vault…',
 
   'git.statusAdded': 'added',
   'git.statusModified': 'modified',

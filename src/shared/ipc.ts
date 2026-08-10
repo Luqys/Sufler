@@ -74,7 +74,6 @@ export const IPC = {
   ClaudeSessionsList: 'claude-sessions:list',
   ClaudeHookEvent: 'claude-hooks:event',
   ObsidianResolveLinks: 'obsidian:resolve-links',
-  ObsidianOpenNote: 'obsidian:open-note',
   ObsidianSendDaily: 'obsidian:send-daily',
   ObsidianConfigGet: 'obsidian:config-get',
   ObsidianConfigSet: 'obsidian:config-set',
@@ -333,8 +332,6 @@ export interface WindowApi {
   onClaudeHookEvent(listener: (event: ClaudeHookEvent) => void): void;
   /** Wikilinki: nazwy notatek → ścieżki absolutne w vaultcie (null = brak). */
   resolveNoteLinks(names: string[]): Promise<Record<string, string | null>>;
-  /** Deep link obsidian://open — Cmd+klik na notatce vaulta w drzewie. */
-  openNoteInObsidian(path: string): Promise<boolean>;
   /** Zaznaczenie → dopisanie pod nagłówek notatki dziennej (Local REST API). */
   sendToDailyNote(content: string): Promise<SendToNoteResult>;
   getObsidianConfig(): Promise<ObsidianRestConfig>;

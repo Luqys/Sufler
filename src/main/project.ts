@@ -70,7 +70,7 @@ export async function chooseProjectRoot(win: BrowserWindow): Promise<string | nu
   return picked;
 }
 
-/** Warstwa 1 integracji z Obsidianem: vault jako drugi korzeń drzewa. */
+/** Vault Obsidiana — źródło indeksu wikilinków (warstwa 3, M36). */
 export function getVaultPath(): string | null {
   const fromEnv = process.env['VISUALN3O_VAULT'];
   if (isDirectory(fromEnv)) {

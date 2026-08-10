@@ -21,7 +21,6 @@ import { runGitStatus } from './git-status';
 import { startIdeServer, stopIdeServer, updateIdeWorkspaceFolders } from './ide-server';
 import {
   getObsidianConfig,
-  openNoteInObsidian,
   resolveNoteLinks,
   sendToDailyNote,
   setObsidianConfig,
@@ -260,7 +259,6 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.ObsidianResolveLinks, (_event, names: string[]) =>
     resolveNoteLinks(names),
   );
-  ipcMain.handle(IPC.ObsidianOpenNote, (_event, path: string) => openNoteInObsidian(path));
   ipcMain.handle(IPC.ObsidianSendDaily, (_event, content: string) => sendToDailyNote(content));
   ipcMain.handle(IPC.ObsidianConfigGet, () => getObsidianConfig());
   ipcMain.handle(IPC.ObsidianConfigSet, (_event, config: ObsidianRestConfig) =>
