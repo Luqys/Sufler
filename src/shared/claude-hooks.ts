@@ -1,0 +1,66 @@
+/**
+ * Deterministyczny status sesji Claude (M35, SPEC.md „Wskaźnik statusu"):
+ * zamiast polegać wyłącznie na heurystyce strumienia pty, karty `claude`
+ * dostają wygenerowany plik ustawień (flaga `--settings`) z hookami
+ * Notification/Stop, które POST-ują do lokalnego endpointu aplikacji.
+ * Czysta logika (budowa ustawień + parsowanie żądania) — testowana jednostkowo.
+ */
+
+export interface ClaudeHookEvent {
+  ptyId: number;
+  kind: 'notification' | 'stop';
+}
+
+/** Ścieżka endpointu na serwerze HTTP aplikacji (współdzielonym z ide-ws). */
+export const HOOK_ENDPOINT_PATH = '/hook';
+
+function hookCommand(port: number, token: string, event: 'notification' | 'stop'): string {
+  // $VISUALN3O_TAB_ID rozwiązuje shell hooka — zmienna siedzi w env pty karty.
+  return (
+    `curl -sf -m 3 -X POST` +
+    ` -H "x-sufler-hook: ${token}"` +
+    ` -H "x-sufler-tab: $VISUALN3O_TAB_ID"` +
+    ` -H "x-sufler-event: ${event}"` +
+    ` --data-binary @- http://127.0.0.1:${port}${HOOK_ENDPOINT_PATH}` +
+    ` >/dev/null 2>&1 || true`
+  );
+}
+
+/** Zawartość pliku dla `claude --settings <plik>` — tylko hooki, nic więcej. */
+export function buildHookSettings(port: number, token: string): object {
+  const entry = (event: 'notification' | 'stop'): object[] => [
+    { hooks: [{ type: 'command', command: hookCommand(port, token, event), timeout: 5 }] },
+  ];
+  return {
+    hooks: {
+      Notification: entry('notification'),
+      Stop: entry('stop'),
+    },
+  };
+}
+
+function headerValue(value: string | string[] | undefined): string | null {
+  if (typeof value === 'string') {
+    return value;
+  }
+  return null;
+}
+
+/** Walidacja żądania hooka; null → 403. */
+export function parseHookRequest(
+  headers: Record<string, string | string[] | undefined>,
+  expectedToken: string,
+): ClaudeHookEvent | null {
+  if (expectedToken === '' || headerValue(headers['x-sufler-hook']) !== expectedToken) {
+    return null;
+  }
+  const ptyId = Number(headerValue(headers['x-sufler-tab']));
+  if (!Number.isInteger(ptyId) || ptyId <= 0) {
+    return null;
+  }
+  const event = headerValue(headers['x-sufler-event']);
+  if (event !== 'notification' && event !== 'stop') {
+    return null;
+  }
+  return { ptyId, kind: event };
+}

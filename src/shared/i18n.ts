@@ -46,6 +46,9 @@ export const PL = {
   'dock.resumeLoading': 'Szukam sesji…',
   'dock.resumeEmpty': 'Brak zapisanych sesji dla tego projektu.',
   'dock.resumeTabTitle': 'Claude ↺',
+  'dock.notifDone': 'Claude skończył pracę',
+  'dock.notifAttention': 'Claude czeka na zgodę',
+  'dock.notifBody': 'Karta „{title}" — wróć do Suflera.',
 
   // Zakładki edytora i obszar edytora
   'tabs.split': 'Podziel przestrzeń roboczą — nowa grupa edytora obok',
@@ -395,6 +398,9 @@ export const EN: Record<StringKey, string> = {
   'dock.resumeLoading': 'Looking for sessions…',
   'dock.resumeEmpty': 'No saved sessions for this project.',
   'dock.resumeTabTitle': 'Claude ↺',
+  'dock.notifDone': 'Claude finished working',
+  'dock.notifAttention': 'Claude is waiting for approval',
+  'dock.notifBody': 'Tab “{title}” — come back to Sufler.',
 
   'tabs.split': 'Split the workspace — a new editor group alongside',
   'tabs.preview': 'Browser preview (localhost) with element picking mode',

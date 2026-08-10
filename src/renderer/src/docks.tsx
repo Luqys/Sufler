@@ -220,6 +220,32 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
     });
   }, [applyDocks]);
 
+  // Deterministyczny status z hooków Notification/Stop (M35) — nadpisuje
+  // heurystykę strumienia pty; ta zostaje jako fallback dla starych sesji.
+  useEffect(() => {
+    window.api.onClaudeHookEvent(({ ptyId, kind }) => {
+      const target = allTabs(docksRef.current).find(
+        (tab) => tab.ptyId === ptyId && tab.kind === 'claude' && tab.status !== 'exited',
+      );
+      if (!target) {
+        return;
+      }
+      applyDocks((state) =>
+        updateTabState(state, target.id, {
+          status: kind === 'stop' ? 'idle' : 'needs-input',
+        }),
+      );
+      // Okno w tle → natywne powiadomienie macOS z możliwością powrotu.
+      if (!document.hasFocus() && typeof Notification !== 'undefined') {
+        const notification = new Notification(
+          kind === 'stop' ? t('dock.notifDone') : t('dock.notifAttention'),
+          { body: tf('dock.notifBody', { title: target.title }) },
+        );
+        notification.onclick = () => window.focus();
+      }
+    });
+  }, [applyDocks]);
+
   return (
     <DocksContext.Provider
       value={{

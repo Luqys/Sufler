@@ -10,12 +10,17 @@
  * lock file i mostek IPC do renderera.
  */
 import { BrowserWindow, app, ipcMain } from 'electron';
-import { createServer, type Server } from 'node:http';
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { WebSocketServer, type WebSocket } from 'ws';
+import {
+  buildHookSettings,
+  parseHookRequest,
+  HOOK_ENDPOINT_PATH,
+} from '../shared/claude-hooks';
 import {
   buildLockFileContent,
   handleIdeRpcMessage,
@@ -33,6 +38,7 @@ let server: Server | null = null;
 let wss: WebSocketServer | null = null;
 let port: number | null = null;
 let lockPath: string | null = null;
+let hookSettingsPath: string | null = null;
 let authToken = '';
 let getRoot: () => string | null = () => null;
 let readyResolve: (() => void) | null = null;
@@ -176,8 +182,12 @@ export function startIdeServer(rootProvider: () => string | null): void {
   ipcMain.handle(IPC.IdeStatusGet, (): IdeStatus => ({ running: port !== null, port }));
 
   wss = new WebSocketServer({ noServer: true });
-  server = createServer((_request, response) => {
-    // Zwykłe HTTP nie jest częścią protokołu — tylko upgrade do WebSocketu.
+  server = createServer((request, response) => {
+    if (request.method === 'POST' && request.url === HOOK_ENDPOINT_PATH) {
+      handleHookRequest(request, response);
+      return;
+    }
+    // Poza hookami zwykłe HTTP nie jest częścią protokołu — tylko upgrade do WS.
     response.writeHead(426, { 'Content-Type': 'text/plain' });
     response.end('Upgrade Required');
   });
@@ -217,12 +227,50 @@ export function startIdeServer(rootProvider: () => string | null): void {
       port = address.port;
       try {
         writeLock();
+        writeHookSettings();
       } catch {
         port = null;
       }
     }
     readyResolve?.();
   });
+}
+
+/** Hook Notification/Stop z sesji Claude → deterministyczny status karty. */
+function handleHookRequest(request: IncomingMessage, response: ServerResponse): void {
+  const event = parseHookRequest(request.headers, authToken);
+  // Treść hooka (JSON na stdin curla) pomijamy — nagłówki niosą wszystko.
+  request.resume();
+  request.on('end', () => {
+    if (!event) {
+      response.writeHead(403);
+      response.end();
+      return;
+    }
+    for (const win of BrowserWindow.getAllWindows()) {
+      if (!win.isDestroyed()) {
+        win.webContents.send(IPC.ClaudeHookEvent, event);
+      }
+    }
+    response.writeHead(204);
+    response.end();
+  });
+}
+
+/** Plik dla `claude --settings` — hooki wskazujące endpoint tej instancji. */
+function writeHookSettings(): void {
+  if (port === null) {
+    return;
+  }
+  hookSettingsPath = join(tmpdir(), `sufler-hooks-${process.pid}.json`);
+  writeFileSync(hookSettingsPath, JSON.stringify(buildHookSettings(port, authToken)), {
+    mode: 0o600,
+  });
+}
+
+/** Argumenty --settings dla kart `claude`; puste, gdy serwer nie wystartował. */
+export function ideHookSettingsArgs(): string[] {
+  return hookSettingsPath ? ['--settings', hookSettingsPath] : [];
 }
 
 /** Env dla pty zakładki `claude` — po nim CLI znajduje nasz serwer. */
@@ -262,5 +310,13 @@ export function stopIdeServer(): void {
       // już nie istnieje
     }
     lockPath = null;
+  }
+  if (hookSettingsPath) {
+    try {
+      rmSync(hookSettingsPath);
+    } catch {
+      // już nie istnieje
+    }
+    hookSettingsPath = null;
   }
 }

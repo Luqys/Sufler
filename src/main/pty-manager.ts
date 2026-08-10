@@ -2,7 +2,7 @@ import { BrowserWindow } from 'electron';
 import { spawn, type IPty } from 'node-pty';
 import { IPC, type PtyCreateResult } from '../shared/ipc';
 import type { TabKind } from '../shared/dock-tabs';
-import { ideEnvForClaude } from './ide-server';
+import { ideEnvForClaude, ideHookSettingsArgs } from './ide-server';
 import { resolveShellEnv } from './shell-env';
 
 let nextPtyId = 1;
@@ -27,19 +27,24 @@ export async function createPty(
   const env = { ...(await resolveShellEnv()) };
   const shell = env['SHELL'] || '/bin/zsh';
   const command = options.kind === 'claude' ? 'claude' : shell;
+  const ptyId = nextPtyId++;
+  let args = options.args ?? [];
   if (options.kind === 'claude') {
-    // CLI znajdzie nasz serwer „ide" (diffy w Monaco, podgląd zaznaczenia).
-    Object.assign(env, await ideEnvForClaude());
+    // CLI znajdzie nasz serwer „ide" (diffy w Monaco, podgląd zaznaczenia),
+    // a hooki Notification/Stop z --settings odeślą deterministyczny status
+    // karty (VISUALN3O_TAB_ID rozwiązuje shell komendy hooka). --settings
+    // na końcu — argumenty pozycyjne wołających (np. /login) muszą zostać $1.
+    Object.assign(env, await ideEnvForClaude(), { VISUALN3O_TAB_ID: String(ptyId) });
+    args = [...args, ...ideHookSettingsArgs()];
   }
   try {
-    const session = spawn(command, options.args ?? [], {
+    const session = spawn(command, args, {
       name: 'xterm-256color',
       cols: 80,
       rows: 24,
       cwd: options.cwd,
       env,
     });
-    const ptyId = nextPtyId++;
     sessions.set(ptyId, session);
     session.onData((data) => {
       broadcast(IPC.PtyData, { ptyId, data });

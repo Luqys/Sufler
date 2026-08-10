@@ -1,4 +1,5 @@
 import type { Appearance } from './appearance';
+import type { ClaudeHookEvent } from './claude-hooks';
 import type { ClaudeSessionEntry } from './claude-sessions';
 import type { TabKind } from './dock-tabs';
 import type { IdeSelection } from './ide-protocol';
@@ -68,6 +69,7 @@ export const IPC = {
   IdeStatusGet: 'ide:status',
   GitShowFile: 'git:show-file',
   ClaudeSessionsList: 'claude-sessions:list',
+  ClaudeHookEvent: 'claude-hooks:event',
 } as const;
 
 /** Żądanie serwera „ide" do renderera (openDiff, openFile, getOpenEditors…). */
@@ -288,6 +290,8 @@ export interface WindowApi {
   gitShowFile(root: string, rev: string, path: string): Promise<GitShowFileResult>;
   /** Zapisane sesje Claude projektu — menu „Wznów sesję" (claude --resume). */
   listClaudeSessions(root: string): Promise<ClaudeSessionEntry[]>;
+  /** Hooki Notification/Stop sesji Claude → deterministyczny status karty. */
+  onClaudeHookEvent(listener: (event: ClaudeHookEvent) => void): void;
 }
 
 export type McpStatusResult =

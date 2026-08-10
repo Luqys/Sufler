@@ -30,6 +30,7 @@ import {
   type WindowApi,
   type WriteFileResult,
 } from '../shared/ipc';
+import type { ClaudeHookEvent } from '../shared/claude-hooks';
 import type { ClaudeSessionEntry } from '../shared/claude-sessions';
 import type { KnowledgeGraph } from '../shared/graph';
 import type { IdeSelection } from '../shared/ide-protocol';
@@ -155,6 +156,11 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.GitShowFile, root, rev, path),
   listClaudeSessions: (root: string): Promise<ClaudeSessionEntry[]> =>
     ipcRenderer.invoke(IPC.ClaudeSessionsList, root),
+  onClaudeHookEvent: (listener: (event: ClaudeHookEvent) => void): void => {
+    ipcRenderer.on(IPC.ClaudeHookEvent, (_event, payload: ClaudeHookEvent) =>
+      listener(payload),
+    );
+  },
 };
 
 contextBridge.exposeInMainWorld('api', api);
