@@ -1,6 +1,7 @@
 import { useState, type ReactElement } from 'react';
 import { useWorkspace } from '../workspace';
 import { FileTree } from './FileTree';
+import { McpPanel } from './McpPanel';
 import { SkillsPanel } from './SkillsPanel';
 
 type SidebarView = 'files' | 'skills' | 'mcp';
@@ -67,9 +68,9 @@ export function Sidebar(): ReactElement {
           <h2 className="view-title">Skille i agenci</h2>
           <SkillsPanel />
         </div>
-        <div className={`view-panel pad${view === 'mcp' ? '' : ' hidden'}`}>
+        <div className={`view-panel pad scroll${view === 'mcp' ? '' : ' hidden'}`}>
           <h2 className="view-title">Serwery MCP</h2>
-          <p className="placeholder">Panel serwerów MCP pojawi się w M6.</p>
+          <McpPanel />
         </div>
       </section>
     </aside>

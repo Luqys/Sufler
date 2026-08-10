@@ -28,13 +28,23 @@ export function parseShellEnvOutput(output: string): Record<string, string> {
   return env;
 }
 
+/** Hak testowy (e2e): katalog z atrapami binarek doklejany na początek PATH. */
+function applyPathPrepend(env: Record<string, string>): Record<string, string> {
+  const prepend = process.env['VISUALN3O_PATH_PREPEND'];
+  if (prepend) {
+    env['PATH'] = `${prepend}:${env['PATH'] ?? ''}`;
+  }
+  return env;
+}
+
 export function resolveShellEnv(): Promise<Record<string, string>> {
   if (cached) {
     return cached;
   }
   cached = new Promise((resolve) => {
     const shell = process.env['SHELL'] || '/bin/zsh';
-    const fallback = (): void => resolve({ ...process.env } as Record<string, string>);
+    const fallback = (): void =>
+      resolve(applyPathPrepend({ ...process.env } as Record<string, string>));
     const child = execFile(
       shell,
       ['-ilc', `printf '%s' '${MARKER}'; env -0`],
@@ -49,7 +59,7 @@ export function resolveShellEnv(): Promise<Record<string, string>> {
           fallback();
           return;
         }
-        resolve({ ...(process.env as Record<string, string>), ...parsed });
+        resolve(applyPathPrepend({ ...(process.env as Record<string, string>), ...parsed }));
       },
     );
     child.on('error', fallback);

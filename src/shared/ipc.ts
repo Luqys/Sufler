@@ -1,5 +1,6 @@
 import type { TabKind } from './dock-tabs';
 import type { LayoutState } from './layout';
+import type { McpConfigServer, McpDetail, McpListEntry } from './mcp';
 
 export const IPC = {
   LayoutGet: 'layout:get',
@@ -20,6 +21,11 @@ export const IPC = {
   SkillsGet: 'skills:get',
   SkillsWatch: 'skills:watch',
   SkillsChanged: 'skills:changed',
+  McpReadConfig: 'mcp:read-config',
+  McpListStatus: 'mcp:list-status',
+  McpGetDetails: 'mcp:get-details',
+  McpWatch: 'mcp:watch',
+  McpChanged: 'mcp:changed',
 } as const;
 
 export interface DirEntry {
@@ -122,4 +128,13 @@ export interface WindowApi {
   getSkills(root: string): Promise<SkillsSnapshot>;
   watchSkills(root: string): Promise<void>;
   onSkillsChanged(listener: () => void): void;
+  readMcpConfig(root: string): Promise<McpConfigServer[]>;
+  listMcpStatus(root: string): Promise<McpStatusResult>;
+  getMcpDetails(root: string, name: string): Promise<McpDetail[]>;
+  watchMcp(root: string): Promise<void>;
+  onMcpChanged(listener: () => void): void;
 }
+
+export type McpStatusResult =
+  | { ok: true; entries: McpListEntry[] }
+  | { ok: false; error: string };

@@ -5,6 +5,8 @@ import { IPC } from '../shared/ipc';
 import { closeWatcher, setWatchedFiles } from './file-watcher';
 import { readDirListing, readFileForEditor, writeTextFile } from './fs-tree';
 import { readLayout, writeLayout } from './layout-store';
+import { readMcpConfig, runMcpGet, runMcpList } from './mcp/index';
+import { closeMcpWatcher, watchMcpConfig } from './mcp/watcher';
 import { createPty, killAllPtys, killPty, listPtyPids, resizePty, writePty } from './pty-manager';
 import { chooseProjectRoot, getProjectRoot } from './project';
 import { resolveShellEnv } from './shell-env';
@@ -79,6 +81,17 @@ void app.whenReady().then(() => {
       watchSkillsSources(win, root);
     }
   });
+  ipcMain.handle(IPC.McpReadConfig, (_event, root: string) => readMcpConfig(root));
+  ipcMain.handle(IPC.McpListStatus, (_event, root: string) => runMcpList(root));
+  ipcMain.handle(IPC.McpGetDetails, (_event, root: string, name: string) =>
+    runMcpGet(root, name),
+  );
+  ipcMain.handle(IPC.McpWatch, (event, root: string) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+      watchMcpConfig(win, root);
+    }
+  });
 
   // Rozgrzewamy cache środowiska shella, zanim powstanie pierwszy terminal.
   void resolveShellEnv();
@@ -102,5 +115,6 @@ app.on('window-all-closed', () => {
 app.on('will-quit', () => {
   closeWatcher();
   closeSkillsWatcher();
+  closeMcpWatcher();
   killAllPtys();
 });

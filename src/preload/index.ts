@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { TabKind } from '../shared/dock-tabs';
 import {
   IPC,
+  type McpStatusResult,
   type PtyCreateResult,
   type PtyDataEvent,
   type PtyExitEvent,
@@ -13,6 +14,7 @@ import {
   type WriteFileResult,
 } from '../shared/ipc';
 import type { LayoutState } from '../shared/layout';
+import type { McpConfigServer, McpDetail } from '../shared/mcp';
 
 const api: WindowApi = {
   getLayout: (): Promise<LayoutState> => ipcRenderer.invoke(IPC.LayoutGet),
@@ -47,6 +49,16 @@ const api: WindowApi = {
   watchSkills: (root: string): Promise<void> => ipcRenderer.invoke(IPC.SkillsWatch, root),
   onSkillsChanged: (listener: () => void): void => {
     ipcRenderer.on(IPC.SkillsChanged, () => listener());
+  },
+  readMcpConfig: (root: string): Promise<McpConfigServer[]> =>
+    ipcRenderer.invoke(IPC.McpReadConfig, root),
+  listMcpStatus: (root: string): Promise<McpStatusResult> =>
+    ipcRenderer.invoke(IPC.McpListStatus, root),
+  getMcpDetails: (root: string, name: string): Promise<McpDetail[]> =>
+    ipcRenderer.invoke(IPC.McpGetDetails, root, name),
+  watchMcp: (root: string): Promise<void> => ipcRenderer.invoke(IPC.McpWatch, root),
+  onMcpChanged: (listener: () => void): void => {
+    ipcRenderer.on(IPC.McpChanged, () => listener());
   },
 };
 
