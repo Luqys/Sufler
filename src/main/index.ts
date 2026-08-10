@@ -5,7 +5,7 @@ import type { TabKind } from '../shared/dock-tabs';
 import { IPC } from '../shared/ipc';
 import { applyAppearanceAtBoot, getAppearance, setAppearance } from './appearance';
 import { generateKnowledgeContext, listMarkdownFiles } from './knowledge';
-import { getClaudeUsage } from './usage';
+import { buildKnowledgeGraph } from './knowledge-graph';
 import { getUsageLimits } from './usage-limits';
 import { closeWatcher, setWatchedFiles } from './file-watcher';
 import { readDirListing, readFileForEditor, writeTextFile } from './fs-tree';
@@ -69,12 +69,12 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.LayoutGet, () => readLayout());
   ipcMain.handle(IPC.AppearanceGet, () => getAppearance());
   ipcMain.handle(IPC.AppearanceSet, (_event, raw: unknown) => setAppearance(raw));
-  ipcMain.handle(IPC.UsageGet, (_event, force?: boolean) => getClaudeUsage(force));
   ipcMain.handle(IPC.UsageLimitsGet, (_event, force?: boolean) => getUsageLimits(force));
   ipcMain.handle(IPC.KnowledgeList, (_event, root: string) => listMarkdownFiles(root));
   ipcMain.handle(IPC.KnowledgeGenerate, (_event, root: string, paths: string[]) =>
     generateKnowledgeContext(root, paths),
   );
+  ipcMain.handle(IPC.KnowledgeGraphGet, (_event, root: string) => buildKnowledgeGraph(root));
   ipcMain.handle(IPC.GitLog, (_event, root: string) => runGitLog(root));
   ipcMain.handle(IPC.GitShowCommit, (_event, root: string, hash: string) =>
     runGitShowCommit(root, hash),

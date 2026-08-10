@@ -31,8 +31,17 @@ function splitPath(path: string): { dir: string; name: string } {
  * „Wiedza": wszystkie pliki markdown projektu w jednym miejscu + generator
  * wspólnego kontekstu dla agenta (kontekst-agenta.md).
  */
+const ICON_GRAPH = (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
+    <circle cx="4" cy="4" r="2" />
+    <circle cx="12" cy="5.5" r="2" />
+    <circle cx="7" cy="12" r="2" />
+    <path d="M5.8 4.6l4.3 0.6M5 10.4L4.5 6M8.6 10.8l2.4-3.6" />
+  </svg>
+);
+
 export function KnowledgePanel(): ReactElement {
-  const { root, openFile } = useWorkspace();
+  const { root, openFile, openKnowledgeGraph } = useWorkspace();
   const { insertToActiveClaude } = useDocks();
   const [files, setFiles] = useState<KnowledgeFile[] | null>(null);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
@@ -111,6 +120,15 @@ export function KnowledgePanel(): ReactElement {
           Zaznaczone: <strong>{selected.size}</strong> z {total}
           {selectedChars > 0 && <> · ≈ {formatTokens(tokenEstimate)} tokenów</>}
         </span>
+        <button
+          type="button"
+          className="tree-toolbtn"
+          data-testid="knowledge-graph-open"
+          title="Graf wiedzy: notatki, linki i autorzy (à la Obsidian)"
+          onClick={openKnowledgeGraph}
+        >
+          {ICON_GRAPH}
+        </button>
         <button
           type="button"
           className="tree-toolbtn"

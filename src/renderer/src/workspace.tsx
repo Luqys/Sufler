@@ -18,7 +18,7 @@ import {
 } from '../../shared/editor-tabs';
 import type { ReadFileError, WatchEvent } from '../../shared/ipc';
 import { baseName } from '../../shared/paths';
-import { BROWSER_PREVIEW_PATH } from '../../shared/preview';
+import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../shared/preview';
 import {
   disposeModel,
   ensureModel,
@@ -56,6 +56,7 @@ interface WorkspaceValue {
   openFile(path: string, options?: { pinned?: boolean }): void;
   openFileAt(path: string, line: number, column: number): void;
   openBrowserPreview(): void;
+  openKnowledgeGraph(): void;
   chooseVault(): void;
   clearVault(): void;
   activateTab(path: string): void;
@@ -380,6 +381,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     applyTabs((state) => openTabState(state, BROWSER_PREVIEW_PATH, 'Podgląd', true));
   }, [applyTabs]);
 
+  const openKnowledgeGraph = useCallback(() => {
+    applyTabs((state) => openTabState(state, KNOWLEDGE_GRAPH_PATH, 'Graf wiedzy', true));
+  }, [applyTabs]);
+
   // Cmd+S zapisuje aktywną zakładkę niezależnie od tego, co ma fokus.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -421,6 +426,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         openFile,
         openFileAt,
         openBrowserPreview,
+        openKnowledgeGraph,
         activateTab,
         pinTab,
         closeTab,

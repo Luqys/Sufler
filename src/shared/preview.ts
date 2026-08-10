@@ -12,6 +12,9 @@ export interface PickedElement {
 /** Pseudo-ścieżka zakładki podglądu w pasku zakładek edytora. */
 export const BROWSER_PREVIEW_PATH = 'vn3o://preview';
 
+/** Pseudo-ścieżka zakładki grafu wiedzy (notatki .md + linki + autorzy). */
+export const KNOWLEDGE_GRAPH_PATH = 'vn3o://graph';
+
 export function normalizeUrl(input: string): string {
   const trimmed = input.trim();
   if (trimmed === '') {

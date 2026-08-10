@@ -2,7 +2,6 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { Appearance } from '../shared/appearance';
 import type { TabKind } from '../shared/dock-tabs';
 import type { LayoutVisibilityKey } from '../shared/layout';
-import type { UsageSummary } from '../shared/usage';
 import {
   IPC,
   type GitCommitFile,
@@ -23,6 +22,7 @@ import {
   type WindowApi,
   type WriteFileResult,
 } from '../shared/ipc';
+import type { KnowledgeGraph } from '../shared/graph';
 import type { LayoutState } from '../shared/layout';
 import type { UsageLimitsResult } from '../shared/limits';
 import type { McpConfigServer, McpDetail } from '../shared/mcp';
@@ -97,7 +97,6 @@ const api: WindowApi = {
   getAppearance: (): Promise<Appearance> => ipcRenderer.invoke(IPC.AppearanceGet),
   setAppearance: (appearance: Appearance): Promise<Appearance> =>
     ipcRenderer.invoke(IPC.AppearanceSet, appearance),
-  getUsage: (force?: boolean): Promise<UsageSummary> => ipcRenderer.invoke(IPC.UsageGet, force),
   listKnowledge: (root: string): Promise<KnowledgeFile[]> =>
     ipcRenderer.invoke(IPC.KnowledgeList, root),
   generateKnowledge: (root: string, paths: string[]): Promise<KnowledgeGenerateResult> =>
@@ -107,6 +106,8 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.GitShowCommit, root, hash),
   getUsageLimits: (force?: boolean): Promise<UsageLimitsResult> =>
     ipcRenderer.invoke(IPC.UsageLimitsGet, force),
+  getKnowledgeGraph: (root: string): Promise<KnowledgeGraph> =>
+    ipcRenderer.invoke(IPC.KnowledgeGraphGet, root),
 };
 
 contextBridge.exposeInMainWorld('api', api);

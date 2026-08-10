@@ -1,9 +1,9 @@
 import type { Appearance } from './appearance';
 import type { TabKind } from './dock-tabs';
+import type { KnowledgeGraph } from './graph';
 import type { LayoutState, LayoutVisibilityKey } from './layout';
 import type { UsageLimitsResult } from './limits';
 import type { McpConfigServer, McpDetail, McpListEntry } from './mcp';
-import type { UsageSummary } from './usage';
 
 export const IPC = {
   LayoutGet: 'layout:get',
@@ -43,12 +43,12 @@ export const IPC = {
   TogglePanel: 'app:toggle-panel',
   AppearanceGet: 'appearance:get',
   AppearanceSet: 'appearance:set',
-  UsageGet: 'usage:get',
   KnowledgeList: 'knowledge:list',
   KnowledgeGenerate: 'knowledge:generate',
   GitLog: 'git:log',
   GitShowCommit: 'git:show-commit',
   UsageLimitsGet: 'usage:limits',
+  KnowledgeGraphGet: 'knowledge:graph',
 } as const;
 
 export interface DirEntry {
@@ -174,12 +174,12 @@ export interface WindowApi {
   onTogglePanel(listener: (key: LayoutVisibilityKey) => void): void;
   getAppearance(): Promise<Appearance>;
   setAppearance(appearance: Appearance): Promise<Appearance>;
-  getUsage(force?: boolean): Promise<UsageSummary>;
   listKnowledge(root: string): Promise<KnowledgeFile[]>;
   generateKnowledge(root: string, paths: string[]): Promise<KnowledgeGenerateResult>;
   gitLog(root: string): Promise<GitLogResult>;
   gitShowCommit(root: string, hash: string): Promise<GitCommitFile[]>;
   getUsageLimits(force?: boolean): Promise<UsageLimitsResult>;
+  getKnowledgeGraph(root: string): Promise<KnowledgeGraph>;
 }
 
 export type McpStatusResult =

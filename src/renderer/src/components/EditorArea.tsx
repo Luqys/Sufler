@@ -1,8 +1,9 @@
 import type { ReactElement } from 'react';
-import { BROWSER_PREVIEW_PATH } from '../../../shared/preview';
+import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../../shared/preview';
 import { useWorkspace } from '../workspace';
 import { BrowserPreview } from './BrowserPreview';
 import { EditorTabs } from './EditorTabs';
+import { GraphView } from './GraphView';
 import { MonacoEditor } from './MonacoEditor';
 
 export function EditorArea(): ReactElement {
@@ -29,6 +30,15 @@ export function EditorArea(): ReactElement {
       <main className="editor-area" data-testid="editor">
         <EditorTabs />
         <BrowserPreview />
+      </main>
+    );
+  }
+
+  if (activePath === KNOWLEDGE_GRAPH_PATH) {
+    return (
+      <main className="editor-area" data-testid="editor">
+        <EditorTabs />
+        <GraphView />
       </main>
     );
   }
