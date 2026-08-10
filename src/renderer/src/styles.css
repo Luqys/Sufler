@@ -164,8 +164,20 @@ body.dragging-horizontal .splitter.horizontal::after {
 .sidebar-view {
   flex: 1;
   min-width: 0;
-  padding: 12px;
   overflow: hidden;
+}
+
+.view-panel {
+  height: 100%;
+  min-height: 0;
+}
+
+.view-panel.hidden {
+  display: none;
+}
+
+.view-panel.pad {
+  padding: 12px;
 }
 
 .view-title {
@@ -186,16 +198,43 @@ body.dragging-horizontal .splitter.horizontal::after {
 /* --- Edytor --- */
 
 .editor-area {
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   min-height: 0;
   background: var(--bg);
 }
 
+.editor-empty-wrap {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+
 .editor-empty {
   text-align: center;
   max-width: 320px;
+}
+
+.editor-file-bar {
+  height: 30px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.monaco-host {
+  flex: 1;
+  min-height: 0;
 }
 
 .editor-empty-title {
@@ -204,6 +243,114 @@ body.dragging-horizontal .splitter.horizontal::after {
   color: var(--muted);
   opacity: 0.55;
   margin-bottom: 6px;
+}
+
+/* --- Drzewo plików --- */
+
+.file-tree {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.tree-header {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 8px 6px 12px;
+  flex: none;
+}
+
+.tree-header .view-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-toolbtn {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.tree-toolbtn:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.tree-toolbtn.active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.tree-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 8px;
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 12.5px;
+  font-family: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tree-row:hover {
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+.tree-row.selected {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.tree-row.ignored {
+  opacity: 0.45;
+}
+
+.tree-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  transition: transform 0.1s ease;
+}
+
+.tree-icon.open {
+  transform: rotate(90deg);
+}
+
+.tree-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-note {
+  color: var(--muted);
+  font-size: 12px;
+  padding-top: 3px;
+  padding-bottom: 3px;
 }
 
 /* --- Doki --- */

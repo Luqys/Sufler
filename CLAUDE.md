@@ -15,7 +15,7 @@ Definicja ukończenia kamienia milowego: wszystkie cztery komendy zielone
 
 ## Struktura
 
-- `src/main` — proces główny Electrona (okno, IPC, zapis układu do `~/.config/visualn3o/layout.json`; testy nadpisują lokalizację przez `XDG_CONFIG_HOME`)
+- `src/main` — proces główny Electrona (okno, IPC, zapis układu do `~/.config/visualn3o/layout.json`; testy nadpisują lokalizację przez `XDG_CONFIG_HOME`, a korzeń projektu przez `VISUALN3O_ROOT`)
 - `src/preload` — most contextBridge (`window.api`, typ `WindowApi` w `src/shared/ipc.ts`)
 - `src/shared` — typy i czysta logika współdzielona między procesami (tu trzymać logikę testowalną jednostkowo)
 - `src/renderer` — UI w React; komponenty w `src/renderer/src/components`

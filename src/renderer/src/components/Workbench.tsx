@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, type ReactElement } from 'react';
 import { clampSize, type LayoutSizeKey, type LayoutState } from '../../../shared/layout';
+import { useWorkspace } from '../workspace';
 import { Dock } from './Dock';
 import { EditorArea } from './EditorArea';
 import { Sidebar } from './Sidebar';
@@ -9,7 +10,12 @@ const SPLITTER_SIZE = 5;
 const MIN_CENTER_WIDTH = 320;
 const MIN_EDITOR_HEIGHT = 160;
 
+function baseName(path: string): string {
+  return path.split('/').filter(Boolean).pop() ?? path;
+}
+
 export function Workbench({ initialLayout }: { initialLayout: LayoutState }): ReactElement {
+  const { root } = useWorkspace();
   const [layout, setLayout] = useState(initialLayout);
   // Lustro stanu aktualizowane synchronicznie — handlery wskaźnika nie mogą
   // czekać na cykl renderowania Reacta.
@@ -58,7 +64,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
 
   return (
     <div className="shell">
-      <header className="titlebar">VisualN3O</header>
+      <header className="titlebar">VisualN3O — {baseName(root)}</header>
       <div
         className="workbench"
         data-testid="workbench"

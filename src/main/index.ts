@@ -1,7 +1,9 @@
 import { app, BrowserWindow, ipcMain, nativeTheme } from 'electron';
 import { join } from 'node:path';
 import { IPC } from '../shared/ipc';
+import { readDirListing, readFileForEditor } from './fs-tree';
 import { readLayout, writeLayout } from './layout-store';
+import { chooseProjectRoot, getProjectRoot } from './project';
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -35,6 +37,13 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.LayoutSet, (_event, raw: unknown) => {
     writeLayout(raw);
   });
+  ipcMain.handle(IPC.ProjectGetRoot, () => getProjectRoot());
+  ipcMain.handle(IPC.ProjectOpenDialog, (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    return win ? chooseProjectRoot(win) : null;
+  });
+  ipcMain.handle(IPC.FsReadDir, (_event, dirPath: string) => readDirListing(dirPath));
+  ipcMain.handle(IPC.FsReadFile, (_event, filePath: string) => readFileForEditor(filePath));
 
   createWindow();
 

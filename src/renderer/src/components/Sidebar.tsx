@@ -1,9 +1,12 @@
-import type { ReactElement } from 'react';
+import { useState, type ReactElement } from 'react';
+import { useWorkspace } from '../workspace';
+import { FileTree } from './FileTree';
+
+type SidebarView = 'files' | 'skills' | 'mcp';
 
 interface RailItem {
-  id: string;
+  id: SidebarView;
   label: string;
-  active: boolean;
   icon: ReactElement;
 }
 
@@ -29,12 +32,15 @@ const ICON_MCP = (
 );
 
 const RAIL_ITEMS: RailItem[] = [
-  { id: 'files', label: 'Pliki', active: true, icon: ICON_FILES },
-  { id: 'skills', label: 'Skille i agenci', active: false, icon: ICON_SKILLS },
-  { id: 'mcp', label: 'Serwery MCP', active: false, icon: ICON_MCP },
+  { id: 'files', label: 'Pliki', icon: ICON_FILES },
+  { id: 'skills', label: 'Skille i agenci', icon: ICON_SKILLS },
+  { id: 'mcp', label: 'Serwery MCP', icon: ICON_MCP },
 ];
 
 export function Sidebar(): ReactElement {
+  const { root } = useWorkspace();
+  const [view, setView] = useState<SidebarView>('files');
+
   return (
     <aside className="sidebar" data-testid="sidebar">
       <nav className="icon-rail" aria-label="Widoki panelu bocznego">
@@ -42,17 +48,27 @@ export function Sidebar(): ReactElement {
           <button
             key={item.id}
             type="button"
-            className={`rail-btn${item.active ? ' active' : ''}`}
+            className={`rail-btn${view === item.id ? ' active' : ''}`}
             title={item.label}
-            aria-pressed={item.active}
+            aria-pressed={view === item.id}
+            onClick={() => setView(item.id)}
           >
             {item.icon}
           </button>
         ))}
       </nav>
       <section className="sidebar-view">
-        <header className="view-title">Pliki</header>
-        <p className="placeholder">Drzewo plików projektu pojawi się w M1.</p>
+        <div className={`view-panel${view === 'files' ? '' : ' hidden'}`}>
+          <FileTree key={root} />
+        </div>
+        <div className={`view-panel pad${view === 'skills' ? '' : ' hidden'}`}>
+          <h2 className="view-title">Skille i agenci</h2>
+          <p className="placeholder">Panel skilli i agentów pojawi się w M5.</p>
+        </div>
+        <div className={`view-panel pad${view === 'mcp' ? '' : ' hidden'}`}>
+          <h2 className="view-title">Serwery MCP</h2>
+          <p className="placeholder">Panel serwerów MCP pojawi się w M6.</p>
+        </div>
       </section>
     </aside>
   );
