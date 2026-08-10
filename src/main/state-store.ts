@@ -3,7 +3,8 @@ import { join } from 'node:path';
 import { configDir } from './layout-store';
 
 export interface AppState {
-  lastProjectRoot?: string;
+  /** Ostatnio otwierane foldery projektów (najnowszy pierwszy) — ekran startowy. */
+  recentRoots?: string[];
   /** Ścieżka vaulta Obsidiana (drugi korzeń drzewa plików). */
   vaultPath?: string;
 }
@@ -20,8 +21,10 @@ export function readState(): AppState {
     }
     const obj = raw as Record<string, unknown>;
     const state: AppState = {};
-    if (typeof obj['lastProjectRoot'] === 'string') {
-      state.lastProjectRoot = obj['lastProjectRoot'];
+    if (Array.isArray(obj['recentRoots'])) {
+      state.recentRoots = obj['recentRoots'].filter(
+        (entry): entry is string => typeof entry === 'string',
+      );
     }
     if (typeof obj['vaultPath'] === 'string') {
       state.vaultPath = obj['vaultPath'];

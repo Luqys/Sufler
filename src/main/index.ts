@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import type { TabKind } from '../shared/dock-tabs';
 import { IPC } from '../shared/ipc';
 import { closeWatcher, setWatchedFiles } from './file-watcher';
@@ -17,7 +18,9 @@ import {
   chooseVaultPath,
   clearVaultPath,
   getProjectRoot,
+  getRecentRoots,
   getVaultPath,
+  setProjectRoot,
 } from './project';
 import { resolveShellEnv } from './shell-env';
 import { readSkillsSnapshot } from './skills';
@@ -40,6 +43,8 @@ function createWindow(): void {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
+      // Podgląd przeglądarki (localhost) w obszarze edytora.
+      webviewTag: true,
     },
   });
 
@@ -59,10 +64,15 @@ void app.whenReady().then(() => {
     writeLayout(raw);
   });
   ipcMain.handle(IPC.ProjectGetRoot, () => getProjectRoot());
+  ipcMain.handle(IPC.ProjectRecentRoots, () => getRecentRoots());
+  ipcMain.handle(IPC.ProjectSetRoot, (_event, path: string) => setProjectRoot(path));
   ipcMain.handle(IPC.ProjectOpenDialog, (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     return win ? chooseProjectRoot(win) : null;
   });
+  ipcMain.handle(IPC.PreviewGetPreloadPath, () =>
+    pathToFileURL(join(__dirname, '../preload/webview.js')).href,
+  );
   ipcMain.handle(IPC.FsReadDir, (_event, dirPath: string) => readDirListing(dirPath));
   ipcMain.handle(IPC.FsReadFile, (_event, filePath: string) => readFileForEditor(filePath));
   ipcMain.handle(IPC.FsWriteFile, (_event, filePath: string, content: string) =>

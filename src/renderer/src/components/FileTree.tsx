@@ -10,6 +10,7 @@ import {
 import type { DirEntry, TreeChangedEvent } from '../../../shared/ipc';
 import { baseName } from '../../../shared/paths';
 import { useWorkspace } from '../workspace';
+import { FOLDER_ICON, fileIconFor } from './file-icons';
 
 type Listing =
   | { status: 'loaded'; entries: DirEntry[] }
@@ -20,13 +21,6 @@ type GitState = 'modified' | 'untracked';
 const ICON_CHEVRON = (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
     <path d="M6 4l4 4-4 4" />
-  </svg>
-);
-
-const ICON_FILE = (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
-    <path d="M4 1.8h5.2L13.5 6v7.2a1 1 0 0 1-1 1h-8.5a1 1 0 0 1-1-1V2.8a1 1 0 0 1 1-1Z" />
-    <path d="M9.2 1.8V6h4.3" />
   </svg>
 );
 
@@ -253,9 +247,14 @@ export function FileTree(): ReactElement {
               }
             }}
           >
-            <span className={`tree-icon${isOpen ? ' open' : ''}`}>
-              {entry.kind === 'dir' ? ICON_CHEVRON : ICON_FILE}
-            </span>
+            {entry.kind === 'dir' ? (
+              <>
+                <span className={`tree-icon${isOpen ? ' open' : ''}`}>{ICON_CHEVRON}</span>
+                <span className="tree-icon">{FOLDER_ICON}</span>
+              </>
+            ) : (
+              <span className="tree-icon">{fileIconFor(entry.name)}</span>
+            )}
             <span className="tree-name">{entry.name}</span>
           </button>
           {isOpen && <div role="group">{renderDir(entry.path, depth + 1, inVault)}</div>}

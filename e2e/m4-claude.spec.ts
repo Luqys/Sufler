@@ -42,7 +42,7 @@ test('sesja Claude startuje z menu +, a zamknięcie zakładki ubija proces', asy
   await app.close();
 });
 
-test('kropki statusu: pomarańczowa po skończonej pracy, niebieska przy pytaniu o zgodę', async () => {
+test('kropki statusu: zielona po skończonej pracy, niebieska przy pytaniu o zgodę', async () => {
   const app = await launchApp(makeConfigHome(), makeFixtureProject(), {
     VISUALN3O_PATH_PREPEND: makeFakeClaudeBin(),
   });
@@ -55,7 +55,7 @@ test('kropki statusu: pomarańczowa po skończonej pracy, niebieska przy pytaniu
   await expect(claudeTab).toHaveAttribute('data-status', 'idle', { timeout: 15_000 });
   await expect(claudeTab.locator('.status-dot')).toHaveCount(0); // aktywna — bez kropki
 
-  // Drugi tab (terminal) przejmuje aktywność → na zakładce Claude pomarańczowa kropka.
+  // Drugi tab (terminal) przejmuje aktywność → na zakładce Claude zielona kropka.
   await page.getByTestId('bottom-dock-add').click();
   await page.getByTestId('bottom-menu-new-terminal').click();
   await expect(claudeTab.locator('.status-dot.done')).toBeVisible();

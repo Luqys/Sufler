@@ -18,6 +18,7 @@ import {
 } from '../../shared/editor-tabs';
 import type { ReadFileError, WatchEvent } from '../../shared/ipc';
 import { baseName } from '../../shared/paths';
+import { BROWSER_PREVIEW_PATH } from '../../shared/preview';
 import {
   disposeModel,
   ensureModel,
@@ -28,6 +29,7 @@ import {
   reloadModel,
   setDirtyListener,
 } from './editor/models';
+import { WelcomeScreen } from './components/WelcomeScreen';
 
 export interface BufferInfo {
   /** Treść zgodna z dyskiem przy ostatnim wczytaniu/zapisie — do tłumienia echa własnych zapisów. */
@@ -53,6 +55,7 @@ interface WorkspaceValue {
   revealTarget: RevealTarget | null;
   openFile(path: string, options?: { pinned?: boolean }): void;
   openFileAt(path: string, line: number, column: number): void;
+  openBrowserPreview(): void;
   chooseVault(): void;
   clearVault(): void;
   activateTab(path: string): void;
@@ -87,6 +90,7 @@ function describeReadError(error: ReadFileError): string {
 
 export function WorkspaceProvider({ children }: { children: ReactNode }): ReactElement | null {
   const [root, setRoot] = useState<string | null>(null);
+  const [rootResolved, setRootResolved] = useState(false);
 
   const [tabsState, setTabsStateRaw] = useState<EditorTabsState>(emptyTabsState);
   const tabsRef = useRef(tabsState);
@@ -141,6 +145,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     void window.api.getProjectRoot().then((projectRoot) => {
       if (!cancelled) {
         setRoot(projectRoot);
+        setRootResolved(true);
       }
     });
     void window.api.getVaultPath().then((vaultPath) => {
@@ -322,9 +327,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     });
   }, [applyTabs]);
 
-  // Obserwacja plików otwartych w zakładkach.
+  // Obserwacja plików otwartych w zakładkach (bez pseudo-zakładek vn3o://).
   useEffect(() => {
-    void window.api.watchFiles(tabsState.tabs.map((tab) => tab.path));
+    void window.api.watchFiles(
+      tabsState.tabs.map((tab) => tab.path).filter((path) => !path.startsWith('vn3o://')),
+    );
   }, [tabsState.tabs]);
 
   const handleWatchEvent = useCallback(
@@ -369,6 +376,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     window.api.onWatchEvent(handleWatchEvent);
   }, [handleWatchEvent]);
 
+  const openBrowserPreview = useCallback(() => {
+    applyTabs((state) => openTabState(state, BROWSER_PREVIEW_PATH, 'Podgląd', true));
+  }, [applyTabs]);
+
   // Cmd+S zapisuje aktywną zakładkę niezależnie od tego, co ma fokus.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -386,8 +397,17 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     return () => window.removeEventListener('keydown', onKeyDown, true);
   }, [saveActiveFile]);
 
-  if (!root) {
+  if (!rootResolved) {
     return null;
+  }
+  if (root === null) {
+    return (
+      <WelcomeScreen
+        onPicked={(picked) => {
+          setRoot(picked);
+        }}
+      />
+    );
   }
   return (
     <WorkspaceContext.Provider
@@ -400,6 +420,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         revealTarget,
         openFile,
         openFileAt,
+        openBrowserPreview,
         activateTab,
         pinTab,
         closeTab,

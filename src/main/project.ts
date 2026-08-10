@@ -1,6 +1,5 @@
 import { dialog, type BrowserWindow } from 'electron';
 import { statSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { readState, writeState } from './state-store';
 
 let currentRoot: string | null = null;
@@ -17,10 +16,12 @@ function isDirectory(path: string | undefined): path is string {
 }
 
 /**
- * Kolejność: zmienna środowiskowa (testy) → ostatnio otwarty projekt →
- * cwd (uruchomienie z terminala) → katalog domowy (uruchomienie z Findera, cwd '/').
+ * Bez auto-wznawiania: przy każdym uruchomieniu użytkownik wybiera folder
+ * na ekranie startowym (ostatnie + przeglądanie). Zmienna środowiskowa
+ * (testy/CLI) pomija ekran; cache trzyma wybór do końca życia procesu,
+ * więc przeładowanie okna nie pyta ponownie.
  */
-export function getProjectRoot(): string {
+export function getProjectRoot(): string | null {
   if (currentRoot) {
     return currentRoot;
   }
@@ -29,18 +30,29 @@ export function getProjectRoot(): string {
     currentRoot = fromEnv;
     return currentRoot;
   }
-  const fromState = readState().lastProjectRoot;
-  if (isDirectory(fromState)) {
-    currentRoot = fromState;
-    return currentRoot;
+  return null;
+}
+
+function rememberRecentRoot(path: string): void {
+  const state = readState();
+  state.recentRoots = [path, ...(state.recentRoots ?? []).filter((entry) => entry !== path)].slice(
+    0,
+    8,
+  );
+  writeState(state);
+}
+
+export function getRecentRoots(): string[] {
+  return (readState().recentRoots ?? []).filter((entry) => isDirectory(entry));
+}
+
+export function setProjectRoot(path: string): boolean {
+  if (!isDirectory(path)) {
+    return false;
   }
-  const cwd = process.cwd();
-  if (cwd !== '/' && isDirectory(cwd)) {
-    currentRoot = cwd;
-    return currentRoot;
-  }
-  currentRoot = homedir();
-  return currentRoot;
+  currentRoot = path;
+  rememberRecentRoot(path);
+  return true;
 }
 
 export async function chooseProjectRoot(win: BrowserWindow): Promise<string | null> {
@@ -53,7 +65,7 @@ export async function chooseProjectRoot(win: BrowserWindow): Promise<string | nu
     return null;
   }
   currentRoot = picked;
-  writeState({ ...readState(), lastProjectRoot: picked });
+  rememberRecentRoot(picked);
   return picked;
 }
 

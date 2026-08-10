@@ -1,5 +1,7 @@
 import type { ReactElement } from 'react';
+import { BROWSER_PREVIEW_PATH } from '../../../shared/preview';
 import { useWorkspace } from '../workspace';
+import { BrowserPreview } from './BrowserPreview';
 import { EditorTabs } from './EditorTabs';
 import { MonacoEditor } from './MonacoEditor';
 
@@ -11,12 +13,22 @@ export function EditorArea(): ReactElement {
   if (!activePath) {
     return (
       <main className="editor-area" data-testid="editor">
+        <EditorTabs />
         <div className="editor-empty-wrap">
           <div className="editor-empty">
             <div className="editor-empty-title">VisualN3O</div>
             <p className="placeholder">Kliknij plik w panelu po lewej, aby go otworzyć.</p>
           </div>
         </div>
+      </main>
+    );
+  }
+
+  if (activePath === BROWSER_PREVIEW_PATH) {
+    return (
+      <main className="editor-area" data-testid="editor">
+        <EditorTabs />
+        <BrowserPreview />
       </main>
     );
   }

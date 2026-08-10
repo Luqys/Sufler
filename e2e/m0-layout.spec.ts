@@ -1,23 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { mkdtempSync, readFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { _electron as electron, type ElectronApplication, type Page } from 'playwright';
+import { type ElectronApplication, type Page } from 'playwright';
+import { launchApp, makeConfigHome, makeFixtureProject } from './utils';
 
 const DEFAULTS = { sidebarWidth: 240, rightDockWidth: 360, bottomDockHeight: 220 };
 const AREAS = ['sidebar', 'editor', 'bottom-dock', 'right-dock'] as const;
-
-function launchApp(configHome: string): Promise<ElectronApplication> {
-  const env: Record<string, string> = {};
-  for (const [key, value] of Object.entries(process.env)) {
-    if (value !== undefined) {
-      env[key] = value;
-    }
-  }
-  env['XDG_CONFIG_HOME'] = configHome;
-  delete env['ELECTRON_RENDERER_URL'];
-  return electron.launch({ args: ['.'], env });
-}
 
 async function openWorkbench(app: ElectronApplication): Promise<Page> {
   const page = await app.firstWindow();
@@ -55,8 +43,8 @@ function readLayoutFile(path: string): unknown {
 }
 
 test('okno otwiera się z czterema obszarami układu i domyślnymi rozmiarami', async () => {
-  const configHome = mkdtempSync(join(tmpdir(), 'vn3o-e2e-'));
-  const app = await launchApp(configHome);
+  const configHome = makeConfigHome();
+  const app = await launchApp(configHome, makeFixtureProject());
   const page = await openWorkbench(app);
 
   for (const area of AREAS) {
@@ -71,11 +59,15 @@ test('okno otwiera się z czterema obszarami układu i domyślnymi rozmiarami', 
 });
 
 test('rozmiary paneli po przeciągnięciu splitterów przeżywają restart aplikacji', async () => {
-  const configHome = mkdtempSync(join(tmpdir(), 'vn3o-e2e-'));
+  const configHome = makeConfigHome();
+  const project = makeFixtureProject();
   const layoutFile = join(configHome, 'visualn3o', 'layout.json');
 
-  let app = await launchApp(configHome);
+  let app = await launchApp(configHome, project);
   let page = await openWorkbench(app);
+  // Stabilizacja przed przeciąganiem: drzewo wczytane, asynchroniczne
+  // renderowania (git status) za nami.
+  await expect(page.getByTestId('file-tree').getByText('README.md')).toBeVisible();
 
   await dragSplitter(page, 'splitter-sidebar', 80, 0); // 240 -> 320
   await dragSplitter(page, 'splitter-right', -70, 0); // 360 -> 430
@@ -100,7 +92,7 @@ test('rozmiary paneli po przeciągnięciu splitterów przeżywają restart aplik
   await page.screenshot({ path: 'e2e-artifacts/m0-po-zmianie-rozmiarow.png' });
   await app.close();
 
-  app = await launchApp(configHome);
+  app = await launchApp(configHome, project);
   page = await openWorkbench(app);
 
   expect((await panelSize(page, 'sidebar')).width).toBe(320);

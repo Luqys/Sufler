@@ -7,6 +7,9 @@ export const IPC = {
   LayoutSet: 'layout:set',
   ProjectGetRoot: 'project:get-root',
   ProjectOpenDialog: 'project:open-dialog',
+  ProjectRecentRoots: 'project:recent-roots',
+  ProjectSetRoot: 'project:set-root',
+  PreviewGetPreloadPath: 'preview:get-preload-path',
   FsReadDir: 'fs:read-dir',
   FsReadFile: 'fs:read-file',
   FsWriteFile: 'fs:write-file',
@@ -117,8 +120,13 @@ export interface SkillsSnapshot {
 export interface WindowApi {
   getLayout(): Promise<LayoutState>;
   setLayout(state: LayoutState): Promise<void>;
-  getProjectRoot(): Promise<string>;
+  /** null → pokaż ekran startowy z wyborem folderu. */
+  getProjectRoot(): Promise<string | null>;
+  getRecentRoots(): Promise<string[]>;
+  setProjectRoot(path: string): Promise<boolean>;
   openProjectDialog(): Promise<string | null>;
+  /** Ścieżka file:// preloadu dla <webview> podglądu przeglądarki. */
+  getWebviewPreloadPath(): Promise<string>;
   readDir(dirPath: string): Promise<ReadDirResult>;
   readFile(filePath: string): Promise<ReadFileResult>;
   writeFile(filePath: string, content: string): Promise<WriteFileResult>;

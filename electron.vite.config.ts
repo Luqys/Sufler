@@ -1,5 +1,6 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'electron-vite';
+import { resolve } from 'node:path';
 
 export default defineConfig({
   main: {
@@ -10,7 +11,17 @@ export default defineConfig({
       },
     },
   },
-  preload: {},
+  preload: {
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'src/preload/index.ts'),
+          // Preload gościa <webview> podglądu przeglądarki (picker elementów).
+          webview: resolve(__dirname, 'src/preload/webview.ts'),
+        },
+      },
+    },
+  },
   renderer: {
     plugins: [react()],
   },

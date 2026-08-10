@@ -22,8 +22,11 @@ import type { McpConfigServer, McpDetail } from '../shared/mcp';
 const api: WindowApi = {
   getLayout: (): Promise<LayoutState> => ipcRenderer.invoke(IPC.LayoutGet),
   setLayout: (state: LayoutState): Promise<void> => ipcRenderer.invoke(IPC.LayoutSet, state),
-  getProjectRoot: (): Promise<string> => ipcRenderer.invoke(IPC.ProjectGetRoot),
+  getProjectRoot: (): Promise<string | null> => ipcRenderer.invoke(IPC.ProjectGetRoot),
+  getRecentRoots: (): Promise<string[]> => ipcRenderer.invoke(IPC.ProjectRecentRoots),
+  setProjectRoot: (path: string): Promise<boolean> => ipcRenderer.invoke(IPC.ProjectSetRoot, path),
   openProjectDialog: (): Promise<string | null> => ipcRenderer.invoke(IPC.ProjectOpenDialog),
+  getWebviewPreloadPath: (): Promise<string> => ipcRenderer.invoke(IPC.PreviewGetPreloadPath),
   readDir: (dirPath: string): Promise<ReadDirResult> => ipcRenderer.invoke(IPC.FsReadDir, dirPath),
   readFile: (filePath: string): Promise<ReadFileResult> =>
     ipcRenderer.invoke(IPC.FsReadFile, filePath),
