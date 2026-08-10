@@ -1,3 +1,4 @@
+import { BrowserWindow } from 'electron';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
@@ -8,6 +9,7 @@ import { buildKnowledgeGraph } from './knowledge-graph';
 import { OUTLINE_OUTPUT, rebuildOutline } from './knowledge';
 import { createSkill, readSkillsSnapshot } from './skills';
 import { getProjectRoot } from './project';
+import { IPC } from '../shared/ipc';
 
 /** Wspólny wycinek pól skilla do listy MCP. */
 function pick(skill: { name: string; description: string; enabled: boolean }): {
@@ -139,6 +141,14 @@ function buildMcp(): McpServer {
               ? 'Skill o tej nazwie już istnieje w tym zakresie.'
               : 'Nie udało się zapisać SKILL.md.';
         return textResult(message, true);
+      }
+      // Panel odświeżamy wprost: chokidar potrafi zgłosić nowy katalog, zanim
+      // powstanie w nim SKILL.md, i wtedy skill pojawiłby się dopiero przy
+      // kolejnej zmianie na dysku.
+      for (const win of BrowserWindow.getAllWindows()) {
+        if (!win.isDestroyed()) {
+          win.webContents.send(IPC.SkillsChanged);
+        }
       }
       return textResult(`Utworzono skill: ${result.path}`);
     },
