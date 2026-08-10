@@ -10,6 +10,7 @@ import { useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 import { Dock } from './Dock';
 import { EditorArea } from './EditorArea';
+import { HelpDialog } from './HelpDialog';
 import { LayoutToggles } from './LayoutToggles';
 import { LoginDialog } from './LoginDialog';
 import { QuickOpen } from './QuickOpen';
@@ -46,6 +47,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [quickOpenVisible, setQuickOpenVisible] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   // Lustro stanu aktualizowane synchronicznie — handlery wskaźnika nie mogą
   // czekać na cykl renderowania Reacta.
   const layoutRef = useRef(initialLayout);
@@ -169,6 +171,15 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
           </button>
           <ThemeToggle />
           <LayoutToggles layout={layout} onToggle={toggleVisibility} />
+          <button
+            type="button"
+            className="titlebar-btn"
+            data-testid="help-button"
+            title={t('help.open')}
+            onClick={() => setHelpOpen(true)}
+          >
+            ?
+          </button>
           <UsageIndicator />
         </div>
       </header>
@@ -221,6 +232,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
       {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}
       {loginOpen && <LoginDialog onClose={() => setLoginOpen(false)} />}
       {quickOpenVisible && <QuickOpen onClose={() => setQuickOpenVisible(false)} />}
+      {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)} />}
     </div>
   );
 }

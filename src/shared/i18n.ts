@@ -211,6 +211,47 @@ export const PL = {
   'graph.hideOrphans': 'Ukryj osierocone',
   'graph.orphansTitle': 'Schowaj notatki bez żadnych połączeń',
 
+  // Samouczek (M42)
+  'help.open': 'Samouczek — jak korzystać z aplikacji',
+  'help.title': 'Samouczek Suflera',
+  'help.intro':
+    'Krótki przewodnik po oknie: pasek ikon po lewej przełącza panele projektu, środek to edytor, a doki (prawy i dolny) mieszczą sesje Claude i terminale.',
+  'help.start.title': 'Na start',
+  'help.start.body':
+    'Otwórz folder projektu (ekran startowy albo Ustawienia → Zmień folder). Sufler pracuje na tym samym katalogu co Claude Code — panele tylko czytają dysk i konfigurację, więc niczego nie zepsują.',
+  'help.files.title': 'Pliki',
+  'help.files.body':
+    'Drzewo projektu koloruje statusy git i domyślnie ukrywa pliki z .gitignore (oko w nagłówku to zmienia). Klik otwiera plik w edytorze, podwójny klik przypina zakładkę, a menu kontekstowe wstawia @ścieżkę prosto do aktywnej sesji Claude.',
+  'help.search.title': 'Szukaj i Cmd+P',
+  'help.search.body':
+    'Panel Szukaj przeszukuje treść plików (ripgrep) i otwiera trafienia w edytorze. Cmd+P to szybkie otwieranie pliku po nazwie, bez odrywania rąk od klawiatury.',
+  'help.git.title': 'Historia git',
+  'help.git.body':
+    'Lista commitów z gałęzią i sekcją zmian roboczych. Klik w plik pokazuje diff w Monaco, a propozycje zmian od Claude (openDiff) mają przyciski Zastosuj/Odrzuć.',
+  'help.wiedza.title': 'Wiedza i graf',
+  'help.wiedza.body':
+    'Panel Wiedza zbiera notatki .md projektu i utrzymuje konspekt, który Claude pobiera narzędziem MCP „konspekt". Graf wiedzy łączy notatki wikilinkami [[…]] — kolorowanie po autorze, funkcji, warstwie, tagach i świeżości, do tego szukajka, filtr legendy i ukrywanie notatek bez połączeń.',
+  'help.skills.title': 'Skille i agenci',
+  'help.skills.body':
+    'Przegląd skilli (projektowych i osobistych), subagentów i reguł — z przełącznikami wł./wył. zapisywanymi w .claude/settings.local.json oraz kreatorami nowych. Cmd+klik wstawia /nazwę-skilla do sesji Claude; na dole liczniki linii plików CLAUDE.md.',
+  'help.mcp.title': 'Serwery MCP',
+  'help.mcp.body':
+    'Serwery zdefiniowane w konfiguracji (local/user/project) wraz z rzeczywistym stanem połączenia z `claude mcp list`. Rozwinięcie węzła pokazuje szczegóły serwera.',
+  'help.claude.title': 'Sesje Claude',
+  'help.claude.body':
+    'Przycisk ✳ na pasku tytułu loguje do konta Claude, a pigułka obok pokazuje limity planu (sesja 5h i tydzień). Karty Claude w dokach mają kropki statusu — pomarańczowa: skończył pracę, niebieska: czeka na zgodę — plus powiadomienia macOS i wznawianie zapisanych sesji przyciskiem ↺.',
+  'help.docks.title': 'Doki i terminale',
+  'help.docks.body':
+    'Prawy i dolny dok mieszczą terminale oraz sesje Claude — to ta sama karta, różni się tylko komendą startową. Karty można dzielić w panele obok siebie, przeciągać między dokami i wyciągać do osobnych okien; procesy przy tym nie restartują.',
+  'help.keys.title': 'Skróty klawiszowe',
+  'help.keys.sidebar': 'pokaż/ukryj panel boczny',
+  'help.keys.bottomDock': 'pokaż/ukryj dolny dok',
+  'help.keys.rightDock': 'pokaż/ukryj prawy dok',
+  'help.keys.quickOpen': 'szybkie otwieranie pliku po nazwie',
+  'help.keys.save': 'zapisz plik',
+  'help.keys.settings': 'ustawienia',
+  'help.keys.daily': 'wyślij zaznaczenie do notatki dziennej Obsidiana',
+
   // Panel wiedzy
   'knowledge.hint':
     'Wszystkie notatki markdown projektu w jednym miejscu. Konspekt wiedzy (`konspekt-wiedzy.md`) aktualizuje się sam przy każdej zmianie notatek, a Claude pobiera go narzędziem MCP `konspekt` — zawsze wie, co gdzie jest.',
@@ -618,6 +659,46 @@ export const EN: Record<StringKey, string> = {
   'graph.searchPh': 'Search the graph…',
   'graph.hideOrphans': 'Hide orphans',
   'graph.orphansTitle': 'Hide notes without any connections',
+
+  'help.open': 'Tutorial — how to use the app',
+  'help.title': 'Sufler tutorial',
+  'help.intro':
+    'A quick tour of the window: the icon rail on the left switches project panels, the center is the editor, and the docks (right and bottom) hold Claude sessions and terminals.',
+  'help.start.title': 'Getting started',
+  'help.start.body':
+    'Open a project folder (welcome screen or Settings → Change folder). Sufler works on the same directory as Claude Code — the panels only read the disk and configuration, so they will not break anything.',
+  'help.files.title': 'Files',
+  'help.files.body':
+    'The project tree colors git statuses and hides .gitignore files by default (the eye icon toggles that). Click opens a file in the editor, double-click pins the tab, and the context menu inserts an @path straight into the active Claude session.',
+  'help.search.title': 'Search and Cmd+P',
+  'help.search.body':
+    'The Search panel greps file contents (ripgrep) and opens matches in the editor. Cmd+P is quick open by file name, without leaving the keyboard.',
+  'help.git.title': 'Git history',
+  'help.git.body':
+    'The commit list with the branch and a working-changes section. Clicking a file shows a Monaco diff, and change proposals from Claude (openDiff) come with Apply/Reject buttons.',
+  'help.wiedza.title': 'Knowledge and graph',
+  'help.wiedza.body':
+    'The Knowledge panel gathers the project’s .md notes and maintains an outline that Claude fetches via the MCP “konspekt” tool. The knowledge graph links notes with [[wikilinks]] — coloring by author, function, layer, tags and freshness, plus search, legend filters and hiding unlinked notes.',
+  'help.skills.title': 'Skills and agents',
+  'help.skills.body':
+    'An overview of skills (project and personal), subagents and rules — with on/off switches saved to .claude/settings.local.json and creators for new ones. Cmd+click inserts /skill-name into the Claude session; line counters for CLAUDE.md files sit at the bottom.',
+  'help.mcp.title': 'MCP servers',
+  'help.mcp.body':
+    'Servers defined in configuration (local/user/project) together with their real connection state from `claude mcp list`. Expanding a node shows server details.',
+  'help.claude.title': 'Claude sessions',
+  'help.claude.body':
+    'The ✳ button in the title bar logs into your Claude account, and the pill next to it shows plan limits (5h session and week). Claude tabs in the docks have status dots — orange: finished, blue: waiting for approval — plus macOS notifications and resuming saved sessions with ↺.',
+  'help.docks.title': 'Docks and terminals',
+  'help.docks.body':
+    'The right and bottom docks hold terminals and Claude sessions — the same kind of tab, differing only in the start command. Tabs can be split into side-by-side panes, dragged between docks and detached into separate windows; processes survive all of it.',
+  'help.keys.title': 'Keyboard shortcuts',
+  'help.keys.sidebar': 'show/hide the sidebar',
+  'help.keys.bottomDock': 'show/hide the bottom dock',
+  'help.keys.rightDock': 'show/hide the right dock',
+  'help.keys.quickOpen': 'quick open a file by name',
+  'help.keys.save': 'save the file',
+  'help.keys.settings': 'settings',
+  'help.keys.daily': 'send the selection to the Obsidian daily note',
 
   'knowledge.hint':
     'All the project’s markdown notes in one place. The knowledge outline (`konspekt-wiedzy.md`) updates itself on every note change, and Claude fetches it with the MCP `konspekt` tool — it always knows what lives where.',
