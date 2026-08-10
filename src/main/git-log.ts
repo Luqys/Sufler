@@ -7,7 +7,7 @@ const execFileAsync = promisify(execFile);
 const FIELD_SEP = '\x1f';
 const RECORD_SEP = '\x1e';
 
-/** Format: %H\x1f%an\x1f%aI\x1f%s\x1e — separatory sterujące nie występują w treści. */
+/** Format: %H\x1f%an\x1f%aI\x1f%s\x1f%b\x1e — separatory sterujące nie występują w treści. */
 export function parseGitLog(stdout: string): GitCommit[] {
   const commits: GitCommit[] = [];
   for (const record of stdout.split(RECORD_SEP)) {
@@ -15,7 +15,7 @@ export function parseGitLog(stdout: string): GitCommit[] {
     if (!trimmed) {
       continue;
     }
-    const [hash, author, date, subject] = trimmed.split(FIELD_SEP);
+    const [hash, author, date, subject, body] = trimmed.split(FIELD_SEP);
     if (!hash || !author || !date) {
       continue;
     }
@@ -25,6 +25,7 @@ export function parseGitLog(stdout: string): GitCommit[] {
       author,
       date,
       subject: subject ?? '',
+      body: (body ?? '').trim(),
     });
   }
   return commits;
@@ -71,7 +72,7 @@ export async function runGitLog(root: string): Promise<GitLogResult> {
     const stdout = await runGit(root, [
       'log',
       '--max-count=100',
-      `--pretty=format:%H${FIELD_SEP}%an${FIELD_SEP}%aI${FIELD_SEP}%s${RECORD_SEP}`,
+      `--pretty=format:%H${FIELD_SEP}%an${FIELD_SEP}%aI${FIELD_SEP}%s${FIELD_SEP}%b${RECORD_SEP}`,
     ]);
     return { ok: true, branch, commits: parseGitLog(stdout) };
   } catch {

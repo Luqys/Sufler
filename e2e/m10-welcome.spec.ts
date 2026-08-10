@@ -27,8 +27,7 @@ test('ekran startowy: wybór z ostatnich folderów, terminal startuje w wybranym
   await expect(page.getByTestId('file-tree').getByText('README.md')).toBeVisible();
 
   // Terminal otwiera się w wybranym folderze.
-  await page.getByTestId('bottom-dock-add').click();
-  await page.getByTestId('bottom-menu-new-terminal').click();
+  await page.getByTestId('bottom-new-terminal').click();
   const terminal = page.locator('[data-testid=bottom-dock] .xterm');
   await expect(terminal).toBeVisible();
   await page.keyboard.type('echo KATALOG-$PWD');

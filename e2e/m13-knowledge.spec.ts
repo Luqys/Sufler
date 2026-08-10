@@ -17,6 +17,14 @@ test('panel Wiedza listuje pliki MD i generuje kontekst agenta', async () => {
   const panel = page.getByTestId('knowledge-panel');
   await expect(panel).toBeVisible();
 
+  // Krótka lista nie może wymuszać suwaka całego panelu (regresja M20).
+  expect(
+    await panel.evaluate((el) => {
+      const scroller = el.closest('.view-panel');
+      return scroller ? scroller.scrollHeight - scroller.clientHeight : -1;
+    }),
+  ).toBeLessThanOrEqual(0);
+
   // Lista: README + przewodnik, wszystkie domyślnie zaznaczone.
   const rows = page.getByTestId('knowledge-file');
   await expect(rows).toHaveCount(2);

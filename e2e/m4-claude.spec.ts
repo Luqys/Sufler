@@ -24,8 +24,7 @@ test('sesja Claude startuje z menu +, a zamknięcie zakładki ubija proces', asy
   const page = await app.firstWindow();
   page.on('dialog', (dialog) => void dialog.accept());
 
-  await page.getByTestId('right-dock-add').click();
-  await page.getByTestId('right-menu-new-claude').click();
+  await page.getByTestId('right-new-claude').click();
   const terminal = page.locator('[data-testid=right-dock] .xterm');
   await expect(terminal).toBeVisible();
   await expect(terminal).toContainText('Claude Code (atrapa)', { timeout: 15_000 });
@@ -50,15 +49,13 @@ test('kropki statusu: zielona po skończonej pracy, niebieska przy pytaniu o zgo
   const page = await app.firstWindow();
 
   // Sesja Claude w dolnym doku; atrapa od razu zgłasza bezczynność.
-  await page.getByTestId('bottom-dock-add').click();
-  await page.getByTestId('bottom-menu-new-claude').click();
+  await page.getByTestId('bottom-new-claude').click();
   const claudeTab = page.locator('[data-testid=bottom-dock] .dock-tab').first();
   await expect(claudeTab).toHaveAttribute('data-status', 'idle', { timeout: 15_000 });
   await expect(claudeTab.locator('.status-dot')).toHaveCount(0); // aktywna — bez kropki
 
   // Drugi tab (terminal) przejmuje aktywność → na zakładce Claude zielona kropka.
-  await page.getByTestId('bottom-dock-add').click();
-  await page.getByTestId('bottom-menu-new-terminal').click();
+  await page.getByTestId('bottom-new-terminal').click();
   await expect(claudeTab.locator('.status-dot.done')).toBeVisible();
 
   // Wracamy do Claude — kropka znika, prosimy o „zgodę".

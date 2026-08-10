@@ -248,6 +248,8 @@ export interface GitCommit {
   /** ISO 8601 (%aI). */
   date: string;
   subject: string;
+  /** Dalsza część opisu commita (%b); pusty string, gdy commit ma tylko temat. */
+  body: string;
 }
 
 export interface GitCommitFile {

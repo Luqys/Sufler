@@ -12,6 +12,29 @@ const ICON_SPLIT = (
   </svg>
 );
 
+const ICON_NEW_CLAUDE = (
+  <svg width="15" height="15" viewBox="0 0 16 16">
+    <text
+      x="8"
+      y="12.4"
+      textAnchor="middle"
+      fontSize="12"
+      fontWeight={700}
+      fill="#d97757"
+      fontFamily="-apple-system, sans-serif"
+    >
+      ✳
+    </text>
+  </svg>
+);
+
+const ICON_NEW_TERMINAL = (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.5 3.5l4 4-4 4" />
+    <path d="M8.5 12h5" />
+  </svg>
+);
+
 interface PaneViewProps {
   dockId: DockId;
   pane: DockPane;
@@ -22,7 +45,6 @@ interface PaneViewProps {
 /** Jeden panel doku: własny pasek zakładek, [+], podział i terminal aktywnej karty. */
 function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactElement {
   const { addTab, activateTab, closeTab, moveTab, splitTab, detachTab } = useDocks();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [dropHover, setDropHover] = useState(false);
 
   const activeTab = pane.tabs.find((tab) => tab.id === pane.activeId) ?? null;
@@ -125,41 +147,21 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
           <button
             type="button"
             className="dock-add"
-            data-testid={first ? `${dockId}-dock-add` : undefined}
-            title="Nowa zakładka w tym panelu"
-            onClick={() => setMenuOpen((value) => !value)}
+            data-testid={first ? `${dockId}-new-claude` : undefined}
+            title="Nowa sesja Claude w tym panelu"
+            onClick={() => addTab(dockId, 'claude', { paneId: pane.id })}
           >
-            +
+            {ICON_NEW_CLAUDE}
           </button>
-          {menuOpen && (
-            <>
-              <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
-              <div className="dock-menu" role="menu">
-                <button
-                  type="button"
-                  role="menuitem"
-                  data-testid={first ? `${dockId}-menu-new-claude` : undefined}
-                  onClick={() => {
-                    setMenuOpen(false);
-                    addTab(dockId, 'claude', { paneId: pane.id });
-                  }}
-                >
-                  Sesja Claude
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  data-testid={first ? `${dockId}-menu-new-terminal` : undefined}
-                  onClick={() => {
-                    setMenuOpen(false);
-                    addTab(dockId, 'terminal', { paneId: pane.id });
-                  }}
-                >
-                  Terminal
-                </button>
-              </div>
-            </>
-          )}
+          <button
+            type="button"
+            className="dock-add"
+            data-testid={first ? `${dockId}-new-terminal` : undefined}
+            title="Nowy terminal w tym panelu"
+            onClick={() => addTab(dockId, 'terminal', { paneId: pane.id })}
+          >
+            {ICON_NEW_TERMINAL}
+          </button>
         </div>
       </header>
       <div className="dock-body">

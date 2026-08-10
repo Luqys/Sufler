@@ -9,7 +9,10 @@ test('panel Git pokazuje historię commitów z listą zmienionych plików', asyn
   writeFileSync(join(project, 'nowy.txt'), 'zawartość\n');
   const gitEnv = 'git -c user.email=e2e@vn3o.test -c user.name=e2e';
   execSync(`${gitEnv} add -A`, { cwd: project, stdio: 'ignore' });
-  execSync(`${gitEnv} commit -q -m "drugi commit"`, { cwd: project, stdio: 'ignore' });
+  execSync(
+    `${gitEnv} commit -q -m "drugi commit" -m "Dłuższy opis zmian: dodano plik nowy.txt z zawartością."`,
+    { cwd: project, stdio: 'ignore' },
+  );
 
   const app = await launchApp(makeConfigHome(), project);
   const page = await app.firstWindow();
@@ -25,8 +28,9 @@ test('panel Git pokazuje historię commitów z listą zmienionych plików', asyn
   await expect(commits.nth(1)).toContainText('init');
   await expect(commits.first()).toContainText('e2e');
 
-  // Rozwinięcie commita → zmienione pliki ze statusami.
+  // Rozwinięcie commita → pełny opis + zmienione pliki ze statusami.
   await commits.first().locator('.git-row').click();
+  await expect(commits.first().getByTestId('git-body')).toContainText('Dłuższy opis zmian');
   await expect(commits.first().locator('.git-file', { hasText: 'nowy.txt' })).toBeVisible();
   await expect(
     commits.first().locator('.git-file', { hasText: 'nowy.txt' }).locator('.git-status-A'),

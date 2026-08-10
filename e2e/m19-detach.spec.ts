@@ -13,8 +13,7 @@ test('wyciągnięcie karty poza okno otwiera sesję w nowym oknie z zachowanym s
   const app = await launchApp(makeConfigHome(), makeFixtureProject());
   const page = await app.firstWindow();
 
-  await page.getByTestId('bottom-dock-add').click();
-  await page.getByTestId('bottom-menu-new-terminal').click();
+  await page.getByTestId('bottom-new-terminal').click();
   const terminal = page.locator('[data-testid=bottom-dock] .xterm');
   await expect(terminal).toBeVisible();
   await page.keyboard.type('echo przed-detach-$((90+9))');

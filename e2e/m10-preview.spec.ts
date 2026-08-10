@@ -24,8 +24,7 @@ test('podgląd przeglądarki ładuje localhost, a wskazany element trafia do ses
   const page = await app.firstWindow();
 
   // Sesja Claude, do której poleci odniesienie.
-  await page.getByTestId('bottom-dock-add').click();
-  await page.getByTestId('bottom-menu-new-claude').click();
+  await page.getByTestId('bottom-new-claude').click();
   await expect(page.locator('[data-testid=bottom-dock] .xterm')).toContainText('atrapa', {
     timeout: 15_000,
   });

@@ -22,8 +22,7 @@ test('terminal w dolnym doku wykonuje polecenie echo', async () => {
   const app = await launchApp(makeConfigHome(), makeFixtureProject());
   const page = await app.firstWindow();
 
-  await page.getByTestId('bottom-dock-add').click();
-  await page.getByTestId('bottom-menu-new-terminal').click();
+  await page.getByTestId('bottom-new-terminal').click();
   const terminal = page.locator('[data-testid=bottom-dock] .xterm');
   await expect(terminal).toBeVisible();
 
@@ -41,8 +40,7 @@ test('zamknięcie zakładki i zamknięcie aplikacji ubijają procesy pty', async
   // Zamknięcie karty z żywym procesem pyta o potwierdzenie.
   page.on('dialog', (dialog) => void dialog.accept());
 
-  await page.getByTestId('bottom-dock-add').click();
-  await page.getByTestId('bottom-menu-new-terminal').click();
+  await page.getByTestId('bottom-new-terminal').click();
   await expect(page.locator('[data-testid=bottom-dock] .xterm')).toBeVisible();
 
   const pids = await listPtyPids(app);
@@ -54,8 +52,7 @@ test('zamknięcie zakładki i zamknięcie aplikacji ubijają procesy pty', async
   await expect.poll(() => listPtyPids(app)).toEqual([]);
   await expect.poll(() => isProcessAlive(firstPid), { timeout: 10_000 }).toBe(false);
 
-  await page.getByTestId('bottom-dock-add').click();
-  await page.getByTestId('bottom-menu-new-terminal').click();
+  await page.getByTestId('bottom-new-terminal').click();
   await expect(page.locator('[data-testid=bottom-dock] .xterm')).toBeVisible();
   const secondPid = (await listPtyPids(app))[0] ?? 0;
   expect(isProcessAlive(secondPid)).toBe(true);
@@ -68,8 +65,7 @@ test('przeciągnięcie zakładki między dokami zachowuje proces i scrollback', 
   const app = await launchApp(makeConfigHome(), makeFixtureProject());
   const page = await app.firstWindow();
 
-  await page.getByTestId('bottom-dock-add').click();
-  await page.getByTestId('bottom-menu-new-terminal').click();
+  await page.getByTestId('bottom-new-terminal').click();
   const bottomTerminal = page.locator('[data-testid=bottom-dock] .xterm');
   await expect(bottomTerminal).toBeVisible();
   await page.keyboard.type('echo marker-$((40+2))');

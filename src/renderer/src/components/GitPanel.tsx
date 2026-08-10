@@ -27,6 +27,14 @@ const STATUS_LABEL: Record<string, string> = {
   T: 'zmiana typu',
 };
 
+function fullDate(iso: string): string {
+  const then = new Date(iso);
+  if (Number.isNaN(then.getTime())) {
+    return '';
+  }
+  return then.toLocaleString('pl-PL', { dateStyle: 'long', timeStyle: 'short' });
+}
+
 function relativeDate(iso: string): string {
   const then = Date.parse(iso);
   if (Number.isNaN(then)) {
@@ -132,38 +140,56 @@ export function GitPanel(): ReactElement {
             const isOpen = expanded.has(commit.hash);
             const commitFiles = details.get(commit.hash);
             return (
-              <div key={commit.hash} className="git-commit" data-testid="git-commit">
+              <div
+                key={commit.hash}
+                className={`git-commit${isOpen ? ' open' : ''}`}
+                data-testid="git-commit"
+              >
                 <button type="button" className="git-row" onClick={() => toggleCommit(commit)}>
+                  <span className="git-dot" aria-hidden />
+                  <span className="git-row-main">
+                    <span className="git-subject" title={commit.subject}>
+                      {commit.subject || '(bez opisu)'}
+                    </span>
+                    <span className="git-meta">
+                      <span className="git-hash">{commit.shortHash}</span>
+                      <span className="git-author">{commit.author}</span>
+                      <span className="git-when" title={fullDate(commit.date)}>
+                        {relativeDate(commit.date)}
+                      </span>
+                    </span>
+                  </span>
                   <span className={`mcp-chevron${isOpen ? ' open' : ''}`}>▸</span>
-                  <span className="git-subject" title={commit.subject}>
-                    {commit.subject || '(bez opisu)'}
-                  </span>
-                  <span className="git-meta">
-                    <span className="git-hash">{commit.shortHash}</span>
-                    {commit.author} · {relativeDate(commit.date)}
-                  </span>
                 </button>
                 {isOpen && (
-                  <div className="git-files">
-                    {commitFiles === 'loading' && (
-                      <div className="tree-note">Wczytywanie zmian…</div>
+                  <div className="git-details">
+                    <div className="git-detail-date">{fullDate(commit.date)}</div>
+                    {commit.body && (
+                      <pre className="git-body" data-testid="git-body">
+                        {commit.body}
+                      </pre>
                     )}
-                    {Array.isArray(commitFiles) && commitFiles.length === 0 && (
-                      <div className="tree-note">Brak zmian plików.</div>
-                    )}
-                    {Array.isArray(commitFiles) &&
-                      commitFiles.map((file) => (
-                        <div
-                          key={`${file.status}:${file.path}`}
-                          className="git-file"
-                          title={STATUS_LABEL[file.status] ?? file.status}
-                        >
-                          <span className={`git-status git-status-${file.status}`}>
-                            {file.status}
-                          </span>
-                          <span className="git-file-path">{file.path}</span>
-                        </div>
-                      ))}
+                    <div className="git-files">
+                      {commitFiles === 'loading' && (
+                        <div className="tree-note">Wczytywanie zmian…</div>
+                      )}
+                      {Array.isArray(commitFiles) && commitFiles.length === 0 && (
+                        <div className="tree-note">Brak zmian plików.</div>
+                      )}
+                      {Array.isArray(commitFiles) &&
+                        commitFiles.map((file) => (
+                          <div
+                            key={`${file.status}:${file.path}`}
+                            className="git-file"
+                            title={STATUS_LABEL[file.status] ?? file.status}
+                          >
+                            <span className={`git-status git-status-${file.status}`}>
+                              {file.status}
+                            </span>
+                            <span className="git-file-path">{file.path}</span>
+                          </div>
+                        ))}
+                    </div>
                   </div>
                 )}
               </div>

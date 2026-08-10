@@ -52,8 +52,7 @@ test('panel skilli pokazuje grupy z frontmattera i otwiera pliki', async () => {
   await expect(page.getByTestId('tab-active')).toContainText('SKILL.md');
 
   // Cmd+klik wstawia /nazwę do aktywnej sesji Claude.
-  await page.getByTestId('bottom-dock-add').click();
-  await page.getByTestId('bottom-menu-new-claude').click();
+  await page.getByTestId('bottom-new-claude').click();
   await expect(page.locator('[data-testid=bottom-dock] .xterm')).toContainText('atrapa', {
     timeout: 15_000,
   });
