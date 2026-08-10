@@ -12,6 +12,7 @@ import { EditorArea } from './EditorArea';
 import { SettingsDialog } from './SettingsDialog';
 import { Sidebar } from './Sidebar';
 import { Splitter } from './Splitter';
+import { UsageIndicator } from './UsageIndicator';
 
 const SPLITTER_SIZE = 5;
 const MIN_CENTER_WIDTH = 320;
@@ -96,9 +97,13 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
     return () => window.removeEventListener('keydown', onKeyDown, true);
   }, [toggleVisibility]);
 
-  // Menu aplikacji → Ustawienia (Cmd+,). Subskrypcja na całe życie okna.
+  const toggleVisibilityRef = useRef(toggleVisibility);
+  toggleVisibilityRef.current = toggleVisibility;
+
+  // Menu aplikacji → Ustawienia (Cmd+,) i przełączniki paneli z menu Widok.
   useEffect(() => {
     window.api.onOpenSettings(() => setSettingsOpen(true));
+    window.api.onTogglePanel((key) => toggleVisibilityRef.current(key));
   }, []);
 
   const origin = (): LayoutState => dragOrigin.current ?? layoutRef.current;
@@ -117,7 +122,12 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
 
   return (
     <div className="shell">
-      <header className="titlebar">VisualN3O — {baseName(root)}</header>
+      <header className="titlebar">
+        <span className="titlebar-title">VisualN3O — {baseName(root)}</span>
+        <div className="titlebar-actions">
+          <UsageIndicator />
+        </div>
+      </header>
       <div
         className="workbench"
         data-testid="workbench"
@@ -147,7 +157,11 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
                 onDrag={(_dx, dy) => resize('bottomDockHeight', origin().bottomDockHeight - dy)}
                 onDragEnd={endDrag}
               />
-              <Dock id="bottom" title="Dolny dok" />
+              <Dock
+                id="bottom"
+                title="Dolny dok"
+                onHide={() => toggleVisibility('bottomDockVisible')}
+              />
             </>
           )}
         </div>
@@ -160,7 +174,11 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
               onDrag={(dx) => resize('rightDockWidth', origin().rightDockWidth - dx)}
               onDragEnd={endDrag}
             />
-            <Dock id="right" title="Prawy dok" />
+            <Dock
+              id="right"
+              title="Prawy dok"
+              onHide={() => toggleVisibility('rightDockVisible')}
+            />
           </>
         )}
       </div>

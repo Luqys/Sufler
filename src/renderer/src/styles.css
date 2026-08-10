@@ -17,6 +17,20 @@
   --git-untracked: #388a34;
 }
 
+/* Kolory przewodnie (tryb motywu załatwia nativeTheme → prefers-color-scheme). */
+:root[data-accent='blue'] {
+  --accent: #2563eb;
+}
+:root[data-accent='green'] {
+  --accent: #16a34a;
+}
+:root[data-accent='violet'] {
+  --accent: #7c3aed;
+}
+:root[data-accent='pink'] {
+  --accent: #db2777;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #1e1f24;
@@ -28,6 +42,18 @@
     --accent: #d97757;
     --git-modified: #e2c08d;
     --git-untracked: #73c991;
+  }
+  :root[data-accent='blue'] {
+    --accent: #60a5fa;
+  }
+  :root[data-accent='green'] {
+    --accent: #4ade80;
+  }
+  :root[data-accent='violet'] {
+    --accent: #a78bfa;
+  }
+  :root[data-accent='pink'] {
+    --accent: #f472b6;
   }
 }
 
@@ -65,6 +91,7 @@ body.dragging-horizontal {
 
 .titlebar {
   -webkit-app-region: drag;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -74,6 +101,34 @@ body.dragging-horizontal {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.3px;
+}
+
+.titlebar-actions {
+  position: absolute;
+  right: 8px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-btn {
+  width: 26px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.titlebar-btn:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
 }
 
 .workbench {
@@ -612,6 +667,117 @@ body.dragging-horizontal .splitter.horizontal::after {
   flex: 1;
   min-height: 0;
   background: #fff;
+}
+
+/* --- Wskaźnik zużycia Claude --- */
+
+.usage-wrap {
+  position: relative;
+}
+
+.usage-panel {
+  position: absolute;
+  top: 30px;
+  right: 0;
+  z-index: 60;
+  width: 340px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-alt);
+  box-shadow: 0 14px 40px rgb(0 0 0 / 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+  font-weight: 400;
+  letter-spacing: normal;
+  cursor: default;
+}
+
+.usage-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.usage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.usage-table th {
+  text-align: right;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 2px 4px;
+  font-size: 10.5px;
+}
+
+.usage-table td {
+  text-align: right;
+  padding: 3px 4px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+
+.usage-table .usage-label {
+  text-align: left;
+  font-weight: 600;
+}
+
+.usage-models {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.usage-model-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text);
+}
+
+.usage-model-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.usage-model-stats {
+  flex: none;
+  color: var(--muted);
+}
+
+.usage-note {
+  font-size: 10.5px;
+}
+
+/* --- Ikony MCP i próbki akcentów --- */
+
+.mcp-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+.accent-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.accent-swatch.active {
+  border-color: var(--text);
+  box-shadow: 0 0 0 2px var(--panel);
 }
 
 .view-title {

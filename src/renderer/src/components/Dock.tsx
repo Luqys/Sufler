@@ -8,13 +8,15 @@ const DND_MIME = 'application/x-visualn3o-tab';
 interface DockProps {
   id: DockId;
   title: string;
+  /** Chowa dok (menu Widok albo skrót przywraca). */
+  onHide(): void;
 }
 
 /**
  * Wspólny komponent obu doków (prawego i dolnego) — patrz SPEC.md.
  * Zakładki `terminal` i `claude` różnią się wyłącznie komendą startową pty.
  */
-export function Dock({ id, title }: DockProps): ReactElement {
+export function Dock({ id, title, onHide }: DockProps): ReactElement {
   const { docks, addTab, activateTab, closeTab, moveTab } = useDocks();
   const dock = docks[id];
   const [menuOpen, setMenuOpen] = useState(false);
@@ -93,6 +95,19 @@ export function Dock({ id, title }: DockProps): ReactElement {
           ))}
         </div>
         <div className="dock-add-wrap">
+          <button
+            type="button"
+            className="dock-add"
+            data-testid={`${id}-dock-hide`}
+            title={
+              id === 'bottom'
+                ? 'Ukryj dolny dok (Ctrl+` przywraca)'
+                : 'Ukryj prawy dok (Cmd+Shift+C przywraca)'
+            }
+            onClick={onHide}
+          >
+            {id === 'bottom' ? '⌄' : '›'}
+          </button>
           <button
             type="button"
             className="dock-add"

@@ -1,10 +1,14 @@
 import { app, Menu, type MenuItemConstructorOptions } from 'electron';
+import type { LayoutVisibilityKey } from '../shared/layout';
 
 /**
  * Natywne menu aplikacji (SPEC.md, M9): standardowe role (w tym Edycja —
  * bez niej nie działają Cmd+C/V w polach tekstowych) plus Ustawienia pod Cmd+,.
  */
-export function installAppMenu(openSettings: () => void): void {
+export function installAppMenu(
+  openSettings: () => void,
+  togglePanel: (key: LayoutVisibilityKey) => void,
+): void {
   const template: MenuItemConstructorOptions[] = [
     {
       label: app.name,
@@ -41,6 +45,22 @@ export function installAppMenu(openSettings: () => void): void {
     {
       label: 'Widok',
       submenu: [
+        {
+          label: 'Pokaż/ukryj pasek boczny',
+          accelerator: 'CommandOrControl+B',
+          click: () => togglePanel('sidebarVisible'),
+        },
+        {
+          label: 'Pokaż/ukryj dolny dok',
+          accelerator: 'Control+`',
+          click: () => togglePanel('bottomDockVisible'),
+        },
+        {
+          label: 'Pokaż/ukryj prawy dok',
+          accelerator: 'CommandOrControl+Shift+C',
+          click: () => togglePanel('rightDockVisible'),
+        },
+        { type: 'separator' },
         { role: 'reload', label: 'Przeładuj' },
         { role: 'toggleDevTools', label: 'Narzędzia deweloperskie' },
         { type: 'separator' },

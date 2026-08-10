@@ -7,6 +7,7 @@ import {
   type McpServerView,
 } from '../../../shared/mcp';
 import { useWorkspace } from '../workspace';
+import { mcpIconFor } from './mcp-icons';
 
 const STATE_LABEL: Record<McpServerView['state'], string> = {
   connected: 'połączony',
@@ -121,6 +122,7 @@ export function McpPanel(): ReactElement {
               onClick={() => toggleDetails(server.name)}
             >
               <span className={`mcp-dot ${server.state}`} />
+              <span className="mcp-icon">{mcpIconFor(server.name)}</span>
               <span className="mcp-name">{server.name}</span>
               <span className="mcp-transport">{server.transport}</span>
               {server.scope && <span className="badge">{server.scope}</span>}

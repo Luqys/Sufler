@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import type { LayoutState } from '../../shared/layout';
+import { applyAccent } from './appearance-client';
 import { Workbench } from './components/Workbench';
 import { DocksProvider } from './docks';
 import { WorkspaceProvider } from './workspace';
@@ -12,6 +13,11 @@ export function App(): ReactElement | null {
     void window.api.getLayout().then((layout) => {
       if (!cancelled) {
         setInitialLayout(layout);
+      }
+    });
+    void window.api.getAppearance().then((appearance) => {
+      if (!cancelled) {
+        applyAccent(appearance.accent);
       }
     });
     return () => {

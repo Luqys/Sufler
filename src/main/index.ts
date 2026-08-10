@@ -3,6 +3,8 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { TabKind } from '../shared/dock-tabs';
 import { IPC } from '../shared/ipc';
+import { applyAppearanceAtBoot, getAppearance, setAppearance } from './appearance';
+import { getClaudeUsage } from './usage';
 import { closeWatcher, setWatchedFiles } from './file-watcher';
 import { readDirListing, readFileForEditor, writeTextFile } from './fs-tree';
 import { readLayout, writeLayout } from './layout-store';
@@ -59,7 +61,12 @@ function createWindow(): void {
 }
 
 void app.whenReady().then(() => {
+  applyAppearanceAtBoot();
+
   ipcMain.handle(IPC.LayoutGet, () => readLayout());
+  ipcMain.handle(IPC.AppearanceGet, () => getAppearance());
+  ipcMain.handle(IPC.AppearanceSet, (_event, raw: unknown) => setAppearance(raw));
+  ipcMain.handle(IPC.UsageGet, (_event, force?: boolean) => getClaudeUsage(force));
   ipcMain.handle(IPC.LayoutSet, (_event, raw: unknown) => {
     writeLayout(raw);
   });
@@ -137,11 +144,18 @@ void app.whenReady().then(() => {
   // Rozgrzewamy cache środowiska shella, zanim powstanie pierwszy terminal.
   void resolveShellEnv();
 
-  installAppMenu(() => {
-    for (const win of BrowserWindow.getAllWindows()) {
-      win.webContents.send(IPC.OpenSettings);
-    }
-  });
+  installAppMenu(
+    () => {
+      for (const win of BrowserWindow.getAllWindows()) {
+        win.webContents.send(IPC.OpenSettings);
+      }
+    },
+    (key) => {
+      for (const win of BrowserWindow.getAllWindows()) {
+        win.webContents.send(IPC.TogglePanel, key);
+      }
+    },
+  );
 
   // Do testów e2e (Playwright electronApp.evaluate): podgląd żywych pty.
   (globalThis as Record<string, unknown>)['vn3oListPtyPids'] = listPtyPids;

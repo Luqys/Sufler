@@ -1,5 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { Appearance } from '../shared/appearance';
 import type { TabKind } from '../shared/dock-tabs';
+import type { LayoutVisibilityKey } from '../shared/layout';
+import type { UsageSummary } from '../shared/usage';
 import {
   IPC,
   type GitStatusFile,
@@ -80,6 +83,13 @@ const api: WindowApi = {
   onOpenSettings: (listener: () => void): void => {
     ipcRenderer.on(IPC.OpenSettings, () => listener());
   },
+  onTogglePanel: (listener: (key: LayoutVisibilityKey) => void): void => {
+    ipcRenderer.on(IPC.TogglePanel, (_event, key: LayoutVisibilityKey) => listener(key));
+  },
+  getAppearance: (): Promise<Appearance> => ipcRenderer.invoke(IPC.AppearanceGet),
+  setAppearance: (appearance: Appearance): Promise<Appearance> =>
+    ipcRenderer.invoke(IPC.AppearanceSet, appearance),
+  getUsage: (force?: boolean): Promise<UsageSummary> => ipcRenderer.invoke(IPC.UsageGet, force),
 };
 
 contextBridge.exposeInMainWorld('api', api);

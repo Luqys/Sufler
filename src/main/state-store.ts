@@ -7,6 +7,8 @@ export interface AppState {
   recentRoots?: string[];
   /** Ścieżka vaulta Obsidiana (drugi korzeń drzewa plików). */
   vaultPath?: string;
+  /** Motyw i akcent (normalizowane w shared/appearance). */
+  appearance?: unknown;
 }
 
 function stateFilePath(): string {
@@ -28,6 +30,9 @@ export function readState(): AppState {
     }
     if (typeof obj['vaultPath'] === 'string') {
       state.vaultPath = obj['vaultPath'];
+    }
+    if (typeof obj['appearance'] === 'object' && obj['appearance'] !== null) {
+      state.appearance = obj['appearance'];
     }
     return state;
   } catch {

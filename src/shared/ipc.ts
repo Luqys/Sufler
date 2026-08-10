@@ -1,6 +1,8 @@
+import type { Appearance } from './appearance';
 import type { TabKind } from './dock-tabs';
-import type { LayoutState } from './layout';
+import type { LayoutState, LayoutVisibilityKey } from './layout';
 import type { McpConfigServer, McpDetail, McpListEntry } from './mcp';
+import type { UsageSummary } from './usage';
 
 export const IPC = {
   LayoutGet: 'layout:get',
@@ -37,6 +39,10 @@ export const IPC = {
   VaultChoose: 'vault:choose-dialog',
   VaultClear: 'vault:clear',
   OpenSettings: 'app:open-settings',
+  TogglePanel: 'app:toggle-panel',
+  AppearanceGet: 'appearance:get',
+  AppearanceSet: 'appearance:set',
+  UsageGet: 'usage:get',
 } as const;
 
 export interface DirEntry {
@@ -158,6 +164,11 @@ export interface WindowApi {
   clearVault(): Promise<void>;
   /** Menu aplikacji → Ustawienia (Cmd+,). */
   onOpenSettings(listener: () => void): void;
+  /** Menu Widok → przełączanie paneli. */
+  onTogglePanel(listener: (key: LayoutVisibilityKey) => void): void;
+  getAppearance(): Promise<Appearance>;
+  setAppearance(appearance: Appearance): Promise<Appearance>;
+  getUsage(force?: boolean): Promise<UsageSummary>;
 }
 
 export type McpStatusResult =

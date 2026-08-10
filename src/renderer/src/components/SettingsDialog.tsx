@@ -1,4 +1,11 @@
-import { useEffect, type ReactElement } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
+import {
+  ACCENTS,
+  DEFAULT_APPEARANCE,
+  THEME_MODES,
+  type Appearance,
+} from '../../../shared/appearance';
+import { applyAccent } from '../appearance-client';
 import { useWorkspace } from '../workspace';
 
 interface SettingsDialogProps {
@@ -7,6 +14,18 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ onClose }: SettingsDialogProps): ReactElement {
   const { root, vault, chooseProject, chooseVault, clearVault } = useWorkspace();
+  const [appearance, setAppearanceState] = useState<Appearance>(DEFAULT_APPEARANCE);
+
+  useEffect(() => {
+    void window.api.getAppearance().then(setAppearanceState);
+  }, []);
+
+  const updateAppearance = (patch: Partial<Appearance>): void => {
+    const next = { ...appearance, ...patch };
+    setAppearanceState(next);
+    applyAccent(next.accent);
+    void window.api.setAppearance(next);
+  };
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -34,6 +53,37 @@ export function SettingsDialog({ onClose }: SettingsDialogProps): ReactElement {
             ×
           </button>
         </header>
+        <section className="settings-section">
+          <h3 className="view-title">Wygląd</h3>
+          <div className="settings-actions" role="radiogroup" aria-label="Motyw">
+            {THEME_MODES.map((mode) => (
+              <button
+                key={mode.id}
+                type="button"
+                className={`bar-btn${appearance.mode === mode.id ? ' active' : ''}`}
+                data-testid={`theme-${mode.id}`}
+                aria-pressed={appearance.mode === mode.id}
+                onClick={() => updateAppearance({ mode: mode.id })}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
+          <div className="settings-actions" role="radiogroup" aria-label="Kolor przewodni">
+            {ACCENTS.map((accent) => (
+              <button
+                key={accent.id}
+                type="button"
+                className={`accent-swatch${appearance.accent === accent.id ? ' active' : ''}`}
+                data-testid={`accent-${accent.id}`}
+                title={accent.label}
+                aria-pressed={appearance.accent === accent.id}
+                style={{ background: accent.swatch }}
+                onClick={() => updateAppearance({ accent: accent.id })}
+              />
+            ))}
+          </div>
+        </section>
         <section className="settings-section">
           <h3 className="view-title">Projekt</h3>
           <p className="settings-path" title={root}>
