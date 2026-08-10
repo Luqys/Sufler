@@ -1,4 +1,5 @@
 import type { Appearance } from './appearance';
+import type { ClaudeSessionEntry } from './claude-sessions';
 import type { TabKind } from './dock-tabs';
 import type { IdeSelection } from './ide-protocol';
 import type { KnowledgeGraph } from './graph';
@@ -66,6 +67,7 @@ export const IPC = {
   IdeSelectionChanged: 'ide:selection-changed',
   IdeStatusGet: 'ide:status',
   GitShowFile: 'git:show-file',
+  ClaudeSessionsList: 'claude-sessions:list',
 } as const;
 
 /** Żądanie serwera „ide" do renderera (openDiff, openFile, getOpenEditors…). */
@@ -284,6 +286,8 @@ export interface WindowApi {
   getIdeStatus(): Promise<IdeStatus>;
   /** Treść pliku z rewizji gita (`git show rev:ścieżka`) — do zakładek diffów. */
   gitShowFile(root: string, rev: string, path: string): Promise<GitShowFileResult>;
+  /** Zapisane sesje Claude projektu — menu „Wznów sesję" (claude --resume). */
+  listClaudeSessions(root: string): Promise<ClaudeSessionEntry[]>;
 }
 
 export type McpStatusResult =

@@ -42,6 +42,10 @@ export const PL = {
   'dock.spawnFailed': 'Nie udało się uruchomić procesu: {error}',
   'dock.closeTitle': 'Zamknąć kartę?',
   'dock.closeMessage': 'Karta „{title}" ma działający proces — zostanie zakończony.',
+  'dock.resume': 'Wznów zapisaną sesję Claude tego projektu',
+  'dock.resumeLoading': 'Szukam sesji…',
+  'dock.resumeEmpty': 'Brak zapisanych sesji dla tego projektu.',
+  'dock.resumeTabTitle': 'Claude ↺',
 
   // Zakładki edytora i obszar edytora
   'tabs.split': 'Podziel przestrzeń roboczą — nowa grupa edytora obok',
@@ -387,6 +391,10 @@ export const EN: Record<StringKey, string> = {
   'dock.spawnFailed': 'Failed to start the process: {error}',
   'dock.closeTitle': 'Close this tab?',
   'dock.closeMessage': 'Tab “{title}” has a running process — it will be terminated.',
+  'dock.resume': 'Resume a saved Claude session of this project',
+  'dock.resumeLoading': 'Looking for sessions…',
+  'dock.resumeEmpty': 'No saved sessions for this project.',
+  'dock.resumeTabTitle': 'Claude ↺',
 
   'tabs.split': 'Split the workspace — a new editor group alongside',
   'tabs.preview': 'Browser preview (localhost) with element picking mode',

@@ -30,6 +30,7 @@ import {
   type WindowApi,
   type WriteFileResult,
 } from '../shared/ipc';
+import type { ClaudeSessionEntry } from '../shared/claude-sessions';
 import type { KnowledgeGraph } from '../shared/graph';
 import type { IdeSelection } from '../shared/ide-protocol';
 import type { LayoutState } from '../shared/layout';
@@ -152,6 +153,8 @@ const api: WindowApi = {
   getIdeStatus: (): Promise<IdeStatus> => ipcRenderer.invoke(IPC.IdeStatusGet),
   gitShowFile: (root: string, rev: string, path: string): Promise<GitShowFileResult> =>
     ipcRenderer.invoke(IPC.GitShowFile, root, rev, path),
+  listClaudeSessions: (root: string): Promise<ClaudeSessionEntry[]> =>
+    ipcRenderer.invoke(IPC.ClaudeSessionsList, root),
 };
 
 contextBridge.exposeInMainWorld('api', api);

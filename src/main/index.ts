@@ -5,6 +5,7 @@ import type { TabKind } from '../shared/dock-tabs';
 import type { LayoutVisibilityKey } from '../shared/layout';
 import { IPC } from '../shared/ipc';
 import { applyAppearanceAtBoot, getAppearance, setAppearance } from './appearance';
+import { listClaudeSessions } from './claude-sessions';
 import { saveClipboardImage } from './clipboard-image';
 import { t, tf } from './i18n';
 import { listMarkdownFiles } from './knowledge';
@@ -233,6 +234,7 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.GitShowFile, (_event, root: string, rev: string, path: string) =>
     runGitShowFile(root, rev, path),
   );
+  ipcMain.handle(IPC.ClaudeSessionsList, (_event, root: string) => listClaudeSessions(root));
   ipcMain.handle(IPC.TreeWatchDirs, (event, dirs: string[]) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (win) {

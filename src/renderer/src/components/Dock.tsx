@@ -1,7 +1,9 @@
-import { useState, type DragEvent, type ReactElement } from 'react';
+import { useEffect, useRef, useState, type DragEvent, type ReactElement } from 'react';
+import type { ClaudeSessionEntry } from '../../../shared/claude-sessions';
 import type { DockId, DockPane, TabKind } from '../../../shared/dock-tabs';
 import { useDocks } from '../docks';
-import { useT } from '../i18n';
+import { getLocale, useT } from '../i18n';
+import { useWorkspace } from '../workspace';
 import { TerminalView } from './TerminalView';
 
 const DND_MIME = 'application/x-visualn3o-tab';
@@ -43,9 +45,102 @@ const ICON_TAB_TERMINAL = (
   </svg>
 );
 
+const ICON_RESUME = (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#d97757" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M13.5 8a5.5 5.5 0 1 1-1.7-3.9" />
+    <path d="M13.7 1.9v2.7H11" />
+    <path d="M8 5.2v3l2 1.2" />
+  </svg>
+);
+
 /** „Favicon" karty doku — szybka orientacja, co siedzi w której karcie. */
 function dockTabIcon(kind: TabKind): ReactElement {
   return kind === 'claude' ? ICON_NEW_CLAUDE : ICON_TAB_TERMINAL;
+}
+
+/** Menu „Wznów sesję": zapisane sesje projektu → `claude --resume <id>` (M34). */
+function ResumeMenu({
+  dockId,
+  paneId,
+  first,
+}: {
+  dockId: DockId;
+  paneId: string;
+  first: boolean;
+}): ReactElement {
+  const { addTab } = useDocks();
+  const { root } = useWorkspace();
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const [sessions, setSessions] = useState<ClaudeSessionEntry[] | 'loading'>('loading');
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    setSessions('loading');
+    void window.api.listClaudeSessions(root).then(setSessions);
+    const onPointerDown = (event: PointerEvent): void => {
+      if (wrapRef.current && !wrapRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    window.addEventListener('pointerdown', onPointerDown, true);
+    return () => window.removeEventListener('pointerdown', onPointerDown, true);
+  }, [open, root]);
+
+  const resume = (session: ClaudeSessionEntry): void => {
+    setOpen(false);
+    addTab(dockId, 'claude', {
+      paneId,
+      args: ['--resume', session.id],
+      title: t('dock.resumeTabTitle'),
+    });
+  };
+
+  return (
+    <div className="dock-resume-wrap" ref={wrapRef}>
+      <button
+        type="button"
+        className="dock-add"
+        data-testid={first ? `${dockId}-resume` : undefined}
+        title={t('dock.resume')}
+        onClick={() => setOpen((current) => !current)}
+      >
+        {ICON_RESUME}
+      </button>
+      {open && (
+        <div className="dock-resume-menu" data-testid={first ? `${dockId}-resume-menu` : undefined}>
+          {sessions === 'loading' && (
+            <div className="dock-resume-note">{t('dock.resumeLoading')}</div>
+          )}
+          {sessions !== 'loading' && sessions.length === 0 && (
+            <div className="dock-resume-note">{t('dock.resumeEmpty')}</div>
+          )}
+          {sessions !== 'loading' &&
+            sessions.map((session) => (
+              <button
+                key={session.id}
+                type="button"
+                className="dock-resume-item"
+                data-testid="resume-session"
+                title={session.title}
+                onClick={() => resume(session)}
+              >
+                <span className="dock-resume-item-title">{session.title}</span>
+                <span className="dock-resume-item-when">
+                  {new Date(session.mtimeMs).toLocaleString(getLocale(), {
+                    dateStyle: 'short',
+                    timeStyle: 'short',
+                  })}
+                </span>
+              </button>
+            ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 interface PaneViewProps {
@@ -174,6 +269,7 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
           >
             {ICON_NEW_CLAUDE}
           </button>
+          <ResumeMenu dockId={dockId} paneId={pane.id} first={first} />
           <button
             type="button"
             className="dock-add"
