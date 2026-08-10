@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactElement } from 're
 import type { KnowledgeFile } from '../../../shared/ipc';
 import { formatTokens } from '../../../shared/usage';
 import { useDocks } from '../docks';
+import { onKnowledgeChanged } from '../knowledge-events';
 import { useDialogs } from '../ui-dialogs';
 import { useWorkspace } from '../workspace';
 import { fileIconFor } from './file-icons';
@@ -59,7 +60,10 @@ export function KnowledgePanel(): ReactElement {
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+    // Obserwator .md w main: zdarzenia zmian + automatyczny konspekt wiedzy.
+    void window.api.watchKnowledge(root);
+    return onKnowledgeChanged(refresh);
+  }, [refresh, root]);
 
   const toggle = (path: string): void => {
     setSelected((prev) => {
@@ -132,6 +136,9 @@ export function KnowledgePanel(): ReactElement {
     <div className="knowledge-panel" data-testid="knowledge-panel">
       <p className="knowledge-hint placeholder">
         Zaznacz pliki markdown i sklej je w jeden kontekst wiedzy dla agenta.
+        Konspekt wiedzy (`konspekt-wiedzy.md`) aktualizuje się sam przy każdej
+        zmianie notatek, a Claude pobiera go narzędziem MCP `konspekt` — zawsze
+        wie, co gdzie jest.
       </p>
       <div className="knowledge-toolbar">
         <span className="knowledge-summary" data-testid="knowledge-summary">

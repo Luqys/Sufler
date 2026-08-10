@@ -1,6 +1,68 @@
-import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
+import { assignLanes, maxLaneCount, type LaneRow } from '../../../shared/git-graph';
 import type { GitCommit, GitCommitFile, GitLogResult } from '../../../shared/ipc';
 import { useWorkspace } from '../workspace';
+
+/** Paleta torów gałęzi (indeks kolumny → kolor). */
+const LANE_COLORS = ['#d97757', '#2563eb', '#16a34a', '#a855f7', '#db2777', '#0891b2', '#f59e0b'];
+
+const DOT_Y = 15;
+const laneX = (index: number): number => 7 + index * 10;
+const laneColor = (index: number): string => LANE_COLORS[index % LANE_COLORS.length] ?? '#888';
+
+/** Tor gałęzi jednego wiersza: kropka + linie kontynuacji/merge/rozgałęzień. */
+function LaneRail({
+  row,
+  hash,
+  parents,
+}: {
+  row: LaneRow;
+  hash: string;
+  parents: string[];
+}): ReactElement {
+  const cols = Math.max(row.before.length, row.after.length, row.lane + 1);
+  const segments: ReactElement[] = [];
+  for (let i = 0; i < cols; i += 1) {
+    const before = row.before[i] ?? null;
+    const after = row.after[i] ?? null;
+    if (i !== row.lane) {
+      if (before === hash) {
+        // Gałąź wpadająca do tego commita (merge).
+        segments.push(
+          <line key={`m${i}`} x1={laneX(i)} y1={0} x2={laneX(row.lane)} y2={DOT_Y} stroke={laneColor(i)} />,
+        );
+      } else if (before !== null && before === after) {
+        segments.push(
+          <line key={`c${i}`} x1={laneX(i)} y1={0} x2={laneX(i)} y2="100%" stroke={laneColor(i)} />,
+        );
+      }
+      if (after !== null && before !== after && parents.includes(after)) {
+        // Drugi rodzic merge'a odchodzi w nową kolumnę.
+        segments.push(
+          <line key={`b${i}`} x1={laneX(row.lane)} y1={DOT_Y} x2={laneX(i)} y2="100%" stroke={laneColor(i)} />,
+        );
+      }
+    }
+  }
+  if (row.before[row.lane] === hash) {
+    segments.push(
+      <line key="in" x1={laneX(row.lane)} y1={0} x2={laneX(row.lane)} y2={DOT_Y} stroke={laneColor(row.lane)} />,
+    );
+  }
+  if (row.after[row.lane] != null) {
+    segments.push(
+      <line key="out" x1={laneX(row.lane)} y1={DOT_Y} x2={laneX(row.lane)} y2="100%" stroke={laneColor(row.lane)} />,
+    );
+  }
+  segments.push(<circle key="dot" cx={laneX(row.lane)} cy={DOT_Y} r={3.6} fill={laneColor(row.lane)} />);
+  return (
+    <span className="git-rail" aria-hidden>
+      <svg width="100%" height="100%" strokeWidth={1.6}>
+        {segments}
+      </svg>
+    </span>
+  );
+}
 
 const ICON_REFRESH = (
   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
@@ -85,6 +147,15 @@ export function GitPanel(): ReactElement {
     refresh();
   }, [refresh]);
 
+  const lanes = useMemo(
+    () =>
+      result?.ok
+        ? assignLanes(result.commits.map((c) => ({ hash: c.hash, parents: c.parents ?? [] })))
+        : [],
+    [result],
+  );
+  const railWidth = 10 + maxLaneCount(lanes) * 10;
+
   const toggleCommit = (commit: GitCommit): void => {
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -136,17 +207,19 @@ export function GitPanel(): ReactElement {
       )}
       <div className="git-list">
         {result?.ok &&
-          result.commits.map((commit) => {
+          result.commits.map((commit, index) => {
             const isOpen = expanded.has(commit.hash);
             const commitFiles = details.get(commit.hash);
+            const row = lanes[index];
             return (
               <div
                 key={commit.hash}
                 className={`git-commit${isOpen ? ' open' : ''}`}
                 data-testid="git-commit"
+                style={{ paddingLeft: railWidth }}
               >
+                {row && <LaneRail row={row} hash={commit.hash} parents={commit.parents ?? []} />}
                 <button type="button" className="git-row" onClick={() => toggleCommit(commit)}>
-                  <span className="git-dot" aria-hidden />
                   <span className="git-row-main">
                     <span className="git-subject" title={commit.subject}>
                       {commit.subject || '(bez opisu)'}

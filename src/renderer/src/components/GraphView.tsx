@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { polishPlural, type KnowledgeGraph } from '../../../shared/graph';
 import { createLayout, tick, type GraphLayout } from '../../../shared/graph-layout';
+import { onKnowledgeChanged } from '../knowledge-events';
 import { useWorkspace } from '../workspace';
 
 /** Paleta autorów (stała, niezależna od motywu). */
@@ -25,22 +26,37 @@ interface ViewTransform {
 
 /**
  * Graf wiedzy à la Obsidian: notatki .md jako węzły, linki jako krawędzie,
- * kolor = autor ostatniej zmiany (git). Klik otwiera notatkę w edytorze.
+ * kolor = autor ostatniej zmiany (git). Układ liczony jest od razu do
+ * stabilnego stanu (bez animacji „rozbiegania się"), a widok dopasowuje się
+ * do zawartości. Klik = szczegóły i powiązania, podwójny klik = otwarcie.
  */
 export function GraphView(): ReactElement {
   const { root, openFile } = useWorkspace();
   const [graph, setGraph] = useState<KnowledgeGraph | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const layoutRef = useRef<GraphLayout | null>(null);
   const transformRef = useRef<ViewTransform>({ scale: 1, offsetX: 0, offsetY: 0 });
   const hoverRef = useRef<string | null>(null);
+  const selectedRef = useRef<string | null>(null);
   const dragNodeRef = useRef<string | null>(null);
   const panRef = useRef<{ x: number; y: number } | null>(null);
   const movedRef = useRef(false);
-  const energyRef = useRef(300);
+  const energyRef = useRef(0);
   const authorColorRef = useRef(new Map<string, string>());
+  // Pozycje sprzed odświeżenia — auto-aktualizacja nie przetasowuje grafu.
+  const seedPositionsRef = useRef<Map<string, { x: number; y: number }> | null>(null);
+
+  const select = useCallback((id: string | null): void => {
+    selectedRef.current = id;
+    setSelected(id);
+  }, []);
 
   const refresh = useCallback(() => {
+    const previous = layoutRef.current;
+    seedPositionsRef.current = previous
+      ? new Map([...previous.nodes.values()].map((node) => [node.id, { x: node.x, y: node.y }]))
+      : null;
     void window.api.getKnowledgeGraph(root).then((data) => {
       const colors = new Map<string, string>();
       data.authors.forEach((author, index) => {
@@ -53,16 +69,21 @@ export function GraphView(): ReactElement {
       });
       authorColorRef.current = colors;
       layoutRef.current = null;
-      energyRef.current = 320;
       setGraph(data);
+      if (selectedRef.current && !data.nodes.some((node) => node.id === selectedRef.current)) {
+        selectedRef.current = null;
+        setSelected(null);
+      }
     });
   }, [root]);
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+    void window.api.watchKnowledge(root);
+    return onKnowledgeChanged(refresh);
+  }, [refresh, root]);
 
-  // Pętla rysowania + symulacja.
+  // Pętla rysowania; symulacja tyka tylko przy przeciąganiu węzła.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !graph) {
@@ -85,6 +106,33 @@ export function GraphView(): ReactElement {
     }
     const degree = (id: string): number => neighborSets.get(id)?.size ?? 0;
 
+    /** Dopasowanie widoku do zawartości (padding na etykiety). */
+    const fitView = (layout: GraphLayout, width: number, height: number): void => {
+      const nodes = [...layout.nodes.values()];
+      if (nodes.length === 0) {
+        return;
+      }
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+      for (const node of nodes) {
+        minX = Math.min(minX, node.x);
+        minY = Math.min(minY, node.y);
+        maxX = Math.max(maxX, node.x);
+        maxY = Math.max(maxY, node.y);
+      }
+      const pad = 90;
+      const boxW = Math.max(1, maxX - minX + pad * 2);
+      const boxH = Math.max(1, maxY - minY + pad * 2);
+      const scale = Math.min(1.4, Math.max(0.3, Math.min(width / boxW, height / boxH)));
+      transformRef.current = {
+        scale,
+        offsetX: width / 2 - ((minX + maxX) / 2) * scale,
+        offsetY: height / 2 - ((minY + maxY) / 2) * scale,
+      };
+    };
+
     const draw = (): void => {
       const parent = canvas.parentElement;
       if (!parent) {
@@ -100,12 +148,31 @@ export function GraphView(): ReactElement {
         canvas.style.height = `${height}px`;
       }
       if (!layoutRef.current && width > 0) {
-        layoutRef.current = createLayout(
+        const layout = createLayout(
           graph.nodes.map((node) => node.id),
           graph.edges,
           width,
           height,
         );
+        const seeds = seedPositionsRef.current;
+        let seeded = 0;
+        if (seeds) {
+          for (const node of layout.nodes.values()) {
+            const seed = seeds.get(node.id);
+            if (seed) {
+              node.x = seed.x;
+              node.y = seed.y;
+              seeded += 1;
+            }
+          }
+        }
+        // Układ liczony na zimno do stabilności — bez widowiskowego chaosu.
+        const steps = seeded > 0 && seeded === layout.nodes.size ? 120 : 340;
+        for (let i = 0; i < steps; i += 1) {
+          tick(layout);
+        }
+        layoutRef.current = layout;
+        fitView(layout, width, height);
       }
       const layout = layoutRef.current;
       if (!layout) {
@@ -121,6 +188,7 @@ export function GraphView(): ReactElement {
       const textColor = styles.getPropertyValue('--text').trim() || '#333';
       const mutedColor = styles.getPropertyValue('--muted').trim() || '#888';
       const bgColor = styles.getPropertyValue('--bg').trim() || '#fff';
+      const accentColor = styles.getPropertyValue('--accent').trim() || '#d97757';
 
       const { scale, offsetX, offsetY } = transformRef.current;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -129,8 +197,8 @@ export function GraphView(): ReactElement {
       context.translate(offsetX, offsetY);
       context.scale(scale, scale);
 
-      const hover = hoverRef.current;
-      const hoverNeighbors = hover ? (neighborSets.get(hover) ?? new Set()) : null;
+      const focus = hoverRef.current ?? selectedRef.current;
+      const focusNeighbors = focus ? (neighborSets.get(focus) ?? new Set()) : null;
 
       for (const edge of layout.edges) {
         const a = layout.nodes.get(edge.from);
@@ -138,9 +206,9 @@ export function GraphView(): ReactElement {
         if (!a || !b) {
           continue;
         }
-        const active = hover !== null && (edge.from === hover || edge.to === hover);
-        context.strokeStyle = mutedColor;
-        context.globalAlpha = hover === null ? 0.35 : active ? 0.85 : 0.08;
+        const active = focus !== null && (edge.from === focus || edge.to === focus);
+        context.strokeStyle = active ? accentColor : mutedColor;
+        context.globalAlpha = focus === null ? 0.35 : active ? 0.8 : 0.08;
         context.lineWidth = active ? 1.6 : 1;
         context.beginPath();
         context.moveTo(a.x, a.y);
@@ -154,7 +222,7 @@ export function GraphView(): ReactElement {
           continue;
         }
         const dimmed =
-          hover !== null && node.id !== hover && !(hoverNeighbors?.has(node.id) ?? false);
+          focus !== null && node.id !== focus && !(focusNeighbors?.has(node.id) ?? false);
         const radius = 5 + Math.min(7, degree(node.id) * 1.4);
         context.globalAlpha = dimmed ? 0.18 : 1;
         context.fillStyle =
@@ -162,13 +230,17 @@ export function GraphView(): ReactElement {
         context.beginPath();
         context.arc(position.x, position.y, radius, 0, Math.PI * 2);
         context.fill();
-        if (node.id === hover) {
+        if (node.id === selectedRef.current) {
+          context.strokeStyle = accentColor;
+          context.lineWidth = 2.2;
+          context.stroke();
+        } else if (node.id === hoverRef.current) {
           context.strokeStyle = textColor;
           context.lineWidth = 1.5;
           context.stroke();
         }
         context.fillStyle = dimmed ? mutedColor : textColor;
-        context.font = `${node.id === hover ? 600 : 400} 10.5px -apple-system, sans-serif`;
+        context.font = `${node.id === focus ? 600 : 400} 10.5px -apple-system, sans-serif`;
         context.textAlign = 'center';
         context.fillText(node.title, position.x, position.y + radius + 12);
       }
@@ -205,6 +277,28 @@ export function GraphView(): ReactElement {
     }
     return best;
   };
+
+  const selectedNode = useMemo(
+    () => graph?.nodes.find((node) => node.id === selected) ?? null,
+    [graph, selected],
+  );
+
+  const related = useMemo(() => {
+    if (!graph || !selected) {
+      return [];
+    }
+    const ids = new Set<string>();
+    for (const edge of graph.edges) {
+      if (edge.from === selected) {
+        ids.add(edge.to);
+      } else if (edge.to === selected) {
+        ids.add(edge.from);
+      }
+    }
+    return graph.nodes
+      .filter((node) => ids.has(node.id))
+      .sort((a, b) => a.title.localeCompare(b.title, 'pl', { sensitivity: 'base' }));
+  }, [graph, selected]);
 
   return (
     <div className="graph-view" data-testid="graph-view">
@@ -243,10 +337,19 @@ export function GraphView(): ReactElement {
         }}
         onPointerUp={(event) => {
           const clickedNode = dragNodeRef.current;
+          const wasPan = panRef.current !== null;
           dragNodeRef.current = null;
           panRef.current = null;
-          if (clickedNode && !movedRef.current) {
-            openFile(`${root}/${clickedNode}`);
+          if (!movedRef.current) {
+            if (clickedNode) {
+              if (event.detail >= 2) {
+                openFile(`${root}/${clickedNode}`);
+              } else {
+                select(clickedNode);
+              }
+            } else if (wasPan) {
+              select(null);
+            }
           }
           event.currentTarget.releasePointerCapture(event.pointerId);
         }}
@@ -288,8 +391,60 @@ export function GraphView(): ReactElement {
           ))}
         </div>
       )}
+      {selectedNode && (
+        <div className="graph-details" data-testid="graph-details">
+          <div className="graph-details-head">
+            <span className="graph-details-title">{selectedNode.title}</span>
+            <button
+              type="button"
+              className="tab-close"
+              title="Zamknij szczegóły"
+              onClick={() => select(null)}
+            >
+              ×
+            </button>
+          </div>
+          <div className="graph-details-meta">
+            {selectedNode.id} · {selectedNode.lines} lin.
+            {selectedNode.author && ` · ${selectedNode.author}`}
+          </div>
+          <button
+            type="button"
+            className="bar-btn graph-details-open"
+            data-testid="graph-open-note"
+            onClick={() => openFile(`${root}/${selectedNode.id}`)}
+          >
+            Otwórz notatkę
+          </button>
+          <div className="graph-details-related">
+            <span className="graph-details-label">
+              {related.length > 0
+                ? `Powiązane (${related.length})`
+                : 'Brak powiązań z innymi notatkami'}
+            </span>
+            {related.map((node) => (
+              <button
+                key={node.id}
+                type="button"
+                className="graph-related-item"
+                data-testid="graph-related-item"
+                title={node.id}
+                onClick={() => select(node.id)}
+              >
+                <span
+                  className="graph-legend-dot"
+                  style={{
+                    background: authorColorRef.current.get(node.author ?? UNCOMMITTED) ?? '#9ca3af',
+                  }}
+                />
+                <span className="graph-related-name">{node.title}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <p className="graph-hint placeholder">
-        Klik = otwórz notatkę · przeciągnij węzeł/tło · kółko = zoom
+        Klik = powiązania · podwójny klik = otwórz · przeciągnij węzeł/tło · kółko = zoom
       </p>
     </div>
   );

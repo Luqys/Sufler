@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { launchApp, makeConfigHome, makeFixtureProject } from './utils';
 
@@ -77,6 +77,20 @@ test('serwer MCP grafu wiedzy podaje schemat połączeń i treść notatek', asy
     params: { name: 'notatka', arguments: { sciezka: 'notatki/Baza danych.md' } },
   });
   expect(note).toContain('Sekret-mcp-testu');
+
+  // Narzędzie konspekt serwuje konspekt-wiedzy.md z repozytorium projektu
+  // i odtwarza go przed odczytem, nawet gdy plik zniknął.
+  rmSync(join(project, 'konspekt-wiedzy.md'), { force: true });
+  const outline = await mcpCall({
+    jsonrpc: '2.0',
+    id: 4,
+    method: 'tools/call',
+    params: { name: 'konspekt', arguments: {} },
+  });
+  expect(outline).toContain('Konspekt wiedzy');
+  expect(outline).toContain('notatki/Architektura.md');
+  expect(outline).toContain('Baza danych');
+  expect(existsSync(join(project, 'konspekt-wiedzy.md'))).toBe(true);
 
   await page.screenshot({ path: 'e2e-artifacts/m20-wiedza-mcp.png' });
   await app.close();

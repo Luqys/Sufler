@@ -3,6 +3,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import type { KnowledgeFile, KnowledgeGenerateResult } from '../shared/ipc';
+import { buildOutline } from '../shared/knowledge-outline';
 import { baseName } from '../shared/paths';
 import { writeTextFile } from './fs-tree';
 
@@ -10,6 +11,9 @@ const execFileAsync = promisify(execFile);
 
 /** Plik wynikowy generatora — wykluczany z listy źródeł. */
 export const KNOWLEDGE_OUTPUT = 'kontekst-agenta.md';
+
+/** Automatycznie utrzymywany konspekt wiedzy — też wykluczany ze źródeł. */
+export const OUTLINE_OUTPUT = 'konspekt-wiedzy.md';
 
 const WALK_SKIP = new Set(['node_modules', '.git', '.obsidian', '.trash', 'dist', 'out']);
 const WALK_MAX_FILES = 500;
@@ -67,7 +71,7 @@ export async function listMarkdownFiles(root: string): Promise<KnowledgeFile[]> 
   const paths = (await listViaGit(root)) ?? (await listViaWalk(root));
   const files: KnowledgeFile[] = [];
   for (const path of paths) {
-    if (!path.endsWith('.md') || path === KNOWLEDGE_OUTPUT) {
+    if (!path.endsWith('.md') || path === KNOWLEDGE_OUTPUT || path === OUTLINE_OUTPUT) {
       continue;
     }
     try {
@@ -96,6 +100,28 @@ export async function listMarkdownFiles(root: string): Promise<KnowledgeFile[]> 
     }
     return a.path.localeCompare(b.path, undefined, { sensitivity: 'base' });
   });
+}
+
+/**
+ * Przelicza konspekt wiedzy (konspekt-wiedzy.md w korzeniu projektu).
+ * Zapis tylko, gdy treść realnie się zmieniła (bez pętli zapisu z watcherem).
+ */
+export async function rebuildOutline(root: string): Promise<void> {
+  const files = await listMarkdownFiles(root);
+  const sources: Array<{ path: string; content: string }> = [];
+  for (const file of files.slice(0, 300)) {
+    try {
+      sources.push({ path: file.path, content: await readFile(join(root, file.path), 'utf8') });
+    } catch {
+      // plik zniknął między listowaniem a odczytem
+    }
+  }
+  const outline = buildOutline(baseName(root), sources);
+  const target = join(root, OUTLINE_OUTPUT);
+  const existing = await readFile(target, 'utf8').catch(() => null);
+  if (existing !== outline) {
+    await writeTextFile(target, outline);
+  }
 }
 
 /** Skleja wybrane pliki .md w jeden dokument-kontekst dla agenta. */

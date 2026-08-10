@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { z } from 'zod';
 import { buildKnowledgeGraph } from './knowledge-graph';
+import { OUTLINE_OUTPUT, rebuildOutline } from './knowledge';
 import { getProjectRoot } from './project';
 
 /**
@@ -36,10 +37,34 @@ function buildMcp(): McpServer {
   const mcp = new McpServer({ name: 'visualn3o-graf-wiedzy', version: '1.0.0' });
 
   mcp.tool(
+    'konspekt',
+    'Konspekt wiedzy projektu otwartego w VisualN3O — mapa wszystkich notatek .md ' +
+      '(tytuły, nagłówki, powiązania) z pliku konspekt-wiedzy.md w korzeniu repozytorium. ' +
+      'Przed odczytem konspekt jest przeliczany, więc odpowiada aktualnemu stanowi notatek. ' +
+      'Użyj na start, aby wiedzieć, co gdzie jest, zanim sięgniesz po pełne treści.',
+    {},
+    async () => {
+      const root = getProjectRoot();
+      if (!root) {
+        return textResult('Brak otwartego projektu w VisualN3O.', true);
+      }
+      await rebuildOutline(root).catch(() => {
+        // nie blokujemy odczytu — spróbujemy podać ostatnią wersję z repozytorium
+      });
+      try {
+        return textResult(await readFile(join(root, OUTLINE_OUTPUT), 'utf8'));
+      } catch {
+        return textResult('Nie udało się zbudować konspektu wiedzy.', true);
+      }
+    },
+  );
+
+  mcp.tool(
     'graf_wiedzy',
     'Pełny schemat grafu wiedzy projektu otwartego w VisualN3O: notatki .md jako węzły ' +
       '(ścieżka, tytuł, autor ostatniej zmiany, data) i połączenia między nimi ' +
-      '(wikilinki [[...]] i linki markdown). Użyj na start, aby zrozumieć strukturę wiedzy.',
+      '(wikilinki [[...]] i linki markdown). Użyj, gdy potrzebujesz pełnej struktury ' +
+      'połączeń; szybki spis tematów daje narzędzie konspekt.',
     {},
     async () => {
       const root = getProjectRoot();

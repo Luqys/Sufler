@@ -1200,6 +1200,91 @@ body.dragging-horizontal .splitter.horizontal::after {
   font-size: 10.5px;
 }
 
+/* Szczegóły zaznaczonego węzła: metadane + lista powiązanych notatek. */
+.graph-details {
+  position: absolute;
+  right: 12px;
+  bottom: 34px;
+  width: 240px;
+  max-height: 55%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.18);
+}
+
+.graph-details-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.graph-details-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-details-meta {
+  font-size: 10.5px;
+  color: var(--muted);
+  overflow-wrap: break-word;
+}
+
+.graph-details-open {
+  align-self: flex-start;
+}
+
+.graph-details-related {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.graph-details-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 3px 0 2px;
+}
+
+.graph-related-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.graph-related-item:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.graph-related-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* --- Wskaźnik zużycia Claude --- */
 
 .usage-wrap {
@@ -1385,46 +1470,22 @@ body.dragging-horizontal .splitter.horizontal::after {
   flex-direction: column;
 }
 
-/* Oś czasu: pionowa linia przez wszystkie commity, kropka przy każdym. */
+/* Tory gałęzi (jak graf commitów na GitHubie) — SVG rozciągnięty na wiersz,
+   linie ciągną się też przez rozwinięte szczegóły. */
 .git-commit {
   position: relative;
-  padding-left: 18px;
 }
 
-.git-commit::before {
-  content: '';
+.git-rail {
   position: absolute;
-  left: 6px;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: var(--border);
+  inset: 0;
+  pointer-events: none;
 }
 
-.git-commit:first-child::before {
-  top: 14px;
-}
-
-.git-commit:last-child::before {
-  bottom: calc(100% - 14px);
-}
-
-.git-dot {
-  position: absolute;
-  left: 3px;
-  top: 11px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  border: 1.5px solid var(--muted);
-  background: var(--bg);
-  transition: border-color 0.1s ease, background 0.1s ease;
-}
-
-.git-commit.open .git-dot,
-.git-row:hover .git-dot {
-  border-color: var(--accent);
-  background: var(--accent);
+.git-rail svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .git-row {

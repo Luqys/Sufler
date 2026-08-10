@@ -7,6 +7,7 @@ import { applyAppearanceAtBoot, getAppearance, setAppearance } from './appearanc
 import { interruptChat, resetChat, sendChatMessage } from './chat';
 import { generateKnowledgeContext, listMarkdownFiles } from './knowledge';
 import { buildKnowledgeGraph } from './knowledge-graph';
+import { closeKnowledgeWatcher, watchKnowledge } from './knowledge-watcher';
 import { getUsageLimits } from './usage-limits';
 import { closeWatcher, setWatchedFiles } from './file-watcher';
 import { readDirListing, readFileForEditor, readImageForPreview, writeTextFile } from './fs-tree';
@@ -92,6 +93,12 @@ void app.whenReady().then(() => {
     generateKnowledgeContext(root, paths),
   );
   ipcMain.handle(IPC.KnowledgeGraphGet, (_event, root: string) => buildKnowledgeGraph(root));
+  ipcMain.handle(IPC.KnowledgeWatch, (event, root: string) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+      watchKnowledge(win, root);
+    }
+  });
   ipcMain.handle(IPC.GitLog, (_event, root: string) => runGitLog(root));
   ipcMain.handle(IPC.GitShowCommit, (_event, root: string, hash: string) =>
     runGitShowCommit(root, hash),
@@ -248,6 +255,7 @@ app.on('will-quit', () => {
   closeSkillsWatcher();
   closeMcpWatcher();
   closeTreeWatcher();
+  closeKnowledgeWatcher();
   stopWiedzaMcp();
   killAllPtys();
 });

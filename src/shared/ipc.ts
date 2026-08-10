@@ -47,6 +47,8 @@ export const IPC = {
   AppearanceSet: 'appearance:set',
   KnowledgeList: 'knowledge:list',
   KnowledgeGenerate: 'knowledge:generate',
+  KnowledgeWatch: 'knowledge:watch',
+  KnowledgeChanged: 'knowledge:changed',
   GitLog: 'git:log',
   GitShowCommit: 'git:show-commit',
   UsageLimitsGet: 'usage:limits',
@@ -201,6 +203,9 @@ export interface WindowApi {
   setAppearance(appearance: Appearance): Promise<Appearance>;
   listKnowledge(root: string): Promise<KnowledgeFile[]>;
   generateKnowledge(root: string, paths: string[]): Promise<KnowledgeGenerateResult>;
+  /** Obserwacja notatek .md: zdarzenia zmian + automatyczny konspekt wiedzy. */
+  watchKnowledge(root: string): Promise<void>;
+  onKnowledgeChanged(listener: () => void): void;
   gitLog(root: string): Promise<GitLogResult>;
   gitShowCommit(root: string, hash: string): Promise<GitCommitFile[]>;
   getUsageLimits(force?: boolean): Promise<UsageLimitsResult>;
@@ -259,6 +264,8 @@ export type KnowledgeGenerateResult =
 export interface GitCommit {
   hash: string;
   shortHash: string;
+  /** Hashe rodziców (%P) — do rysowania torów gałęzi. */
+  parents: string[];
   author: string;
   /** ISO 8601 (%aI). */
   date: string;
