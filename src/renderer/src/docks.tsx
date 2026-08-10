@@ -73,6 +73,9 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
   const { confirmDialog, notify } = useDialogs();
   const [docks, setDocksRaw] = useState<DocksState>(emptyDocksState);
   const docksRef = useRef(docks);
+  // Karty, których status przejęły hooki (M35) — heurystyka pty ich nie dotyka.
+  // Bez tego spóźniony chunk wyjścia nadpisywał status ustawiony hookiem (wyścig).
+  const hookDrivenRef = useRef(new Set<string>());
 
   const applyDocks = useCallback((updater: (state: DocksState) => DocksState) => {
     docksRef.current = updater(docksRef.current);
@@ -94,7 +97,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
             ? createClaudeStatusTracker((activity) => {
                 applyDocks((state) => {
                   const found = findTab(state, id);
-                  if (!found || found.tab.status === 'exited') {
+                  if (!found || found.tab.status === 'exited' || hookDrivenRef.current.has(id)) {
                     return state;
                   }
                   return updateTabState(state, id, { status: activity });
@@ -215,13 +218,15 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
     window.api.onPtyExit(({ ptyId }) => {
       const exited = allTabs(docksRef.current).find((tab) => tab.ptyId === ptyId);
       if (exited) {
+        hookDrivenRef.current.delete(exited.id);
         applyDocks((state) => updateTabState(state, exited.id, { status: 'exited' }));
       }
     });
   }, [applyDocks]);
 
-  // Deterministyczny status z hooków Notification/Stop (M35) — nadpisuje
-  // heurystykę strumienia pty; ta zostaje jako fallback dla starych sesji.
+  // Deterministyczny status z hooków Notification/Stop (M35). Pierwszy hook
+  // przejmuje kartę na wyłączność (hookDrivenRef) — heurystyka strumienia pty
+  // zostaje fallbackiem wyłącznie dla sesji bez hooków.
   useEffect(() => {
     window.api.onClaudeHookEvent(({ ptyId, kind }) => {
       const target = allTabs(docksRef.current).find(
@@ -230,6 +235,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
       if (!target) {
         return;
       }
+      hookDrivenRef.current.add(target.id);
       applyDocks((state) =>
         updateTabState(state, target.id, {
           status: kind === 'stop' ? 'idle' : 'needs-input',
