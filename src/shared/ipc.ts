@@ -1,3 +1,4 @@
+import type { TabKind } from './dock-tabs';
 import type { LayoutState } from './layout';
 
 export const IPC = {
@@ -10,6 +11,12 @@ export const IPC = {
   FsWriteFile: 'fs:write-file',
   WatchSetFiles: 'watch:set-files',
   WatchEvent: 'watch:event',
+  PtyCreate: 'pty:create',
+  PtyWrite: 'pty:write',
+  PtyResize: 'pty:resize',
+  PtyKill: 'pty:kill',
+  PtyData: 'pty:data',
+  PtyExit: 'pty:exit',
 } as const;
 
 export interface DirEntry {
@@ -38,6 +45,20 @@ export interface WatchEvent {
   kind: 'changed' | 'deleted';
 }
 
+export type PtyCreateResult =
+  | { ok: true; ptyId: number; pid: number; title: string }
+  | { ok: false; error: string };
+
+export interface PtyDataEvent {
+  ptyId: number;
+  data: string;
+}
+
+export interface PtyExitEvent {
+  ptyId: number;
+  exitCode: number;
+}
+
 /** API udostępniane rendererowi przez contextBridge (window.api). */
 export interface WindowApi {
   getLayout(): Promise<LayoutState>;
@@ -51,4 +72,11 @@ export interface WindowApi {
   watchFiles(paths: string[]): Promise<void>;
   /** Subskrypcja na całe życie okna — bez wypisu (patrz workspace). */
   onWatchEvent(listener: (event: WatchEvent) => void): void;
+  ptyCreate(options: { kind: TabKind; cwd: string }): Promise<PtyCreateResult>;
+  ptyWrite(ptyId: number, data: string): void;
+  ptyResize(ptyId: number, cols: number, rows: number): void;
+  ptyKill(ptyId: number): Promise<void>;
+  /** Subskrypcje na całe życie okna. */
+  onPtyData(listener: (event: PtyDataEvent) => void): void;
+  onPtyExit(listener: (event: PtyExitEvent) => void): void;
 }

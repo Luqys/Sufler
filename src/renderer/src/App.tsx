@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import type { LayoutState } from '../../shared/layout';
 import { Workbench } from './components/Workbench';
+import { DocksProvider } from './docks';
 import { WorkspaceProvider } from './workspace';
 
 export function App(): ReactElement | null {
@@ -23,7 +24,9 @@ export function App(): ReactElement | null {
   }
   return (
     <WorkspaceProvider>
-      <Workbench initialLayout={initialLayout} />
+      <DocksProvider>
+        <Workbench initialLayout={initialLayout} />
+      </DocksProvider>
     </WorkspaceProvider>
   );
 }

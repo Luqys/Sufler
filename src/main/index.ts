@@ -1,10 +1,13 @@
 import { app, BrowserWindow, ipcMain, nativeTheme } from 'electron';
 import { join } from 'node:path';
+import type { TabKind } from '../shared/dock-tabs';
 import { IPC } from '../shared/ipc';
 import { closeWatcher, setWatchedFiles } from './file-watcher';
 import { readDirListing, readFileForEditor, writeTextFile } from './fs-tree';
 import { readLayout, writeLayout } from './layout-store';
+import { createPty, killAllPtys, killPty, listPtyPids, resizePty, writePty } from './pty-manager';
 import { chooseProjectRoot, getProjectRoot } from './project';
+import { resolveShellEnv } from './shell-env';
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -54,6 +57,25 @@ void app.whenReady().then(() => {
       setWatchedFiles(win, paths);
     }
   });
+  ipcMain.handle(IPC.PtyCreate, (event, options: { kind: TabKind; cwd: string }) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    return win ? createPty(win, options) : { ok: false as const, error: 'Brak okna' };
+  });
+  ipcMain.on(IPC.PtyWrite, (_event, ptyId: number, data: string) => {
+    writePty(ptyId, data);
+  });
+  ipcMain.on(IPC.PtyResize, (_event, ptyId: number, cols: number, rows: number) => {
+    resizePty(ptyId, cols, rows);
+  });
+  ipcMain.handle(IPC.PtyKill, (_event, ptyId: number) => {
+    killPty(ptyId);
+  });
+
+  // Rozgrzewamy cache środowiska shella, zanim powstanie pierwszy terminal.
+  void resolveShellEnv();
+
+  // Do testów e2e (Playwright electronApp.evaluate): podgląd żywych pty.
+  (globalThis as Record<string, unknown>)['vn3oListPtyPids'] = listPtyPids;
 
   createWindow();
 
@@ -70,4 +92,5 @@ app.on('window-all-closed', () => {
 
 app.on('will-quit', () => {
   closeWatcher();
+  killAllPtys();
 });
