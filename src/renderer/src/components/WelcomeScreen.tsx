@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { baseName } from '../../../shared/paths';
-import logoUrl from '../assets/logo.png';
 import { useT } from '../i18n';
 
 interface WelcomeScreenProps {
@@ -16,6 +15,24 @@ const ICON_FOLDER = (
 const ICON_OPEN = (
   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M8 3.2v9.6M3.2 8h9.6" />
+  </svg>
+);
+
+/** Znak Suflera: dymek podpowiedzi z zachętą wiersza poleceń, w kolorze akcentu. */
+const ICON_MARK = (
+  <svg
+    width="40"
+    height="40"
+    viewBox="0 0 48 48"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.6"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M15 10h18a7 7 0 0 1 7 7v9a7 7 0 0 1-7 7H23l-8 6.5V33a7 7 0 0 1-7-7v-9a7 7 0 0 1 7-7Z" />
+    <path d="m16.5 17.5 5.5 4.75-5.5 4.75" />
+    <path d="M25.5 27h6" />
   </svg>
 );
 
@@ -56,7 +73,7 @@ export function WelcomeScreen({ onPicked }: WelcomeScreenProps): ReactElement {
         <div className="welcome-card">
           <div className="welcome-hero">
             <span className="welcome-mark-halo" aria-hidden>
-              <img src={logoUrl} alt="" className="welcome-mark-logo" />
+              <span className="welcome-mark">{ICON_MARK}</span>
             </span>
             <div className="welcome-logo">Sufler</div>
             <span className="welcome-tagline">

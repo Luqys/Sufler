@@ -637,7 +637,7 @@ body.dragging-horizontal .splitter.horizontal::after {
   background: var(--bg);
 }
 
-/* Dryfujące poświaty: ciepły akcent + chłodne echa neonu z logo. */
+/* Dryfujące poświaty w kolorze akcentu — spójne z każdym motywem. */
 .welcome::before {
   content: '';
   position: absolute;
@@ -646,11 +646,19 @@ body.dragging-horizontal .splitter.horizontal::after {
   background:
     radial-gradient(
       36% 32% at 40% 28%,
-      color-mix(in srgb, var(--accent) 15%, transparent),
+      color-mix(in srgb, var(--accent) 16%, transparent),
       transparent 70%
     ),
-    radial-gradient(32% 30% at 66% 70%, rgb(56 189 248 / 0.1), transparent 70%),
-    radial-gradient(26% 24% at 60% 14%, rgb(232 121 249 / 0.08), transparent 70%);
+    radial-gradient(
+      32% 30% at 66% 70%,
+      color-mix(in srgb, var(--accent) 9%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      26% 24% at 60% 14%,
+      color-mix(in srgb, var(--accent) 7%, transparent),
+      transparent 70%
+    );
   animation: welcome-drift 22s ease-in-out infinite alternate;
 }
 
@@ -733,7 +741,7 @@ body.dragging-horizontal .splitter.horizontal::after {
   text-align: center;
 }
 
-/* Neonowa poświata pod logo — nawiązuje do kolorów znaku. */
+/* Miękka poświata pod znakiem — oddycha w kolorze akcentu. */
 .welcome-mark-halo {
   position: relative;
   display: grid;
@@ -749,10 +757,10 @@ body.dragging-horizontal .splitter.horizontal::after {
   border-radius: 50%;
   background: conic-gradient(
     from 210deg,
-    rgb(34 211 238 / 0.75),
-    rgb(168 85 247 / 0.7),
-    rgb(236 72 153 / 0.7),
-    rgb(34 211 238 / 0.75)
+    color-mix(in srgb, var(--accent) 85%, transparent),
+    color-mix(in srgb, var(--accent) 30%, transparent),
+    color-mix(in srgb, var(--accent) 65%, transparent),
+    color-mix(in srgb, var(--accent) 85%, transparent)
   );
   filter: blur(28px);
   opacity: 0.5;
@@ -770,12 +778,23 @@ body.dragging-horizontal .splitter.horizontal::after {
   }
 }
 
-.welcome-mark-logo {
+.welcome-mark {
   position: relative;
+  display: grid;
+  place-items: center;
   width: 76px;
   height: 76px;
-  border-radius: 18px;
-  box-shadow: 0 10px 30px rgb(0 0 0 / 0.35);
+  border-radius: 19px;
+  color: #fff;
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--accent) 72%, #fff),
+    var(--accent) 52%,
+    color-mix(in srgb, var(--accent) 78%, #000)
+  );
+  box-shadow:
+    0 10px 30px color-mix(in srgb, var(--accent) 40%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.35);
 }
 
 .welcome-logo {
