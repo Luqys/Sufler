@@ -49,7 +49,7 @@ test('panel skilli pokazuje grupy z frontmattera i otwiera pliki', async () => {
 
   // Kliknięcie otwiera plik w edytorze.
   await panel.getByText('deploy-prod').click();
-  await expect(page.getByTestId('tab-active')).toContainText('SKILL.md');
+  await expect(page.getByTestId('tab-active')).toContainText('deploy-prod');
 
   // Cmd+klik wstawia /nazwę do aktywnej sesji Claude.
   await page.getByTestId('bottom-new-claude').click();

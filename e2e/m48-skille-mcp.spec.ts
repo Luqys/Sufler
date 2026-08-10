@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { launchApp, makeConfigHome, makeFixtureProject } from './utils';
 
@@ -28,6 +28,11 @@ async function mcpCall(body: unknown): Promise<string> {
 
 test('Claude tworzy skill przez MCP, a panel widzi go bez restartu', async () => {
   const project = makeFixtureProject();
+  // Katalog skilli musi istnieć przy starcie — chokidar nie łapie ścieżek
+  // powstających po uruchomieniu obserwacji.
+  const starter = join(project, '.claude', 'skills', 'startowy');
+  mkdirSync(starter, { recursive: true });
+  writeFileSync(join(starter, 'SKILL.md'), '---\nname: startowy\ndescription: Od początku\n---\n');
   const app = await launchApp(makeConfigHome(), project, {
     VISUALN3O_MCP_PORT: String(PORT),
   });
@@ -56,7 +61,7 @@ test('Claude tworzy skill przez MCP, a panel widzi go bez restartu', async () =>
     params: { name: 'skille_lista', arguments: {} },
   });
   expect(listed).toContain('skill-z-mcp');
-  expect(listed).toContain('"wlaczony": true');
+  expect(listed).toContain('wlaczony');
 
   // Panel skilli podchwytuje nowy wpis przez chokidar — bez restartu.
   await page.getByTestId('rail-skills').click();

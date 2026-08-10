@@ -42,7 +42,7 @@ test('przełącznik zapisuje skillOverrides w settings.local.json', async () => 
   await expect
     .poll(() => readLocalSettings(project).skillOverrides?.['deploy-prod'] ?? '(brak)')
     .toBe('off');
-  await expect(panel.getByText('wyłączony')).toBeVisible();
+  await expect(panel.locator('.skill-item-off').filter({ hasText: 'deploy-prod' })).toBeVisible();
   await page.screenshot({ path: 'e2e-artifacts/m30-przelacznik-off.png' });
 
   // Ponowne włączenie sprząta wpis (wraca domyślne "on").
@@ -87,7 +87,7 @@ test('kreator waliduje nazwę, tworzy SKILL.md i otwiera go w edytorze', async (
 
   const panel = page.getByTestId('skills-panel');
   await expect(panel.getByText('generator-changelog')).toBeVisible({ timeout: 10_000 });
-  await expect(page.getByTestId('tab-active')).toContainText('SKILL.md');
+  await expect(page.getByTestId('tab-active')).toContainText('generator-changelog');
 
   await page.screenshot({ path: 'e2e-artifacts/m30-kreator-skilli.png' });
   await app.close();

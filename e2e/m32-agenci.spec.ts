@@ -53,7 +53,7 @@ test('przełącznik agenta zapisuje regułę Agent(…) w permissions.deny', asy
     .poll(() => readLocalSettings(project).permissions?.deny ?? [])
     .toContain('Agent(recenzent)');
   expect(readLocalSettings(project).permissions?.allow).toEqual(['Bash(ls:*)']);
-  await expect(panel.getByText('wyłączony')).toBeVisible();
+  await expect(panel.locator('.skill-item-off').filter({ hasText: 'recenzent' })).toBeVisible();
   await page.screenshot({ path: 'e2e-artifacts/m32-agent-off.png' });
 
   // Ponowne włączenie usuwa regułę.
@@ -83,7 +83,7 @@ test('deny w settings.json projektu blokuje lokalny przełącznik', async () => 
   const toggle = page.getByTestId('agent-toggle-recenzent');
   await expect(toggle).not.toBeChecked();
   await expect(toggle).toBeDisabled();
-  await expect(panel.getByText('wyłączony')).toBeVisible();
+  await expect(panel.locator('.skill-item-off').filter({ hasText: 'recenzent' })).toBeVisible();
   await page.screenshot({ path: 'e2e-artifacts/m32-agent-zablokowany.png' });
 
   await app.close();
