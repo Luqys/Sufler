@@ -23,7 +23,11 @@ test('panel Wiedza listuje pliki MD i generuje kontekst agenta', async () => {
   await expect(rows).toHaveCount(2);
   await expect(panel).toContainText('README.md');
   await expect(panel).toContainText('przewodnik.md');
+  await expect(panel.getByTestId('knowledge-summary')).toContainText('Zaznaczone: 2 z 2');
   await expect(panel.getByTestId('knowledge-generate')).toContainText('(2)');
+
+  // Pliki z korzenia przed katalogami.
+  await expect(rows.first()).toContainText('README.md');
 
   await panel.getByTestId('knowledge-generate').click();
   await expect(page.getByTestId('tab-active')).toContainText('kontekst-agenta.md', {

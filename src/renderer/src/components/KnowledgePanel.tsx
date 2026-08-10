@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactElement } from 'react';
 import type { KnowledgeFile } from '../../../shared/ipc';
+import { formatTokens } from '../../../shared/usage';
 import { useDocks } from '../docks';
 import { useWorkspace } from '../workspace';
+import { fileIconFor } from './file-icons';
 
 const ICON_REFRESH = (
   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
@@ -10,11 +12,19 @@ const ICON_REFRESH = (
   </svg>
 );
 
+const ICON_SELECT_ALL = (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="9" height="9" rx="2" />
+    <path d="M4.6 6.6l1.7 1.7 2.7-3" />
+    <path d="M13.9 5.5v6.4a2 2 0 0 1-2 2H5.5" />
+  </svg>
+);
+
 function splitPath(path: string): { dir: string; name: string } {
   const slash = path.lastIndexOf('/');
   return slash === -1
     ? { dir: '', name: path }
-    : { dir: path.slice(0, slash), name: path.slice(slash + 1) };
+    : { dir: path.slice(0, slash + 1), name: path.slice(slash + 1) };
 }
 
 /**
@@ -80,11 +90,27 @@ export function KnowledgePanel(): ReactElement {
   };
 
   const total = files?.length ?? 0;
+  const selectedChars = useMemo(
+    () =>
+      (files ?? []).reduce(
+        (sum, file) => (selected.has(file.path) ? sum + file.chars : sum),
+        0,
+      ),
+    [files, selected],
+  );
+  // Zgrubny szacunek: ~4 znaki na token.
+  const tokenEstimate = Math.round(selectedChars / 4);
 
   return (
     <div className="knowledge-panel" data-testid="knowledge-panel">
+      <p className="knowledge-hint placeholder">
+        Zaznacz pliki markdown i sklej je w jeden kontekst wiedzy dla agenta.
+      </p>
       <div className="knowledge-toolbar">
-        <span className="mcp-note">Pliki markdown projektu ({total})</span>
+        <span className="knowledge-summary" data-testid="knowledge-summary">
+          Zaznaczone: <strong>{selected.size}</strong> z {total}
+          {selectedChars > 0 && <> · ≈ {formatTokens(tokenEstimate)} tokenów</>}
+        </span>
         <button
           type="button"
           className="tree-toolbtn"
@@ -92,7 +118,7 @@ export function KnowledgePanel(): ReactElement {
           title="Zaznacz wszystkie / żaden"
           onClick={toggleAll}
         >
-          ☑
+          {ICON_SELECT_ALL}
         </button>
         <button
           type="button"
@@ -106,7 +132,12 @@ export function KnowledgePanel(): ReactElement {
       </div>
       {files === null && <p className="placeholder">Skanuję pliki .md…</p>}
       {files !== null && files.length === 0 && (
-        <p className="placeholder">Brak plików markdown w projekcie.</p>
+        <div className="knowledge-empty">
+          <p className="placeholder">
+            Brak plików markdown w projekcie. Notatki, README i dokumentacja `.md`
+            pojawią się tutaj automatycznie.
+          </p>
+        </div>
       )}
       <div className="knowledge-list">
         {(files ?? []).map((file) => {
@@ -118,6 +149,7 @@ export function KnowledgePanel(): ReactElement {
                 checked={selected.has(file.path)}
                 onChange={() => toggle(file.path)}
               />
+              <span className="knowledge-file-icon">{fileIconFor(name)}</span>
               <button
                 type="button"
                 className="knowledge-open"
@@ -127,10 +159,12 @@ export function KnowledgePanel(): ReactElement {
                   openFile(`${root}/${file.path}`);
                 }}
               >
-                <span className="skill-name">{name}</span>
-                {dir && <span className="knowledge-dir">{dir}/</span>}
+                {dir && <span className="knowledge-dir">{dir}</span>}
+                <span className="knowledge-name">{name}</span>
               </button>
-              <span className="knowledge-lines">{file.lines}</span>
+              <span className="knowledge-lines" title={`${file.lines} linii`}>
+                {file.lines} lin.
+              </span>
             </label>
           );
         })}
@@ -146,10 +180,11 @@ export function KnowledgePanel(): ReactElement {
           {busy ? 'Generuję…' : `Generuj kontekst (${selected.size})`}
         </button>
         {lastGenerated && (
-          <>
-            <p className="knowledge-note placeholder" data-testid="knowledge-note">
-              ✓ kontekst-agenta.md · {lastGenerated.files} plików — otwarty w edytorze.
-            </p>
+          <div className="knowledge-result" data-testid="knowledge-note">
+            <span className="knowledge-result-text">
+              <span className="knowledge-result-check">✓</span> kontekst-agenta.md ·{' '}
+              {lastGenerated.files} plików
+            </span>
             <button
               type="button"
               className="bar-btn"
@@ -159,7 +194,7 @@ export function KnowledgePanel(): ReactElement {
             >
               @ do Claude
             </button>
-          </>
+          </div>
         )}
       </div>
     </div>

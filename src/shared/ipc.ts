@@ -206,6 +206,8 @@ export interface KnowledgeFile {
   /** Ścieżka względem korzenia projektu. */
   path: string;
   lines: number;
+  /** Długość treści w znakach — do szacowania tokenów kontekstu (~4 znaki/token). */
+  chars: number;
 }
 
 export type KnowledgeGenerateResult =

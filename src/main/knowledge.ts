@@ -71,12 +71,31 @@ export async function listMarkdownFiles(root: string): Promise<KnowledgeFile[]> 
       continue;
     }
     try {
-      files.push({ path, lines: countLines(await readFile(join(root, path), 'utf8')) });
+      const content = await readFile(join(root, path), 'utf8');
+      files.push({ path, lines: countLines(content), chars: content.length });
     } catch {
       // plik zniknął — pomijamy
     }
   }
-  return files.sort((a, b) => a.path.localeCompare(b.path));
+  // Pliki z korzenia najpierw, potem katalogi alfabetycznie, w środku po nazwie.
+  const dirOf = (path: string): string => {
+    const slash = path.lastIndexOf('/');
+    return slash === -1 ? '' : path.slice(0, slash);
+  };
+  return files.sort((a, b) => {
+    const dirA = dirOf(a.path);
+    const dirB = dirOf(b.path);
+    if (dirA !== dirB) {
+      if (dirA === '') {
+        return -1;
+      }
+      if (dirB === '') {
+        return 1;
+      }
+      return dirA.localeCompare(dirB, undefined, { sensitivity: 'base' });
+    }
+    return a.path.localeCompare(b.path, undefined, { sensitivity: 'base' });
+  });
 }
 
 /** Skleja wybrane pliki .md w jeden dokument-kontekst dla agenta. */
