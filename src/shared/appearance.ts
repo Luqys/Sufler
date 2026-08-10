@@ -1,29 +1,40 @@
-/** Motyw aplikacji: tryb jasny/ciemny/systemowy/matrixowy + kolor przewodni (akcent). */
+/**
+ * Motyw aplikacji: tryb jasny/ciemny/systemowy/matrixowy + kolor przewodni
+ * (akcent) + język interfejsu.
+ */
 
 export type ThemeMode = 'system' | 'light' | 'dark' | 'matrix';
 export type AccentId = 'clay' | 'blue' | 'green' | 'violet' | 'pink';
+export type Language = 'pl' | 'en';
 
 export interface Appearance {
   mode: ThemeMode;
   accent: AccentId;
+  language: Language;
 }
 
-export const DEFAULT_APPEARANCE: Appearance = { mode: 'system', accent: 'clay' };
+export const LANGUAGES: Array<{ id: Language; label: string }> = [
+  { id: 'pl', label: 'Polski' },
+  { id: 'en', label: 'English' },
+];
 
-export const THEME_MODES: Array<{ id: ThemeMode; label: string }> = [
-  { id: 'system', label: 'Systemowy' },
-  { id: 'light', label: 'Jasny' },
-  { id: 'dark', label: 'Ciemny' },
-  { id: 'matrix', label: 'Matrix' },
+export const DEFAULT_APPEARANCE: Appearance = { mode: 'system', accent: 'clay', language: 'pl' };
+
+/** Etykiety trybów i akcentów są w słowniku i18n (klucze theme.* i accent.*). */
+export const THEME_MODES: Array<{ id: ThemeMode }> = [
+  { id: 'system' },
+  { id: 'light' },
+  { id: 'dark' },
+  { id: 'matrix' },
 ];
 
 /** swatch — kolor próbki w ustawieniach (wariant jasny). */
-export const ACCENTS: Array<{ id: AccentId; label: string; swatch: string }> = [
-  { id: 'clay', label: 'Glinka', swatch: '#c15f3c' },
-  { id: 'blue', label: 'Błękit', swatch: '#2563eb' },
-  { id: 'green', label: 'Zieleń', swatch: '#16a34a' },
-  { id: 'violet', label: 'Fiolet', swatch: '#7c3aed' },
-  { id: 'pink', label: 'Róż', swatch: '#db2777' },
+export const ACCENTS: Array<{ id: AccentId; swatch: string }> = [
+  { id: 'clay', swatch: '#c15f3c' },
+  { id: 'blue', swatch: '#2563eb' },
+  { id: 'green', swatch: '#16a34a' },
+  { id: 'violet', swatch: '#7c3aed' },
+  { id: 'pink', swatch: '#db2777' },
 ];
 
 export function normalizeAppearance(raw: unknown): Appearance {
@@ -37,5 +48,8 @@ export function normalizeAppearance(raw: unknown): Appearance {
   const accent = ACCENTS.some((entry) => entry.id === obj['accent'])
     ? (obj['accent'] as AccentId)
     : DEFAULT_APPEARANCE.accent;
-  return { mode, accent };
+  const language = LANGUAGES.some((entry) => entry.id === obj['language'])
+    ? (obj['language'] as Language)
+    : DEFAULT_APPEARANCE.language;
+  return { mode, accent, language };
 }

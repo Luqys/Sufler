@@ -9,6 +9,7 @@ import {
 } from 'react';
 import type { DirEntry, TreeChangedEvent } from '../../../shared/ipc';
 import { baseName } from '../../../shared/paths';
+import { useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 import { FOLDER_ICON, fileIconFor } from './file-icons';
 
@@ -59,6 +60,7 @@ function ensureTreeSubscription(): void {
 const VAULT_HIDDEN = new Set(['.obsidian', '.trash']);
 
 export function FileTree(): ReactElement {
+  const t = useT();
   const { root, vault, tabsState, openFile, chooseProject, chooseVault, clearVault } =
     useWorkspace();
   const [listings, setListings] = useState<ReadonlyMap<string, Listing>>(new Map());
@@ -195,14 +197,14 @@ export function FileTree(): ReactElement {
     if (!listing) {
       return (
         <div className="tree-note" style={indent}>
-          Wczytywanie…
+          {t('common.loading')}
         </div>
       );
     }
     if (listing.status === 'error') {
       return (
         <div className="tree-note" style={indent} title={listing.message}>
-          Brak dostępu
+          {t('ft.noAccess')}
         </div>
       );
     }
@@ -213,7 +215,7 @@ export function FileTree(): ReactElement {
     if (visible.length === 0) {
       return (
         <div className="tree-note" style={indent}>
-          (pusto)
+          {t('ft.empty')}
         </div>
       );
     }
@@ -272,7 +274,7 @@ export function FileTree(): ReactElement {
         <button
           type="button"
           className="tree-toolbtn"
-          title="Otwórz folder projektu…"
+          title={t('ft.openProject')}
           onClick={chooseProject}
         >
           {ICON_OPEN_FOLDER}
@@ -281,7 +283,7 @@ export function FileTree(): ReactElement {
           type="button"
           className="tree-toolbtn"
           data-testid="refresh-tree"
-          title="Odśwież drzewo"
+          title={t('ft.refresh')}
           onClick={refresh}
         >
           {ICON_REFRESH}
@@ -290,7 +292,7 @@ export function FileTree(): ReactElement {
           type="button"
           className={`tree-toolbtn${showIgnored ? ' active' : ''}`}
           data-testid="toggle-ignored"
-          title="Pokaż pliki ignorowane przez .gitignore"
+          title={t('ft.showIgnored')}
           aria-pressed={showIgnored}
           onClick={() => setShowIgnored((value) => !value)}
         >
@@ -303,13 +305,13 @@ export function FileTree(): ReactElement {
           <>
             <div className="tree-root-header" data-testid="vault-root-header">
               <h2 className="view-title" title={vault}>
-                Notatki
+                {t('ft.notes')}
               </h2>
               <button
                 type="button"
                 className="tree-toolbtn"
                 data-testid="vault-detach"
-                title="Odepnij vault Obsidiana"
+                title={t('ft.vaultDetach')}
                 onClick={clearVault}
               >
                 ×
@@ -322,10 +324,10 @@ export function FileTree(): ReactElement {
             type="button"
             className="tree-row tree-add-vault"
             data-testid="vault-add"
-            title="Vault Obsidiana jako drugi korzeń drzewa"
+            title={t('ft.vaultAddTitle')}
             onClick={chooseVault}
           >
-            + Dodaj vault Obsidiana…
+            {t('ft.vaultAdd')}
           </button>
         )}
       </div>

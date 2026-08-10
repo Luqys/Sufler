@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
+import { tf, useT } from '../i18n';
 import { createTerminalInstance, disposeTerminalInstance } from '../terminals';
 import { useWorkspace } from '../workspace';
 import { TerminalView } from './TerminalView';
@@ -11,6 +12,7 @@ let loginCounter = 0;
  * w terminalu, więc dialog zamyka wyłącznie przycisk ×.
  */
 export function LoginDialog({ onClose }: { onClose(): void }): ReactElement {
+  const t = useT();
   const { root } = useWorkspace();
   const [tabId] = useState(() => `login-widget-${++loginCounter}`);
   const [ready, setReady] = useState(false);
@@ -45,32 +47,29 @@ export function LoginDialog({ onClose }: { onClose(): void }): ReactElement {
 
   return (
     <div className="settings-overlay">
-      <div className="login-dialog" data-testid="login-dialog" role="dialog" aria-label="Logowanie do Claude">
+      <div className="login-dialog" data-testid="login-dialog" role="dialog" aria-label={t('login.aria')}>
         <header className="login-header">
           <span className="login-spark">✳</span>
           <div className="login-titles">
-            <h2>Zaloguj się do Claude</h2>
-            <p>Konto z subskrypcją (Pro/Max/Team) albo Console — flow `claude /login`.</p>
+            <h2>{t('login.title')}</h2>
+            <p>{t('login.sub')}</p>
           </div>
           <button
             type="button"
             className="tree-toolbtn"
             data-testid="login-close"
-            title="Zamknij (przerywa logowanie, jeśli trwa)"
+            title={t('login.closeTitle')}
             onClick={onClose}
           >
             ×
           </button>
         </header>
         <div className="login-terminal">
-          {error && <p className="mcp-error">Nie udało się uruchomić `claude`: {error}</p>}
-          {!error && !ready && <p className="placeholder login-wait">Uruchamianie logowania…</p>}
+          {error && <p className="mcp-error">{tf('login.startFailed', { error })}</p>}
+          {!error && !ready && <p className="placeholder login-wait">{t('login.starting')}</p>}
           {ready && <TerminalView tabId={tabId} />}
         </div>
-        <footer className="login-footer placeholder">
-          Metodę wybierasz strzałkami i Enterem · Esc w terminalu anuluje · po „Login successful"
-          zamknij okno
-        </footer>
+        <footer className="login-footer placeholder">{t('login.footer')}</footer>
       </div>
     </div>
   );

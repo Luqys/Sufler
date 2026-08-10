@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { applyAppearance } from '../appearance-client';
+import { t } from '../i18n';
 import { createTerminalInstance } from '../terminals';
 import { TerminalView } from './TerminalView';
 
@@ -16,12 +17,12 @@ export function DetachedTerminal(): ReactElement {
     void window.api.getAppearance().then(applyAppearance);
     const ptyId = Number(new URLSearchParams(location.search).get('ptyId'));
     if (!Number.isFinite(ptyId) || ptyId <= 0) {
-      setError('Brak identyfikatora sesji.');
+      setError(t('detached.noSession'));
       return;
     }
     void window.api.getDetachedInfo(ptyId).then((info) => {
       if (!info) {
-        setError('Sesja nie istnieje (mogła zostać zamknięta).');
+        setError(t('detached.gone'));
         return;
       }
       document.title = `${info.title} — Neodesk`;

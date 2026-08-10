@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import type { SearchMatch, SearchResult } from '../../../shared/ipc';
+import { tf, tp, useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 
 export function SearchPanel(): ReactElement {
+  const t = useT();
   const { root, openFileAt } = useWorkspace();
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<SearchResult | null>(null);
@@ -50,19 +52,19 @@ export function SearchPanel(): ReactElement {
         type="search"
         className="search-input"
         data-testid="search-input"
-        placeholder="Szukaj w projekcie (ripgrep)…"
+        placeholder={t('search.placeholder')}
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         spellCheck={false}
       />
       <div className="search-status placeholder">
-        {searching && 'Szukam…'}
+        {searching && t('search.searching')}
         {!searching && result?.ok && query.trim().length >= 2 && (
           <>
             {totalMatches === 0
-              ? 'Brak trafień.'
-              : `${totalMatches} ${totalMatches === 1 ? 'trafienie' : 'trafień'} w ${grouped.size} pl.`}
-            {result.truncated && ' (ucięte)'}
+              ? t('search.noMatches')
+              : `${tp('unit.matches', totalMatches)} ${tf('search.inFiles', { m: grouped.size })}`}
+            {result.truncated && t('search.truncated')}
           </>
         )}
         {!searching && result && !result.ok && <span className="search-error">{result.error}</span>}

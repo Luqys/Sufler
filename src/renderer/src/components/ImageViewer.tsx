@@ -1,15 +1,16 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import type { ReadImageResult } from '../../../shared/ipc';
 import { baseName } from '../../../shared/paths';
+import { getLocale, t, useT } from '../i18n';
 
 function describeImageError(error: 'too-large' | 'not-image' | 'unreadable'): string {
   switch (error) {
     case 'too-large':
-      return 'Plik jest zbyt duży do podglądu (limit 25 MB).';
+      return t('image.tooLarge');
     case 'not-image':
-      return 'To nie jest obsługiwany plik graficzny.';
+      return t('image.notImage');
     case 'unreadable':
-      return 'Nie udało się odczytać pliku.';
+      return t('editor.readFailed');
   }
 }
 
@@ -17,14 +18,17 @@ function formatBytes(size: number): string {
   if (size < 1024) {
     return `${size} B`;
   }
+  const format = (value: number): string =>
+    value.toLocaleString(getLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   if (size < 1024 * 1024) {
-    return `${(size / 1024).toFixed(1).replace('.', ',')} kB`;
+    return `${format(size / 1024)} kB`;
   }
-  return `${(size / (1024 * 1024)).toFixed(1).replace('.', ',')} MB`;
+  return `${format(size / (1024 * 1024))} MB`;
 }
 
 /** Podgląd pliku graficznego w miejscu edytora; „Odśwież" wciąga świeżą wersję z dysku. */
 export function ImageViewer({ path }: { path: string }): ReactElement {
+  const t = useT();
   const [result, setResult] = useState<ReadImageResult | null>(null);
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
   const [reloadNonce, setReloadNonce] = useState(0);
@@ -57,11 +61,11 @@ export function ImageViewer({ path }: { path: string }): ReactElement {
           className="bar-btn"
           onClick={() => setReloadNonce((nonce) => nonce + 1)}
         >
-          Odśwież
+          {t('common.refresh')}
         </button>
       </div>
       <div className="image-viewer-stage">
-        {!result && <p className="placeholder">Wczytuję obrazek…</p>}
+        {!result && <p className="placeholder">{t('image.loading')}</p>}
         {result && !result.ok && <p className="placeholder">{describeImageError(result.error)}</p>}
         {result?.ok && (
           <img

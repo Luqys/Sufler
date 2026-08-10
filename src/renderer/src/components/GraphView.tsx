@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
-import {
-  polishPlural,
-  type GraphGroup,
-  type GraphNode,
-  type KnowledgeGraph,
-} from '../../../shared/graph';
+import type { GraphGroup, GraphNode, KnowledgeGraph } from '../../../shared/graph';
 import { createLayout, tick, type GraphLayout } from '../../../shared/graph-layout';
+import type { StringKey } from '../../../shared/i18n';
 import {
   CATEGORY_FALLBACK,
   LAYER_BACKEND,
@@ -13,6 +9,7 @@ import {
   LAYER_FRONTEND,
   LAYER_NONE,
 } from '../../../shared/knowledge-categories';
+import { getLocale, tf, tp, useT } from '../i18n';
 import { onKnowledgeChanged } from '../knowledge-events';
 import { useWorkspace } from '../workspace';
 
@@ -28,22 +25,27 @@ const GROUP_COLORS = [
   '#64748b',
 ];
 
+/**
+ * Wartownik grupy „bez autora" — musi być identyczny z literałem, który
+ * main/knowledge-graph.ts wstawia jako nazwę grupy (wartość techniczna,
+ * nie do tłumaczenia; w legendzie wyświetlana jako t('graph.uncommitted')).
+ */
 const UNCOMMITTED = '(niezacommitowane)';
 const NEUTRAL_COLOR = '#9ca3af';
 
 /** Tryb kolorowania węzłów: autor / funkcja programu / warstwa. */
 type ColorMode = 'author' | 'category' | 'layer';
 
-const MODES: Array<{ id: ColorMode; label: string; testId: string }> = [
-  { id: 'author', label: 'Autor', testId: 'graph-mode-author' },
-  { id: 'category', label: 'Funkcja', testId: 'graph-mode-category' },
-  { id: 'layer', label: 'Warstwa', testId: 'graph-mode-layer' },
+const MODES: Array<{ id: ColorMode; labelKey: StringKey; testId: string }> = [
+  { id: 'author', labelKey: 'graph.modeAuthor', testId: 'graph-mode-author' },
+  { id: 'category', labelKey: 'graph.modeCategory', testId: 'graph-mode-category' },
+  { id: 'layer', labelKey: 'graph.modeLayer', testId: 'graph-mode-layer' },
 ];
 
-const MODE_TITLES: Record<ColorMode, string> = {
-  author: 'Ostatnia zmiana',
-  category: 'Funkcja programu',
-  layer: 'Warstwa',
+const MODE_TITLE_KEYS: Record<ColorMode, StringKey> = {
+  author: 'graph.titleAuthor',
+  category: 'graph.titleCategory',
+  layer: 'graph.titleLayer',
 };
 
 /** Stałe kolory warstw — te same w każdym projekcie. */
@@ -56,7 +58,7 @@ const LAYER_COLORS: Record<string, string> = {
 
 /** Aktywny podział węzłów na grupy: tytuł legendy, grupy, kolory, klucz węzła. */
 interface Grouping {
-  title: string;
+  titleKey: StringKey;
   groups: GraphGroup[];
   colors: Map<string, string>;
   keyOf: (node: GraphNode) => string;
@@ -77,6 +79,7 @@ interface ViewTransform {
  * podwójny klik = otwarcie.
  */
 export function GraphView(): ReactElement {
+  const t = useT();
   const { root, openFile } = useWorkspace();
   const [graph, setGraph] = useState<KnowledgeGraph | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -144,7 +147,7 @@ export function GraphView(): ReactElement {
     }
     const keyOf = (node: GraphNode): string =>
       mode === 'author' ? (node.author ?? UNCOMMITTED) : mode === 'category' ? node.category : node.layer;
-    return { title: MODE_TITLES[mode], groups, colors, keyOf };
+    return { titleKey: MODE_TITLE_KEYS[mode], groups, colors, keyOf };
   }, [graph, mode]);
 
   const switchMode = useCallback((next: ColorMode): void => {
@@ -384,7 +387,7 @@ export function GraphView(): ReactElement {
     }
     return graph.nodes
       .filter((node) => ids.has(node.id))
-      .sort((a, b) => a.title.localeCompare(b.title, 'pl', { sensitivity: 'base' }));
+      .sort((a, b) => a.title.localeCompare(b.title, getLocale(), { sensitivity: 'base' }));
   }, [graph, selected]);
 
   return (
@@ -455,17 +458,16 @@ export function GraphView(): ReactElement {
       <div className="graph-overlay">
         <span className="graph-stats" data-testid="graph-stats">
           {graph
-            ? `${graph.nodes.length} ${polishPlural(graph.nodes.length, 'notatka', 'notatki', 'notatek')} · ` +
-              `${graph.edges.length} ${polishPlural(graph.edges.length, 'połączenie', 'połączenia', 'połączeń')}`
-            : 'Buduję graf…'}
+            ? `${tp('unit.notes', graph.nodes.length)} · ${tp('unit.edges', graph.edges.length)}`
+            : t('graph.building')}
         </span>
         <button type="button" className="bar-btn" data-testid="graph-refresh" onClick={refresh}>
-          Przelicz
+          {t('graph.relayout')}
         </button>
       </div>
       {graph && grouping.groups.length > 0 && (
         <div className="graph-legend" data-testid="graph-legend">
-          <div className="graph-mode" role="group" aria-label="Kolorowanie grafu">
+          <div className="graph-mode" role="group" aria-label={t('graph.modeAria')}>
             {MODES.map((entry) => (
               <button
                 key={entry.id}
@@ -474,25 +476,27 @@ export function GraphView(): ReactElement {
                 data-testid={entry.testId}
                 onClick={() => switchMode(entry.id)}
               >
-                {entry.label}
+                {t(entry.labelKey)}
               </button>
             ))}
           </div>
-          <span className="accent-popover-title">{grouping.title}</span>
+          <span className="accent-popover-title">{t(grouping.titleKey)}</span>
           {grouping.groups.map((group) => (
             <button
               key={group.name}
               type="button"
               className={`graph-legend-row${filter === group.name ? ' active' : ''}`}
               data-testid="graph-legend-row"
-              title={filter === group.name ? 'Wyłącz filtr' : 'Pokaż tylko tę grupę'}
+              title={filter === group.name ? t('graph.filterOff') : t('graph.filterOnly')}
               onClick={() => setFilter(filter === group.name ? null : group.name)}
             >
               <span
                 className="graph-legend-dot"
                 style={{ background: grouping.colors.get(group.name) ?? NEUTRAL_COLOR }}
               />
-              <span className="graph-legend-name">{group.name}</span>
+              <span className="graph-legend-name">
+                {group.name === UNCOMMITTED ? t('graph.uncommitted') : group.name}
+              </span>
               <span className="graph-legend-count">{group.count}</span>
             </button>
           ))}
@@ -505,18 +509,18 @@ export function GraphView(): ReactElement {
             <button
               type="button"
               className="tab-close"
-              title="Zamknij szczegóły"
+              title={t('graph.closeDetails')}
               onClick={() => select(null)}
             >
               ×
             </button>
           </div>
           <div className="graph-details-meta">
-            {selectedNode.id} · {selectedNode.lines} lin.
+            {selectedNode.id} · {selectedNode.lines} {t('common.linesAbbr')}
             {selectedNode.author && ` · ${selectedNode.author}`}
           </div>
           <div className="graph-details-meta" data-testid="graph-details-tags">
-            Funkcja: {selectedNode.category} · Warstwa: {selectedNode.layer}
+            {tf('graph.tags', { category: selectedNode.category, layer: selectedNode.layer })}
           </div>
           <button
             type="button"
@@ -524,13 +528,13 @@ export function GraphView(): ReactElement {
             data-testid="graph-open-note"
             onClick={() => openFile(`${root}/${selectedNode.id}`)}
           >
-            Otwórz notatkę
+            {t('graph.openNote')}
           </button>
           <div className="graph-details-related">
             <span className="graph-details-label">
               {related.length > 0
-                ? `Powiązane (${related.length})`
-                : 'Brak powiązań z innymi notatkami'}
+                ? tf('graph.related', { count: related.length })
+                : t('graph.noRelated')}
             </span>
             {related.map((node) => (
               <button
@@ -553,9 +557,7 @@ export function GraphView(): ReactElement {
           </div>
         </div>
       )}
-      <p className="graph-hint placeholder">
-        Klik = powiązania · podwójny klik = otwórz · przeciągnij węzeł/tło · kółko = zoom
-      </p>
+      <p className="graph-hint placeholder">{t('graph.hint')}</p>
     </div>
   );
 }

@@ -25,5 +25,5 @@ Definicja ukończenia kamienia milowego: wszystkie cztery komendy zielone
 ## Zasady
 
 - Każdy kamień milowy: osobna sesja, osobna gałąź (`m<numer>-<nazwa>`), `/clear` pomiędzy (szczegóły w SPEC.md).
-- Teksty UI po polsku.
+- Teksty UI wyłącznie przez słownik i18n (`src/shared/i18n.ts`, PL i EN — typ wymusza komplet tłumaczeń; w rendererze hook `useT` + `tf`/`tp` z `src/renderer/src/i18n.ts`). Polski jest domyślny, angielski przełącza się w Ustawieniach.
 - Oba doki to ten sam komponent `Dock`; zakładki `terminal` i `claude` różnią się wyłącznie komendą startową pty.

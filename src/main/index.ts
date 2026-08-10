@@ -2,10 +2,12 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { TabKind } from '../shared/dock-tabs';
+import type { LayoutVisibilityKey } from '../shared/layout';
 import { IPC } from '../shared/ipc';
 import { applyAppearanceAtBoot, getAppearance, setAppearance } from './appearance';
 import { interruptChat, resetChat, sendChatMessage } from './chat';
 import { saveClipboardImage } from './clipboard-image';
+import { t, tf } from './i18n';
 import { generateKnowledgeContext, listMarkdownFiles } from './knowledge';
 import { buildKnowledgeGraph } from './knowledge-graph';
 import { closeKnowledgeWatcher, watchKnowledge } from './knowledge-watcher';
@@ -87,9 +89,30 @@ void app.whenReady().then(() => {
     }
   }
 
+  const openSettingsInWindows = (): void => {
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send(IPC.OpenSettings);
+    }
+  };
+  const togglePanelInWindows = (key: LayoutVisibilityKey): void => {
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send(IPC.TogglePanel, key);
+    }
+  };
+  const refreshMenu = (): void =>
+    installAppMenu(getAppearance().language, openSettingsInWindows, togglePanelInWindows);
+
   ipcMain.handle(IPC.LayoutGet, () => readLayout());
   ipcMain.handle(IPC.AppearanceGet, () => getAppearance());
-  ipcMain.handle(IPC.AppearanceSet, (_event, raw: unknown) => setAppearance(raw));
+  ipcMain.handle(IPC.AppearanceSet, (_event, raw: unknown) => {
+    const before = getAppearance().language;
+    const appearance = setAppearance(raw);
+    // Natywne menu nie przeładuje się samo — przebudowa przy zmianie języka.
+    if (appearance.language !== before) {
+      refreshMenu();
+    }
+    return appearance;
+  });
   ipcMain.handle(IPC.UsageLimitsGet, (_event, force?: boolean) => getUsageLimits(force));
   ipcMain.handle(IPC.KnowledgeList, (_event, root: string) => listMarkdownFiles(root));
   ipcMain.handle(IPC.KnowledgeGenerate, (_event, root: string, paths: string[]) =>
@@ -161,15 +184,15 @@ void app.whenReady().then(() => {
       );
       return {
         ok: true,
-        message: 'Zarejestrowano serwer „wiedza-graf" w Claude (scope user).',
+        message: t('main.mcpRegistered'),
       };
     } catch (error) {
       const message = String((error as Error).message ?? error);
       return {
         ok: message.includes('already exists'),
         message: message.includes('already exists')
-          ? 'Serwer „wiedza-graf" był już zarejestrowany.'
-          : `Nie udało się zarejestrować: ${message.slice(0, 200)}`,
+          ? t('main.mcpAlready')
+          : tf('main.mcpRegisterFailed', { error: message.slice(0, 200) }),
       };
     }
   });
@@ -225,18 +248,7 @@ void app.whenReady().then(() => {
   // Serwer MCP grafu wiedzy (loopback) — Claude Code widzi strukturę notatek.
   startWiedzaMcp();
 
-  installAppMenu(
-    () => {
-      for (const win of BrowserWindow.getAllWindows()) {
-        win.webContents.send(IPC.OpenSettings);
-      }
-    },
-    (key) => {
-      for (const win of BrowserWindow.getAllWindows()) {
-        win.webContents.send(IPC.TogglePanel, key);
-      }
-    },
-  );
+  refreshMenu();
 
   // Do testów e2e (Playwright electronApp.evaluate): podgląd żywych pty.
   (globalThis as Record<string, unknown>)['vn3oListPtyPids'] = listPtyPids;

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { ACCENTS, type AccentId } from '../../../shared/appearance';
 import { applyAccent, applyThemeFlavor } from '../appearance-client';
+import { useT } from '../i18n';
 
 const ICON_SUN = (
   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
@@ -22,6 +23,7 @@ const LONG_PRESS_MS = 500;
  * Przytrzymanie (albo prawy klik): wybór koloru przewodniego.
  */
 export function ThemeToggle(): ReactElement {
+  const t = useT();
   const [dark, setDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [currentAccent, setCurrentAccent] = useState<AccentId>('clay');
@@ -72,10 +74,7 @@ export function ThemeToggle(): ReactElement {
         type="button"
         className="titlebar-btn"
         data-testid="theme-quick-toggle"
-        title={
-          (dark ? 'Przełącz na motyw jasny' : 'Przełącz na motyw ciemny') +
-          ' · przytrzymaj, aby wybrać kolor przewodni'
-        }
+        title={(dark ? t('themeToggle.toLight') : t('themeToggle.toDark')) + t('themeToggle.holdHint')}
         onPointerDown={() => {
           longPressFired.current = false;
           clearTimer();
@@ -104,7 +103,7 @@ export function ThemeToggle(): ReactElement {
         <>
           <div className="menu-backdrop" onClick={() => setPickerOpen(false)} />
           <div className="accent-popover" data-testid="accent-popover">
-            <span className="accent-popover-title">Kolor przewodni</span>
+            <span className="accent-popover-title">{t('themeToggle.accentTitle')}</span>
             <div className="settings-actions">
               {ACCENTS.map((accent) => (
                 <button
@@ -112,7 +111,7 @@ export function ThemeToggle(): ReactElement {
                   type="button"
                   className={`accent-swatch${currentAccent === accent.id ? ' active' : ''}`}
                   data-testid={`accent-pick-${accent.id}`}
-                  title={accent.label}
+                  title={t(`accent.${accent.id}`)}
                   style={{ background: accent.swatch }}
                   onClick={() => pickAccent(accent.id)}
                 />

@@ -25,6 +25,7 @@ import {
   type DocksState,
   type TabKind,
 } from '../../shared/dock-tabs';
+import { t, tf } from './i18n';
 import { createTerminalInstance, disposeTerminalInstance, serializeTerminal } from './terminals';
 import { useDialogs } from './ui-dialogs';
 import { useWorkspace } from './workspace';
@@ -82,7 +83,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
     (dock: DockId, kind: TabKind, options?: AddTabOptions) => {
       void window.api.ptyCreate({ kind, cwd: root, args: options?.args }).then((result) => {
         if (!result.ok) {
-          notify(`Nie udało się uruchomić procesu: ${result.error}`, 'error');
+          notify(tf('dock.spawnFailed', { error: result.error }), 'error');
           return;
         }
         const id = `tab-${nextTabNumber++}`;
@@ -149,9 +150,9 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
       }
       // Zamknięcie karty ubija proces — pytamy, dopóki żyje.
       void confirmDialog({
-        title: 'Zamknąć kartę?',
-        message: `Karta „${found.tab.title}" ma działający proces — zostanie zakończony.`,
-        confirmLabel: 'Zamknij',
+        title: t('dock.closeTitle'),
+        message: tf('dock.closeMessage', { title: found.tab.title }),
+        confirmLabel: t('common.close'),
         danger: true,
       }).then((accepted) => {
         if (accepted) {
@@ -204,7 +205,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
         addTabState(state, dock, {
           id: `tab-${nextTabNumber++}`,
           kind: 'chat',
-          title: 'Czat',
+          title: t('tabs.chatTitle'),
           cwd: root,
           ptyId: CHAT_TAB_PTY,
           status: 'running',

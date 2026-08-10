@@ -6,6 +6,7 @@ import {
   type LayoutVisibilityKey,
 } from '../../../shared/layout';
 import { baseName } from '../../../shared/paths';
+import { useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 import { Dock } from './Dock';
 import { EditorArea } from './EditorArea';
@@ -45,6 +46,7 @@ const MIN_EDITOR_HEIGHT = 160;
 
 export function Workbench({ initialLayout }: { initialLayout: LayoutState }): ReactElement {
   const { root, openChat } = useWorkspace();
+  const t = useT();
   const [layout, setLayout] = useState(initialLayout);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
@@ -174,7 +176,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
             type="button"
             className="titlebar-btn"
             data-testid="open-chat"
-            title="Czat z Claude (silnik Claude Code)"
+            title={t('titlebar.chat')}
             onClick={openChat}
           >
             {ICON_CHAT}
@@ -183,7 +185,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
             type="button"
             className="titlebar-btn"
             data-testid="claude-login-button"
-            title="Zaloguj się do konta Claude (otwiera `claude /login`)"
+            title={t('titlebar.login')}
             onClick={openClaudeLogin}
           >
             {ICON_CLAUDE_SPARK}
@@ -222,7 +224,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
                 onDrag={(_dx, dy) => resize('bottomDockHeight', origin().bottomDockHeight - dy)}
                 onDragEnd={endDrag}
               />
-              <Dock id="bottom" title="Dolny dok" />
+              <Dock id="bottom" title={t('dock.bottom')} />
             </>
           )}
         </div>
@@ -235,7 +237,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
               onDrag={(dx) => resize('rightDockWidth', origin().rightDockWidth - dx)}
               onDragEnd={endDrag}
             />
-            <Dock id="right" title="Prawy dok" />
+            <Dock id="right" title={t('dock.right')} />
           </>
         )}
       </div>

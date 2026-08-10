@@ -33,6 +33,7 @@ import {
   setDirtyListener,
 } from './editor/models';
 import { WelcomeScreen } from './components/WelcomeScreen';
+import { t, tf } from './i18n';
 import { useDialogs } from './ui-dialogs';
 
 export interface BufferInfo {
@@ -88,11 +89,11 @@ export function useWorkspace(): WorkspaceValue {
 function describeReadError(error: ReadFileError): string {
   switch (error) {
     case 'too-large':
-      return 'Plik jest zbyt duży (limit 10 MB).';
+      return t('editor.readTooLarge');
     case 'binary':
-      return 'Plik binarny — podgląd niedostępny.';
+      return t('editor.readBinary');
     case 'unreadable':
-      return 'Nie udało się odczytać pliku.';
+      return t('editor.readFailed');
   }
 }
 
@@ -273,9 +274,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         return;
       }
       void confirmDialog({
-        title: 'Niezapisane zmiany',
-        message: `Plik „${baseName(path)}" ma niezapisane zmiany. Zamknąć mimo to?`,
-        confirmLabel: 'Zamknij bez zapisu',
+        title: t('editor.unsavedTitle'),
+        message: tf('editor.unsavedMessage', { name: baseName(path) }),
+        confirmLabel: t('editor.closeWithoutSave'),
         danger: true,
       }).then((accepted) => {
         if (accepted) {
@@ -306,7 +307,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
           next.set(path, { savedText: content, external: null, loadError: null }),
         );
       } else {
-        notify(`Nie udało się zapisać pliku: ${result.error}`, 'error');
+        notify(tf('editor.saveFailed', { error: result.error }), 'error');
       }
     });
   }, [notify, patchBuffers]);
@@ -404,15 +405,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
   }, [handleWatchEvent]);
 
   const openBrowserPreview = useCallback(() => {
-    applyTabs((state) => openTabState(state, BROWSER_PREVIEW_PATH, 'Podgląd', true));
+    applyTabs((state) => openTabState(state, BROWSER_PREVIEW_PATH, t('tabs.previewTitle'), true));
   }, [applyTabs]);
 
   const openKnowledgeGraph = useCallback(() => {
-    applyTabs((state) => openTabState(state, KNOWLEDGE_GRAPH_PATH, 'Graf wiedzy', true));
+    applyTabs((state) => openTabState(state, KNOWLEDGE_GRAPH_PATH, t('tabs.graphTitle'), true));
   }, [applyTabs]);
 
   const openChat = useCallback(() => {
-    applyTabs((state) => openTabState(state, CHAT_PATH, 'Czat', true));
+    applyTabs((state) => openTabState(state, CHAT_PATH, t('tabs.chatTitle'), true));
   }, [applyTabs]);
 
   // Cmd+S zapisuje aktywną zakładkę niezależnie od tego, co ma fokus.

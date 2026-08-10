@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactElement } from 're
 import type { KnowledgeFile } from '../../../shared/ipc';
 import { formatTokens } from '../../../shared/usage';
 import { useDocks } from '../docks';
+import { tf, tp, useT } from '../i18n';
 import { onKnowledgeChanged } from '../knowledge-events';
 import { useDialogs } from '../ui-dialogs';
 import { useWorkspace } from '../workspace';
@@ -43,6 +44,7 @@ const ICON_GRAPH = (
 );
 
 export function KnowledgePanel(): ReactElement {
+  const t = useT();
   const { root, openFile, openKnowledgeGraph } = useWorkspace();
   const { insertToActiveClaude } = useDocks();
   const { notify } = useDialogs();
@@ -90,7 +92,7 @@ export function KnowledgePanel(): ReactElement {
     void window.api.generateKnowledge(root, [...selected]).then((result) => {
       setBusy(false);
       if (!result.ok) {
-        notify(`Nie udało się wygenerować kontekstu: ${result.error}`, 'error');
+        notify(tf('knowledge.generateFailed', { error: result.error }), 'error');
         return;
       }
       setLastGenerated({ files: result.files });
@@ -100,7 +102,7 @@ export function KnowledgePanel(): ReactElement {
 
   const insertReference = (): void => {
     if (!insertToActiveClaude('@kontekst-agenta.md ')) {
-      notify('Brak działającej sesji Claude — otwórz ją przyciskiem ✳ w doku.', 'error');
+      notify(t('common.noClaudeSession'), 'error');
     }
   };
 
@@ -134,22 +136,19 @@ export function KnowledgePanel(): ReactElement {
 
   return (
     <div className="knowledge-panel" data-testid="knowledge-panel">
-      <p className="knowledge-hint placeholder">
-        Zaznacz pliki markdown i sklej je w jeden kontekst wiedzy dla agenta.
-        Konspekt wiedzy (`konspekt-wiedzy.md`) aktualizuje się sam przy każdej
-        zmianie notatek, a Claude pobiera go narzędziem MCP `konspekt` — zawsze
-        wie, co gdzie jest.
-      </p>
+      <p className="knowledge-hint placeholder">{t('knowledge.hint')}</p>
       <div className="knowledge-toolbar">
         <span className="knowledge-summary" data-testid="knowledge-summary">
-          Zaznaczone: <strong>{selected.size}</strong> z {total}
-          {selectedChars > 0 && <> · ≈ {formatTokens(tokenEstimate)} tokenów</>}
+          {t('knowledge.selectedPrefix')}
+          <strong>{selected.size}</strong>
+          {tf('knowledge.selectedOf', { total })}
+          {selectedChars > 0 && <> {tf('knowledge.tokens', { tokens: formatTokens(tokenEstimate) })}</>}
         </span>
         <button
           type="button"
           className="tree-toolbtn"
           data-testid="knowledge-graph-open"
-          title="Graf wiedzy: notatki, linki i autorzy (à la Obsidian)"
+          title={t('knowledge.graphOpen')}
           onClick={openKnowledgeGraph}
         >
           {ICON_GRAPH}
@@ -158,7 +157,7 @@ export function KnowledgePanel(): ReactElement {
           type="button"
           className="tree-toolbtn"
           data-testid="knowledge-toggle-all"
-          title="Zaznacz wszystkie / żaden"
+          title={t('knowledge.toggleAll')}
           onClick={toggleAll}
         >
           {ICON_SELECT_ALL}
@@ -167,19 +166,16 @@ export function KnowledgePanel(): ReactElement {
           type="button"
           className="tree-toolbtn"
           data-testid="knowledge-refresh"
-          title="Odśwież listę"
+          title={t('knowledge.refresh')}
           onClick={refresh}
         >
           {ICON_REFRESH}
         </button>
       </div>
-      {files === null && <p className="placeholder">Skanuję pliki .md…</p>}
+      {files === null && <p className="placeholder">{t('knowledge.scanning')}</p>}
       {files !== null && files.length === 0 && (
         <div className="knowledge-empty">
-          <p className="placeholder">
-            Brak plików markdown w projekcie. Notatki, README i dokumentacja `.md`
-            pojawią się tutaj automatycznie.
-          </p>
+          <p className="placeholder">{t('knowledge.noFiles')}</p>
         </div>
       )}
       <div className="knowledge-list">
@@ -196,7 +192,7 @@ export function KnowledgePanel(): ReactElement {
               <button
                 type="button"
                 className="knowledge-open"
-                title={`Otwórz ${file.path}`}
+                title={tf('knowledge.openFile', { path: file.path })}
                 onClick={(event) => {
                   event.preventDefault();
                   openFile(`${root}/${file.path}`);
@@ -205,8 +201,8 @@ export function KnowledgePanel(): ReactElement {
                 {dir && <span className="knowledge-dir">{dir}</span>}
                 <span className="knowledge-name">{name}</span>
               </button>
-              <span className="knowledge-lines" title={`${file.lines} linii`}>
-                {file.lines} lin.
+              <span className="knowledge-lines" title={tp('unit.lines', file.lines)}>
+                {file.lines} {t('common.linesAbbr')}
               </span>
             </label>
           );
@@ -220,13 +216,13 @@ export function KnowledgePanel(): ReactElement {
           disabled={busy || selected.size === 0}
           onClick={generate}
         >
-          {busy ? 'Generuję…' : `Generuj kontekst (${selected.size})`}
+          {busy ? t('knowledge.generating') : tf('knowledge.generate', { n: selected.size })}
         </button>
         <div className="knowledge-mcp" data-testid="knowledge-mcp">
           <span className="knowledge-mcp-status">
             <span className={`mcp-dot ${mcpStatus?.running ? 'connected' : 'error'}`} />
-            MCP grafu wiedzy{' '}
-            {mcpStatus?.running ? 'działa' : (mcpStatus?.error ?? 'uruchamianie…')}
+            {t('knowledge.mcpLabel')}{' '}
+            {mcpStatus?.running ? t('knowledge.mcpRunning') : (mcpStatus?.error ?? t('knowledge.mcpStarting'))}
           </span>
           <button
             type="button"
@@ -235,27 +231,24 @@ export function KnowledgePanel(): ReactElement {
             title={`claude mcp add --transport http wiedza-graf ${mcpStatus?.url ?? ''} -s user`}
             onClick={registerMcp}
           >
-            Podłącz do Claude
+            {t('knowledge.mcpRegister')}
           </button>
         </div>
-        <p className="knowledge-note placeholder">
-          Po podłączeniu sesje Claude mają narzędzia: graf_wiedzy · notatka · powiazania —
-          agent sam sprawdza, co jest z czym powiązane.
-        </p>
+        <p className="knowledge-note placeholder">{t('knowledge.mcpNote')}</p>
         {lastGenerated && (
           <div className="knowledge-result" data-testid="knowledge-note">
             <span className="knowledge-result-text">
               <span className="knowledge-result-check">✓</span> kontekst-agenta.md ·{' '}
-              {lastGenerated.files} plików
+              {tf('knowledge.resultFiles', { n: lastGenerated.files })}
             </span>
             <button
               type="button"
               className="bar-btn"
               data-testid="knowledge-insert"
-              title="Wstaw @kontekst-agenta.md do aktywnej sesji Claude"
+              title={t('knowledge.insertTitle')}
               onClick={insertReference}
             >
-              @ do Claude
+              {t('knowledge.insert')}
             </button>
           </div>
         )}

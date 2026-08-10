@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import { t } from './i18n';
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
@@ -141,7 +142,7 @@ export async function generateKnowledgeContext(
     }
   }
   if (included.length === 0) {
-    return { ok: false, error: 'Żaden z wybranych plików nie dał się odczytać.' };
+    return { ok: false, error: t('main.knowledgeUnreadable') };
   }
   const header = [
     '# Kontekst wiedzy agenta',

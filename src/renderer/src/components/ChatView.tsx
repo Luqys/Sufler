@@ -12,6 +12,7 @@ import { quotePathForPrompt } from '../../../shared/media';
 import { baseName } from '../../../shared/paths';
 import { getChatState, interruptChat, resetChat, sendChat, subscribeChat } from '../chat-store';
 import { useDocks } from '../docks';
+import { tf, useT } from '../i18n';
 import { useDialogs } from '../ui-dialogs';
 import { useWorkspace } from '../workspace';
 
@@ -80,17 +81,18 @@ interface ChatViewProps {
   dockTabId?: string;
 }
 
-const PLACE_LABELS: Record<'editor' | DockId, string> = {
-  editor: 'Otwórz czat w oknie edytora',
-  right: 'Otwórz czat w doku bocznym',
-  bottom: 'Otwórz czat w doku dolnym',
-};
+const PLACE_LABEL_KEYS = {
+  editor: 'chat.moveEditor',
+  right: 'chat.moveRight',
+  bottom: 'chat.moveBottom',
+} as const;
 
 /** Czat z Claude: silnik Claude Code (Agent SDK), historia dymków + narzędzia. */
 export function ChatView({ place = 'editor', dockTabId }: ChatViewProps): ReactElement {
   const { root, openChat, closeTab: closeEditorTab } = useWorkspace();
   const { openChatTab, closeTab: closeDockTab } = useDocks();
   const { notify } = useDialogs();
+  const t = useT();
   const state = useSyncExternalStore(subscribeChat, getChatState);
   const [draft, setDraft] = useState('');
   const listRef = useRef<HTMLDivElement>(null);
@@ -141,7 +143,7 @@ export function ChatView({ place = 'editor', dockTabId }: ChatViewProps): ReactE
       if (saved.ok) {
         insertImagePath(saved.path);
       } else {
-        notify('Brak obrazka w schowku — skopiuj zrzut ekranu i spróbuj ponownie.');
+        notify(t('chat.noClipboardImage'));
       }
     });
   };
@@ -179,7 +181,7 @@ export function ChatView({ place = 'editor', dockTabId }: ChatViewProps): ReactE
             type="button"
             className="chat-toolbtn"
             data-testid={`chat-move-${zone}`}
-            title={PLACE_LABELS[zone]}
+            title={t(PLACE_LABEL_KEYS[zone])}
             onClick={() => moveTo(zone)}
           >
             {placeIcon(zone)}
@@ -190,7 +192,7 @@ export function ChatView({ place = 'editor', dockTabId }: ChatViewProps): ReactE
           className="chat-toolbtn"
           data-testid="chat-reset"
           disabled={state.entries.length === 0}
-          title="Nowa rozmowa"
+          title={t('chat.reset')}
           onClick={resetChat}
         >
           {ICON_RESET}
@@ -200,11 +202,8 @@ export function ChatView({ place = 'editor', dockTabId }: ChatViewProps): ReactE
         {state.entries.length === 0 && (
           <div className="chat-empty">
             {ROBOT}
-            <p className="chat-empty-title">Trafiłeś w absolutnie właściwe miejsce!</p>
-            <p className="placeholder">
-              Rozmawiasz z Claude nad projektem {baseName(root)} — z dostępem do plików
-              i narzędzi, na Twoim logowaniu Claude Code.
-            </p>
+            <p className="chat-empty-title">{t('chat.emptyTitle')}</p>
+            <p className="placeholder">{tf('chat.emptyBody', { root: baseName(root) })}</p>
           </div>
         )}
         {state.entries.map((entry, index) => {
@@ -223,7 +222,7 @@ export function ChatView({ place = 'editor', dockTabId }: ChatViewProps): ReactE
             </div>
           );
         })}
-        {state.busy && <div className="chat-typing">Claude pracuje…</div>}
+        {state.busy && <div className="chat-typing">{t('chat.busy')}</div>}
       </div>
       <form
         className="chat-inputbar"
@@ -237,7 +236,7 @@ export function ChatView({ place = 'editor', dockTabId }: ChatViewProps): ReactE
             ref={inputRef}
             className="chat-input"
             data-testid="chat-input"
-            placeholder="Napisz do Claude…"
+            placeholder={t('chat.placeholder')}
             value={draft}
             rows={Math.min(6, draft.split('\n').length)}
             onChange={(event) => setDraft(event.target.value)}
@@ -254,18 +253,18 @@ export function ChatView({ place = 'editor', dockTabId }: ChatViewProps): ReactE
               type="button"
               className="chat-attach"
               data-testid="chat-attach"
-              title="Wstaw obrazek ze schowka (albo wklej go wprost w pole tekstowe)"
+              title={t('chat.attach')}
               onClick={attachFromClipboard}
             >
               {ICON_PLUS}
             </button>
-            <span className="chat-input-hint">Enter — wyślij · Shift+Enter — nowa linia</span>
+            <span className="chat-input-hint">{t('chat.inputHint')}</span>
             {state.busy ? (
               <button
                 type="button"
                 className="chat-send stop"
                 data-testid="chat-interrupt"
-                title="Przerwij odpowiedź"
+                title={t('chat.interrupt')}
                 onClick={interruptChat}
               >
                 {ICON_STOP}
@@ -276,7 +275,7 @@ export function ChatView({ place = 'editor', dockTabId }: ChatViewProps): ReactE
                 className="chat-send"
                 data-testid="chat-send"
                 disabled={!draft.trim()}
-                title="Wyślij (Enter)"
+                title={t('chat.send')}
               >
                 {ICON_SEND}
               </button>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
+import type { StringKey } from '../../../shared/i18n';
 import {
   mergeMcpServers,
   type McpConfigServer,
@@ -6,14 +7,16 @@ import {
   type McpListEntry,
   type McpServerView,
 } from '../../../shared/mcp';
+import { tf, useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 import { mcpIconFor } from './mcp-icons';
 
-const STATE_LABEL: Record<McpServerView['state'], string> = {
-  connected: 'połączony',
-  error: 'błąd połączenia',
-  pending: 'oczekuje na zatwierdzenie',
-  unknown: 'stan nieznany — odśwież',
+/** Klucze tłumaczeń stanów — etykietę pobiera t() w momencie renderu. */
+const STATE_KEY: Record<McpServerView['state'], StringKey> = {
+  connected: 'mcp.stateConnected',
+  error: 'mcp.stateError',
+  pending: 'mcp.statePending',
+  unknown: 'mcp.stateUnknown',
 };
 
 const ICON_REFRESH = (
@@ -24,6 +27,7 @@ const ICON_REFRESH = (
 );
 
 export function McpPanel(): ReactElement {
+  const t = useT();
   const { root } = useWorkspace();
   const [config, setConfig] = useState<McpConfigServer[]>([]);
   const [status, setStatus] = useState<McpListEntry[] | null>(null);
@@ -91,25 +95,19 @@ export function McpPanel(): ReactElement {
   return (
     <div className="mcp-panel" data-testid="mcp-panel">
       <div className="mcp-toolbar">
-        <span className="mcp-note">
-          {checking ? 'Sprawdzanie połączeń…' : 'Konfiguracja + `claude mcp list`'}
-        </span>
+        <span className="mcp-note">{checking ? t('mcp.checking') : t('mcp.source')}</span>
         <button
           type="button"
           className="tree-toolbtn"
           data-testid="mcp-refresh"
-          title="Odśwież (konfiguracja i stan połączeń)"
+          title={t('mcp.refresh')}
           onClick={refresh}
         >
           {ICON_REFRESH}
         </button>
       </div>
-      {cliError && <p className="mcp-error">CLI: {cliError}</p>}
-      {servers.length === 0 && (
-        <p className="placeholder">
-          Brak zdefiniowanych serwerów MCP. Dodaj przez `claude mcp add …` albo plik `.mcp.json`.
-        </p>
-      )}
+      {cliError && <p className="mcp-error">{tf('mcp.cliError', { error: cliError })}</p>}
+      {servers.length === 0 && <p className="placeholder">{t('mcp.empty')}</p>}
       {servers.map((server) => {
         const isOpen = expanded.has(server.name);
         const serverDetails = details.get(server.name);
@@ -118,7 +116,7 @@ export function McpPanel(): ReactElement {
             <button
               type="button"
               className="mcp-row"
-              title={`${server.target}\n${STATE_LABEL[server.state]}`}
+              title={`${server.target}\n${t(STATE_KEY[server.state])}`}
               onClick={() => toggleDetails(server.name)}
             >
               <span className={`mcp-dot ${server.state}`} />
@@ -130,18 +128,17 @@ export function McpPanel(): ReactElement {
             </button>
             {server.name.toLowerCase() === 'obsidian' && server.state === 'error' && (
               <div className="mcp-hint" data-testid="obsidian-hint">
-                Serwer MCP Obsidiana działa tylko przy otwartym Obsidianie — uruchom Obsidiana
-                i odśwież.
+                {t('mcp.obsidianHint')}
               </div>
             )}
             {isOpen && (
               <div className="mcp-details">
                 {server.detail && <div className="mcp-detail-line">{server.detail}</div>}
                 {serverDetails === 'loading' && (
-                  <div className="mcp-detail-line placeholder">Wczytywanie szczegółów…</div>
+                  <div className="mcp-detail-line placeholder">{t('mcp.loadingDetails')}</div>
                 )}
                 {Array.isArray(serverDetails) && serverDetails.length === 0 && (
-                  <div className="mcp-detail-line placeholder">Brak szczegółów z CLI.</div>
+                  <div className="mcp-detail-line placeholder">{t('mcp.noDetails')}</div>
                 )}
                 {Array.isArray(serverDetails) &&
                   serverDetails.map((pair) => (

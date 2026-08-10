@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import { t, tf } from './i18n';
 import { promisify } from 'node:util';
 import { parseLimitsResponse, type UsageLimitsResult } from '../shared/limits';
 
@@ -53,7 +54,7 @@ export async function getUsageLimits(force = false): Promise<UsageLimitsResult> 
   let result: UsageLimitsResult;
   const token = await readAccessToken();
   if (!token) {
-    result = { ok: false, error: 'Brak tokenu Claude Code w Keychain — zaloguj się (✳).' };
+    result = { ok: false, error: t('main.usageNoToken') };
   } else {
     try {
       const response = await fetch(USAGE_ENDPOINT, {
@@ -68,14 +69,14 @@ export async function getUsageLimits(force = false): Promise<UsageLimitsResult> 
           ok: false,
           error:
             response.status === 401
-              ? 'Token wygasł — odśwież logowanie w Claude Code (✳).'
-              : `Endpoint limitów odpowiedział HTTP ${response.status}.`,
+              ? t('main.usageExpired')
+              : tf('main.usageHttp', { status: response.status }),
         };
       } else {
         result = { ok: true, limits: parseLimitsResponse(await response.json()) };
       }
     } catch (error) {
-      result = { ok: false, error: `Nie udało się pobrać limitów: ${String(error)}` };
+      result = { ok: false, error: tf('main.usageFetchFailed', { error: String(error) }) };
     }
   }
   cache = { at: now, result };

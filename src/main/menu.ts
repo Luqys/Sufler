@@ -1,79 +1,86 @@
 import { app, Menu, type MenuItemConstructorOptions } from 'electron';
+import type { Language } from '../shared/appearance';
+import { stringsFor, type StringKey } from '../shared/i18n';
 import type { LayoutVisibilityKey } from '../shared/layout';
 
 /**
  * Natywne menu aplikacji (SPEC.md, M9): standardowe role (w tym Edycja —
  * bez niej nie działają Cmd+C/V w polach tekstowych) plus Ustawienia pod Cmd+,.
+ * Przebudowywane przy zmianie języka UI (patrz index.ts, AppearanceSet).
  */
 export function installAppMenu(
+  language: Language,
   openSettings: () => void,
   togglePanel: (key: LayoutVisibilityKey) => void,
 ): void {
+  const strings = stringsFor(language);
+  const t = (key: StringKey): string => strings[key].replace('{app}', app.name);
+
   const template: MenuItemConstructorOptions[] = [
     {
       label: app.name,
       submenu: [
-        { role: 'about', label: `O aplikacji ${app.name}` },
+        { role: 'about', label: t('menu.about') },
         { type: 'separator' },
         {
-          label: 'Ustawienia…',
+          label: t('menu.settings'),
           accelerator: 'CommandOrControl+,',
           click: openSettings,
         },
         { type: 'separator' },
-        { role: 'services', label: 'Usługi' },
+        { role: 'services', label: t('menu.services') },
         { type: 'separator' },
-        { role: 'hide', label: `Ukryj ${app.name}` },
-        { role: 'hideOthers', label: 'Ukryj pozostałe' },
-        { role: 'unhide', label: 'Pokaż wszystkie' },
+        { role: 'hide', label: t('menu.hide') },
+        { role: 'hideOthers', label: t('menu.hideOthers') },
+        { role: 'unhide', label: t('menu.unhide') },
         { type: 'separator' },
-        { role: 'quit', label: `Zakończ ${app.name}` },
+        { role: 'quit', label: t('menu.quit') },
       ],
     },
     {
-      label: 'Edycja',
+      label: t('menu.edit'),
       submenu: [
-        { role: 'undo', label: 'Cofnij' },
-        { role: 'redo', label: 'Przywróć' },
+        { role: 'undo', label: t('menu.undo') },
+        { role: 'redo', label: t('menu.redo') },
         { type: 'separator' },
-        { role: 'cut', label: 'Wytnij' },
-        { role: 'copy', label: 'Skopiuj' },
-        { role: 'paste', label: 'Wklej' },
-        { role: 'selectAll', label: 'Zaznacz wszystko' },
+        { role: 'cut', label: t('menu.cut') },
+        { role: 'copy', label: t('menu.copy') },
+        { role: 'paste', label: t('menu.paste') },
+        { role: 'selectAll', label: t('menu.selectAll') },
       ],
     },
     {
-      label: 'Widok',
+      label: t('menu.view'),
       submenu: [
         {
-          label: 'Pokaż/ukryj pasek boczny',
+          label: t('menu.toggleSidebar'),
           accelerator: 'CommandOrControl+B',
           click: () => togglePanel('sidebarVisible'),
         },
         {
-          label: 'Pokaż/ukryj dolny dok',
+          label: t('menu.toggleBottom'),
           accelerator: 'Control+`',
           click: () => togglePanel('bottomDockVisible'),
         },
         {
-          label: 'Pokaż/ukryj prawy dok',
+          label: t('menu.toggleRight'),
           accelerator: 'CommandOrControl+Shift+C',
           click: () => togglePanel('rightDockVisible'),
         },
         { type: 'separator' },
-        { role: 'reload', label: 'Przeładuj' },
-        { role: 'toggleDevTools', label: 'Narzędzia deweloperskie' },
+        { role: 'reload', label: t('menu.reload') },
+        { role: 'toggleDevTools', label: t('menu.devtools') },
         { type: 'separator' },
-        { role: 'togglefullscreen', label: 'Pełny ekran' },
+        { role: 'togglefullscreen', label: t('menu.fullscreen') },
       ],
     },
     {
-      label: 'Okno',
+      label: t('menu.window'),
       submenu: [
-        { role: 'minimize', label: 'Zminimalizuj' },
-        { role: 'zoom', label: 'Powiększ' },
+        { role: 'minimize', label: t('menu.minimize') },
+        { role: 'zoom', label: t('menu.zoom') },
         { type: 'separator' },
-        { role: 'front', label: 'Wszystkie na wierzch' },
+        { role: 'front', label: t('menu.front') },
       ],
     },
   ];

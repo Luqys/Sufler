@@ -1,4 +1,5 @@
 import type { BrowserWindow } from 'electron';
+import { tf } from './i18n';
 import { summarizeToolInput, type ChatStreamEvent } from '../shared/chat';
 import { IPC } from '../shared/ipc';
 import { resolveShellEnv } from './shell-env';
@@ -102,7 +103,7 @@ export async function sendChatMessage(
   } catch (error) {
     finished = true;
     const description = error instanceof Error ? error.message : String(error);
-    emit(win, { kind: 'error', message: `Nie udało się porozmawiać z Claude: ${description}` });
+    emit(win, { kind: 'error', message: tf('main.chatFailed', { error: description }) });
     return { ok: false, error: description };
   } finally {
     state.interrupt = null;

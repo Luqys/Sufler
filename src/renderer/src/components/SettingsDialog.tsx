@@ -2,10 +2,12 @@ import { useEffect, useState, type ReactElement } from 'react';
 import {
   ACCENTS,
   DEFAULT_APPEARANCE,
+  LANGUAGES,
   THEME_MODES,
   type Appearance,
 } from '../../../shared/appearance';
 import { applyAppearance } from '../appearance-client';
+import { useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 
 interface SettingsDialogProps {
@@ -14,6 +16,7 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ onClose }: SettingsDialogProps): ReactElement {
   const { root, vault, chooseProject, chooseVault, clearVault } = useWorkspace();
+  const t = useT();
   const [appearance, setAppearanceState] = useState<Appearance>(DEFAULT_APPEARANCE);
 
   useEffect(() => {
@@ -44,18 +47,18 @@ export function SettingsDialog({ onClose }: SettingsDialogProps): ReactElement {
         className="settings-dialog"
         data-testid="settings-dialog"
         role="dialog"
-        aria-label="Ustawienia"
+        aria-label={t('settings.title')}
         onClick={(event) => event.stopPropagation()}
       >
         <header className="settings-header">
-          <h2>Ustawienia</h2>
-          <button type="button" className="tree-toolbtn" title="Zamknij" onClick={onClose}>
+          <h2>{t('settings.title')}</h2>
+          <button type="button" className="tree-toolbtn" title={t('common.close')} onClick={onClose}>
             ×
           </button>
         </header>
         <section className="settings-section">
-          <h3 className="view-title">Wygląd</h3>
-          <div className="settings-actions" role="radiogroup" aria-label="Motyw">
+          <h3 className="view-title">{t('settings.appearance')}</h3>
+          <div className="settings-actions" role="radiogroup" aria-label={t('settings.themeAria')}>
             {THEME_MODES.map((mode) => (
               <button
                 key={mode.id}
@@ -65,18 +68,18 @@ export function SettingsDialog({ onClose }: SettingsDialogProps): ReactElement {
                 aria-pressed={appearance.mode === mode.id}
                 onClick={() => updateAppearance({ mode: mode.id })}
               >
-                {mode.label}
+                {t(`theme.${mode.id}`)}
               </button>
             ))}
           </div>
-          <div className="settings-actions" role="radiogroup" aria-label="Kolor przewodni">
+          <div className="settings-actions" role="radiogroup" aria-label={t('settings.accentAria')}>
             {ACCENTS.map((accent) => (
               <button
                 key={accent.id}
                 type="button"
                 className={`accent-swatch${appearance.accent === accent.id ? ' active' : ''}`}
                 data-testid={`accent-${accent.id}`}
-                title={accent.label}
+                title={t(`accent.${accent.id}`)}
                 aria-pressed={appearance.accent === accent.id}
                 style={{ background: accent.swatch }}
                 onClick={() => updateAppearance({ accent: accent.id })}
@@ -85,35 +88,50 @@ export function SettingsDialog({ onClose }: SettingsDialogProps): ReactElement {
           </div>
         </section>
         <section className="settings-section">
-          <h3 className="view-title">Projekt</h3>
+          <h3 className="view-title">{t('settings.language')}</h3>
+          <div className="settings-actions" role="radiogroup" aria-label={t('settings.language')}>
+            {LANGUAGES.map((lang) => (
+              <button
+                key={lang.id}
+                type="button"
+                className={`bar-btn${appearance.language === lang.id ? ' active' : ''}`}
+                data-testid={`language-${lang.id}`}
+                aria-pressed={appearance.language === lang.id}
+                onClick={() => updateAppearance({ language: lang.id })}
+              >
+                {lang.label}
+              </button>
+            ))}
+          </div>
+        </section>
+        <section className="settings-section">
+          <h3 className="view-title">{t('settings.project')}</h3>
           <p className="settings-path" title={root}>
             {root}
           </p>
           <button type="button" className="bar-btn" onClick={chooseProject}>
-            Zmień folder projektu…
+            {t('settings.changeProject')}
           </button>
         </section>
         <section className="settings-section">
-          <h3 className="view-title">Vault Obsidiana</h3>
+          <h3 className="view-title">{t('settings.vault')}</h3>
           <p className="settings-path" title={vault ?? undefined}>
-            {vault ?? '(nie skonfigurowano)'}
+            {vault ?? t('settings.vaultNone')}
           </p>
           <div className="settings-actions">
             <button type="button" className="bar-btn" onClick={chooseVault}>
-              {vault ? 'Zmień vault…' : 'Wybierz vault…'}
+              {vault ? t('settings.vaultChange') : t('settings.vaultPick')}
             </button>
             {vault && (
               <button type="button" className="bar-btn" onClick={clearVault}>
-                Odepnij
+                {t('settings.vaultClear')}
               </button>
             )}
           </div>
         </section>
         <section className="settings-section">
-          <h3 className="view-title">Konfiguracja</h3>
-          <p className="settings-path">
-            Układ i stan aplikacji: ~/.config/neodesk/ (layout.json, state.json)
-          </p>
+          <h3 className="view-title">{t('settings.config')}</h3>
+          <p className="settings-path">{t('settings.configPath')}</p>
         </section>
       </div>
     </div>

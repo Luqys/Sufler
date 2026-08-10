@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import { CHAT_PATH } from '../../../shared/chat';
+import { useT } from '../i18n';
 import { isImagePath } from '../../../shared/media';
 import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../../shared/preview';
 import { useWorkspace } from '../workspace';
@@ -13,6 +14,7 @@ import { MonacoEditor } from './MonacoEditor';
 export function EditorArea(): ReactElement {
   const { tabsState, buffers, revealTarget, reloadActiveFromDisk, keepMyVersion, closeTab } =
     useWorkspace();
+  const t = useT();
   const activePath = tabsState.activePath;
 
   if (!activePath) {
@@ -22,7 +24,7 @@ export function EditorArea(): ReactElement {
         <div className="editor-empty-wrap">
           <div className="editor-empty">
             <div className="editor-empty-title">Neodesk</div>
-            <p className="placeholder">Kliknij plik w panelu po lewej, aby go otworzyć.</p>
+            <p className="placeholder">{t('editor.empty')}</p>
           </div>
         </div>
       </main>
@@ -74,9 +76,7 @@ export function EditorArea(): ReactElement {
       {external !== null && (
         <div className="external-bar" data-testid="external-bar">
           <span className="external-msg">
-            {external === 'changed'
-              ? 'Plik został zmieniony na dysku poza edytorem.'
-              : 'Plik został usunięty z dysku.'}
+            {external === 'changed' ? t('editor.externalChanged') : t('editor.externalDeleted')}
           </span>
           {external === 'changed' && (
             <button
@@ -85,7 +85,7 @@ export function EditorArea(): ReactElement {
               data-testid="external-reload"
               onClick={reloadActiveFromDisk}
             >
-              Przeładuj
+              {t('editor.reload')}
             </button>
           )}
           <button
@@ -94,11 +94,11 @@ export function EditorArea(): ReactElement {
             data-testid="external-keep"
             onClick={keepMyVersion}
           >
-            Zachowaj moją wersję
+            {t('editor.keepMine')}
           </button>
           {external === 'deleted' && (
             <button type="button" className="bar-btn" onClick={() => closeTab(activePath)}>
-              Zamknij zakładkę
+              {t('common.closeTab')}
             </button>
           )}
         </div>

@@ -1,4 +1,5 @@
 import type { AccentId, Appearance, ThemeMode } from '../../shared/appearance';
+import { setLanguage } from './i18n';
 
 /** Kolor przewodni przez atrybut na <html>; tryb jasny/ciemny załatwia nativeTheme. */
 export function applyAccent(accent: AccentId): void {
@@ -28,4 +29,5 @@ export function isMatrixFlavor(): boolean {
 export function applyAppearance(appearance: Appearance): void {
   applyAccent(appearance.accent);
   applyThemeFlavor(appearance.mode);
+  setLanguage(appearance.language);
 }

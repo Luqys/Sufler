@@ -8,6 +8,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from 'react';
+import { useT } from './i18n';
 
 /**
  * Wewnętrzne dialogi i toasty w stylu aplikacji — zamiast systemowych
@@ -53,6 +54,7 @@ interface PendingConfirm {
 let nextToastId = 1;
 
 export function DialogProvider({ children }: { children: ReactNode }): ReactElement {
+  const t = useT();
   const [pending, setPending] = useState<PendingConfirm | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const pendingRef = useRef(pending);
@@ -116,7 +118,7 @@ export function DialogProvider({ children }: { children: ReactNode }): ReactElem
                 data-testid="confirm-cancel"
                 onClick={() => settle(false)}
               >
-                {pending.options.cancelLabel ?? 'Anuluj'}
+                {pending.options.cancelLabel ?? t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -124,7 +126,7 @@ export function DialogProvider({ children }: { children: ReactNode }): ReactElem
                 data-testid="confirm-accept"
                 onClick={() => settle(true)}
               >
-                {pending.options.confirmLabel ?? 'OK'}
+                {pending.options.confirmLabel ?? t('common.ok')}
               </button>
             </div>
           </div>

@@ -2,6 +2,7 @@ import { useState, type DragEvent, type ReactElement } from 'react';
 import { CHAT_PATH } from '../../../shared/chat';
 import { baseName } from '../../../shared/paths';
 import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../../shared/preview';
+import { useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 import { fileIconFor } from './file-icons';
 
@@ -65,6 +66,7 @@ function tabIcon(path: string): ReactElement {
 export function EditorTabs(): ReactElement {
   const { tabsState, dirtyPaths, activateTab, pinTab, reorderTab, closeTab, openBrowserPreview } =
     useWorkspace();
+  const t = useT();
   const [dropPath, setDropPath] = useState<string | null>(null);
 
   const onTabDragOver = (event: DragEvent<HTMLElement>, path: string): void => {
@@ -114,7 +116,7 @@ export function EditorTabs(): ReactElement {
             <button
               type="button"
               className="tab-close"
-              title="Zamknij zakładkę"
+              title={t('common.closeTab')}
               onClick={(event) => {
                 event.stopPropagation();
                 closeTab(tab.path);
@@ -130,7 +132,7 @@ export function EditorTabs(): ReactElement {
           type="button"
           className="tree-toolbtn"
           data-testid="open-preview"
-          title="Podgląd przeglądarki (localhost) z trybem wskazywania elementów"
+          title={t('tabs.preview')}
           onClick={openBrowserPreview}
         >
           {ICON_GLOBE}

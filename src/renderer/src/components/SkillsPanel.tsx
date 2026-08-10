@@ -1,20 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactElement } from 'react';
 import type { SkillsSnapshot } from '../../../shared/ipc';
 import { useDocks } from '../docks';
+import { tp, useT } from '../i18n';
 import { useDialogs } from '../ui-dialogs';
 import { useWorkspace } from '../workspace';
-
-function polishLines(n: number): string {
-  if (n === 1) {
-    return '1 linia';
-  }
-  const lastTwo = n % 100;
-  const last = n % 10;
-  if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) {
-    return `${n} linie`;
-  }
-  return `${n} linii`;
-}
 
 interface RowProps {
   name: string;
@@ -68,6 +57,7 @@ function Group({
 }
 
 export function SkillsPanel(): ReactElement {
+  const t = useT();
   const { root, openFile } = useWorkspace();
   const { insertToActiveClaude } = useDocks();
   const { notify } = useDialogs();
@@ -96,19 +86,19 @@ export function SkillsPanel(): ReactElement {
 
   const insertSlash = (name: string): void => {
     if (!insertToActiveClaude(`/${name}`)) {
-      notify('Brak działającej sesji Claude — otwórz ją przyciskiem ✳ w doku.', 'error');
+      notify(t('common.noClaudeSession'), 'error');
     }
   };
 
   if (!snapshot) {
-    return <p className="placeholder">Wczytywanie…</p>;
+    return <p className="placeholder">{t('common.loading')}</p>;
   }
 
-  const empty = <p className="skill-empty placeholder">(brak)</p>;
+  const empty = <p className="skill-empty placeholder">{t('skills.emptyGroup')}</p>;
 
   return (
     <div className="skills-panel" data-testid="skills-panel">
-      <Group title="Skille projektu" count={snapshot.projectSkills.length}>
+      <Group title={t('skills.project')} count={snapshot.projectSkills.length}>
         {snapshot.projectSkills.length === 0
           ? empty
           : snapshot.projectSkills.map((skill) => (
@@ -123,7 +113,7 @@ export function SkillsPanel(): ReactElement {
               />
             ))}
       </Group>
-      <Group title="Skille osobiste" count={snapshot.personalSkills.length}>
+      <Group title={t('skills.personal')} count={snapshot.personalSkills.length}>
         {snapshot.personalSkills.length === 0
           ? empty
           : snapshot.personalSkills.map((skill) => (
@@ -138,7 +128,7 @@ export function SkillsPanel(): ReactElement {
               />
             ))}
       </Group>
-      <Group title="Subagenci" count={snapshot.agents.length}>
+      <Group title={t('skills.agents')} count={snapshot.agents.length}>
         {snapshot.agents.length === 0
           ? empty
           : snapshot.agents.map((agent) => (
@@ -152,7 +142,7 @@ export function SkillsPanel(): ReactElement {
               />
             ))}
       </Group>
-      <Group title="Reguły" count={snapshot.rules.length}>
+      <Group title={t('skills.rules')} count={snapshot.rules.length}>
         {snapshot.rules.length === 0
           ? empty
           : snapshot.rules.map((rule) => (
@@ -166,10 +156,8 @@ export function SkillsPanel(): ReactElement {
             ))}
       </Group>
       <div className="claude-md-section">
-        <h3 className="view-title">Pliki CLAUDE.md</h3>
-        <p className="skill-hint placeholder">
-          Długi CLAUDE.md to rozdmuchany kontekst — Claude gubi wtedy instrukcje.
-        </p>
+        <h3 className="view-title">{t('skills.claudeMd')}</h3>
+        <p className="skill-hint placeholder">{t('skills.claudeMdHint')}</p>
         {snapshot.claudeMd.length === 0 && empty}
         {snapshot.claudeMd.map((entry) => (
           <button
@@ -181,7 +169,7 @@ export function SkillsPanel(): ReactElement {
           >
             <span className="skill-line">
               <span className="skill-name">{entry.label}</span>
-              <span className="badge">{polishLines(entry.lines)}</span>
+              <span className="badge">{tp('unit.lines', entry.lines)}</span>
             </span>
           </button>
         ))}

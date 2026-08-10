@@ -4,6 +4,7 @@ import { Terminal, type ITheme } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 import { quotePathForPrompt } from '../../shared/media';
 import { FLAVOR_EVENT, isMatrixFlavor } from './appearance-client';
+import { t } from './i18n';
 
 /**
  * Rejestr instancji xterm poza drzewem Reacta. Przenoszenie zakładki między
@@ -133,7 +134,7 @@ window.api.onPtyData(({ ptyId, data }) => {
 window.api.onPtyExit(({ ptyId }) => {
   pendingOutput.delete(ptyId);
   const instance = byPtyId.get(ptyId);
-  instance?.term.write('\r\n\x1b[2m[proces zakończony]\x1b[0m\r\n');
+  instance?.term.write(`\r\n\x1b[2m${t('terminal.exited')}\x1b[0m\r\n`);
 });
 
 export function createTerminalInstance(

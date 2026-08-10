@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { baseName } from '../../../shared/paths';
 import logoUrl from '../assets/logo.png';
+import { useT } from '../i18n';
 
 interface WelcomeScreenProps {
   onPicked(root: string): void;
@@ -23,6 +24,7 @@ const ICON_OPEN = (
  * Terminale i sesje Claude będą startować właśnie w nim.
  */
 export function WelcomeScreen({ onPicked }: WelcomeScreenProps): ReactElement {
+  const t = useT();
   const [recents, setRecents] = useState<string[]>([]);
 
   useEffect(() => {
@@ -61,20 +63,17 @@ export function WelcomeScreen({ onPicked }: WelcomeScreenProps): ReactElement {
               <span className="welcome-tagline-spark" aria-hidden>
                 ✳
               </span>
-              Środowisko pracy z Claude Code
+              {t('welcome.tagline')}
             </span>
-            <p className="welcome-sub">
-              Wybierz folder, w którym chcesz pracować — terminale i sesje Claude
-              wystartują właśnie w nim.
-            </p>
+            <p className="welcome-sub">{t('welcome.sub')}</p>
           </div>
           <button type="button" className="welcome-open" data-testid="welcome-open" onClick={browse}>
             {ICON_OPEN}
-            Otwórz folder…
+            {t('welcome.open')}
           </button>
           {recents.length > 0 && (
             <div className="welcome-recents">
-              <h3 className="welcome-recents-title">Ostatnie</h3>
+              <h3 className="welcome-recents-title">{t('welcome.recents')}</h3>
               <div className="welcome-recent-list">
                 {recents.map((path) => (
                   <button

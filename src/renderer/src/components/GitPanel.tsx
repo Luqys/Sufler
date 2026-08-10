@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { assignLanes, maxLaneCount, type LaneRow } from '../../../shared/git-graph';
+import type { StringKey } from '../../../shared/i18n';
 import type { GitCommit, GitCommitFile, GitLogResult } from '../../../shared/ipc';
+import { getLocale, t, tf, useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 
 /** Paleta torów gałęzi (indeks kolumny → kolor). */
@@ -80,21 +82,27 @@ const ICON_BRANCH = (
   </svg>
 );
 
-const STATUS_LABEL: Record<string, string> = {
-  A: 'dodany',
-  M: 'zmieniony',
-  D: 'usunięty',
-  R: 'przeniesiony',
-  C: 'skopiowany',
-  T: 'zmiana typu',
+const STATUS_KEY: Record<string, StringKey> = {
+  A: 'git.statusAdded',
+  M: 'git.statusModified',
+  D: 'git.statusDeleted',
+  R: 'git.statusRenamed',
+  C: 'git.statusCopied',
+  T: 'git.statusTypeChange',
 };
+
+/** Etykieta statusu pliku w bieżącym języku (wywoływać w momencie renderu). */
+function statusLabel(status: string): string {
+  const key = STATUS_KEY[status];
+  return key ? t(key) : status;
+}
 
 function fullDate(iso: string): string {
   const then = new Date(iso);
   if (Number.isNaN(then.getTime())) {
     return '';
   }
-  return then.toLocaleString('pl-PL', { dateStyle: 'long', timeStyle: 'short' });
+  return then.toLocaleString(getLocale(), { dateStyle: 'long', timeStyle: 'short' });
 }
 
 function relativeDate(iso: string): string {
@@ -104,25 +112,26 @@ function relativeDate(iso: string): string {
   }
   const seconds = Math.max(0, Math.round((Date.now() - then) / 1000));
   if (seconds < 60) {
-    return 'przed chwilą';
+    return t('git.justNow');
   }
   const minutes = Math.round(seconds / 60);
   if (minutes < 60) {
-    return `${minutes} min temu`;
+    return tf('git.minutesAgo', { minutes });
   }
   const hours = Math.round(minutes / 60);
   if (hours < 24) {
-    return `${hours} godz. temu`;
+    return tf('git.hoursAgo', { hours });
   }
   const days = Math.round(hours / 24);
   if (days < 30) {
-    return `${days} dn. temu`;
+    return tf('git.daysAgo', { days });
   }
-  return new Date(then).toLocaleDateString('pl-PL');
+  return new Date(then).toLocaleDateString(getLocale());
 }
 
 /** Historia commitów repozytorium projektu (git log + diff-tree). */
 export function GitPanel(): ReactElement {
+  const t = useT();
   const { root } = useWorkspace();
   const [result, setResult] = useState<GitLogResult | null>(null);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
@@ -178,32 +187,28 @@ export function GitPanel(): ReactElement {
     <div className="git-panel" data-testid="git-panel">
       <div className="git-toolbar">
         {result?.ok ? (
-          <span className="git-branch" title={`Gałąź: ${result.branch}`}>
+          <span className="git-branch" title={tf('git.branch', { branch: result.branch })}>
             {ICON_BRANCH}
             <span className="git-branch-name">{result.branch}</span>
             <span className="git-count">{result.commits.length}</span>
           </span>
         ) : (
-          <span className="mcp-note">Historia commitów</span>
+          <span className="mcp-note">{t('git.header')}</span>
         )}
         <button
           type="button"
           className="tree-toolbtn"
           data-testid="git-refresh"
-          title="Odśwież historię"
+          title={t('git.refresh')}
           onClick={refresh}
         >
           {ICON_REFRESH}
         </button>
       </div>
-      {result === null && <p className="placeholder">Czytam historię…</p>}
-      {result !== null && !result.ok && (
-        <p className="placeholder">
-          To nie jest repozytorium git — zainicjuj je przez `git init` w terminalu.
-        </p>
-      )}
+      {result === null && <p className="placeholder">{t('git.loading')}</p>}
+      {result !== null && !result.ok && <p className="placeholder">{t('git.notRepo')}</p>}
       {result?.ok && result.commits.length === 0 && (
-        <p className="placeholder">Brak commitów w repozytorium.</p>
+        <p className="placeholder">{t('git.noCommits')}</p>
       )}
       <div className="git-list">
         {result?.ok &&
@@ -222,7 +227,7 @@ export function GitPanel(): ReactElement {
                 <button type="button" className="git-row" onClick={() => toggleCommit(commit)}>
                   <span className="git-row-main">
                     <span className="git-subject" title={commit.subject}>
-                      {commit.subject || '(bez opisu)'}
+                      {commit.subject || t('git.noSubject')}
                     </span>
                     <span className="git-meta">
                       <span className="git-hash">{commit.shortHash}</span>
@@ -244,17 +249,17 @@ export function GitPanel(): ReactElement {
                     )}
                     <div className="git-files">
                       {commitFiles === 'loading' && (
-                        <div className="tree-note">Wczytywanie zmian…</div>
+                        <div className="tree-note">{t('git.loadingFiles')}</div>
                       )}
                       {Array.isArray(commitFiles) && commitFiles.length === 0 && (
-                        <div className="tree-note">Brak zmian plików.</div>
+                        <div className="tree-note">{t('git.noFiles')}</div>
                       )}
                       {Array.isArray(commitFiles) &&
                         commitFiles.map((file) => (
                           <div
                             key={`${file.status}:${file.path}`}
                             className="git-file"
-                            title={STATUS_LABEL[file.status] ?? file.status}
+                            title={statusLabel(file.status)}
                           >
                             <span className={`git-status git-status-${file.status}`}>
                               {file.status}

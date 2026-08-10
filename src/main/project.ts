@@ -1,4 +1,5 @@
 import { dialog, type BrowserWindow } from 'electron';
+import { t } from './i18n';
 import { statSync } from 'node:fs';
 import { readState, writeState } from './state-store';
 
@@ -57,7 +58,7 @@ export function setProjectRoot(path: string): boolean {
 
 export async function chooseProjectRoot(win: BrowserWindow): Promise<string | null> {
   const result = await dialog.showOpenDialog(win, {
-    title: 'Otwórz folder projektu',
+    title: t('main.openProject'),
     properties: ['openDirectory', 'createDirectory'],
   });
   const picked = result.filePaths[0];
@@ -81,7 +82,7 @@ export function getVaultPath(): string | null {
 
 export async function chooseVaultPath(win: BrowserWindow): Promise<string | null> {
   const result = await dialog.showOpenDialog(win, {
-    title: 'Wybierz vault Obsidiana',
+    title: t('main.chooseVault'),
     properties: ['openDirectory'],
   });
   const picked = result.filePaths[0];

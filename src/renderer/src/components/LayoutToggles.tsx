@@ -1,5 +1,7 @@
 import type { ReactElement } from 'react';
+import type { StringKey } from '../../../shared/i18n';
 import type { LayoutState, LayoutVisibilityKey } from '../../../shared/layout';
+import { useT } from '../i18n';
 
 /**
  * Przełączniki paneli na pasku tytułu (à la VS Code): wypełniony segment =
@@ -54,25 +56,25 @@ const TOGGLES: Array<{
   key: LayoutVisibilityKey;
   side: 'left' | 'bottom' | 'right';
   testId: string;
-  label: string;
+  labelKey: StringKey;
 }> = [
   {
     key: 'sidebarVisible',
     side: 'left',
     testId: 'layout-toggle-sidebar',
-    label: 'Pasek boczny (Cmd+B)',
+    labelKey: 'layout.sidebar',
   },
   {
     key: 'bottomDockVisible',
     side: 'bottom',
     testId: 'layout-toggle-bottom',
-    label: 'Dolny dok (Ctrl+`)',
+    labelKey: 'layout.bottom',
   },
   {
     key: 'rightDockVisible',
     side: 'right',
     testId: 'layout-toggle-right',
-    label: 'Prawy dok (Cmd+Shift+C)',
+    labelKey: 'layout.right',
   },
 ];
 
@@ -82,6 +84,7 @@ interface LayoutTogglesProps {
 }
 
 export function LayoutToggles({ layout, onToggle }: LayoutTogglesProps): ReactElement {
+  const t = useT();
   return (
     <>
       {TOGGLES.map((toggle) => {
@@ -92,7 +95,7 @@ export function LayoutToggles({ layout, onToggle }: LayoutTogglesProps): ReactEl
             type="button"
             className={`titlebar-btn${visible ? ' on' : ''}`}
             data-testid={toggle.testId}
-            title={`${visible ? 'Zwiń' : 'Rozwiń'}: ${toggle.label}`}
+            title={`${visible ? t('layout.hide') : t('layout.show')}: ${t(toggle.labelKey)}`}
             aria-pressed={visible}
             onClick={() => onToggle(toggle.key)}
           >

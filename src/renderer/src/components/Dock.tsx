@@ -1,6 +1,7 @@
 import { useState, type DragEvent, type ReactElement } from 'react';
 import type { DockId, DockPane, DockTabKind } from '../../../shared/dock-tabs';
 import { useDocks } from '../docks';
+import { useT } from '../i18n';
 import { ChatView } from './ChatView';
 import { TerminalView } from './TerminalView';
 
@@ -70,6 +71,7 @@ interface PaneViewProps {
 /** Jeden panel doku: własny pasek zakładek, [+], podział i terminal aktywnej karty. */
 function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactElement {
   const { addTab, activateTab, closeTab, moveTab, splitTab, detachTab } = useDocks();
+  const t = useT();
   const [dropHover, setDropHover] = useState(false);
 
   const activeTab = pane.tabs.find((tab) => tab.id === pane.activeId) ?? null;
@@ -138,16 +140,14 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
                 (tab.status === 'idle' || tab.status === 'needs-input') && (
                   <span
                     className={`status-dot ${tab.status === 'idle' ? 'done' : 'attention'}`}
-                    title={
-                      tab.status === 'idle' ? 'Claude skończył pracę' : 'Claude czeka na zgodę'
-                    }
+                    title={tab.status === 'idle' ? t('dock.statusDone') : t('dock.statusAttention')}
                   />
                 )}
               <span className="dock-tab-title">{tab.title}</span>
               <button
                 type="button"
                 className="tab-close"
-                title="Zamknij zakładkę"
+                title={t('common.closeTab')}
                 onClick={(event) => {
                   event.stopPropagation();
                   closeTab(tab.id);
@@ -164,7 +164,7 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
               type="button"
               className="dock-add"
               data-testid={first ? `${dockId}-pane-split` : undefined}
-              title="Podziel: wydziel aktywną kartę do panelu obok"
+              title={t('dock.split')}
               onClick={() => splitTab(activeTab.id)}
             >
               {ICON_SPLIT}
@@ -174,7 +174,7 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
             type="button"
             className="dock-add"
             data-testid={first ? `${dockId}-new-claude` : undefined}
-            title="Nowa sesja Claude w tym panelu"
+            title={t('dock.newClaude')}
             onClick={() => addTab(dockId, 'claude', { paneId: pane.id })}
           >
             {ICON_NEW_CLAUDE}
@@ -183,7 +183,7 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
             type="button"
             className="dock-add"
             data-testid={first ? `${dockId}-new-terminal` : undefined}
-            title="Nowy terminal w tym panelu"
+            title={t('dock.newTerminal')}
             onClick={() => addTab(dockId, 'terminal', { paneId: pane.id })}
           >
             {ICON_NEW_TERMINAL}
@@ -199,7 +199,7 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
           )
         ) : (
           <div className="dock-empty">
-            <p className="placeholder">Kliknij +, aby otworzyć terminal lub sesję Claude.</p>
+            <p className="placeholder">{t('dock.empty')}</p>
           </div>
         )}
       </div>

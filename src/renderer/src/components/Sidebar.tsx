@@ -1,4 +1,6 @@
 import { useState, type ReactElement } from 'react';
+import type { StringKey } from '../../../shared/i18n';
+import { useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 import { FileTree } from './FileTree';
 import { GitPanel } from './GitPanel';
@@ -11,7 +13,7 @@ type SidebarView = 'files' | 'search' | 'git' | 'knowledge' | 'skills' | 'mcp';
 
 interface RailItem {
   id: SidebarView;
-  label: string;
+  labelKey: StringKey;
   icon: ReactElement;
 }
 
@@ -61,16 +63,17 @@ const ICON_GIT = (
 );
 
 const RAIL_ITEMS: RailItem[] = [
-  { id: 'files', label: 'Pliki', icon: ICON_FILES },
-  { id: 'search', label: 'Szukaj w projekcie', icon: ICON_SEARCH },
-  { id: 'git', label: 'Historia git', icon: ICON_GIT },
-  { id: 'knowledge', label: 'Wiedza (pliki MD)', icon: ICON_KNOWLEDGE },
-  { id: 'skills', label: 'Skille i agenci', icon: ICON_SKILLS },
-  { id: 'mcp', label: 'Serwery MCP', icon: ICON_MCP },
+  { id: 'files', labelKey: 'sidebar.rail.files', icon: ICON_FILES },
+  { id: 'search', labelKey: 'sidebar.rail.search', icon: ICON_SEARCH },
+  { id: 'git', labelKey: 'sidebar.rail.git', icon: ICON_GIT },
+  { id: 'knowledge', labelKey: 'sidebar.rail.knowledge', icon: ICON_KNOWLEDGE },
+  { id: 'skills', labelKey: 'sidebar.rail.skills', icon: ICON_SKILLS },
+  { id: 'mcp', labelKey: 'sidebar.rail.mcp', icon: ICON_MCP },
 ];
 
 export function Sidebar(): ReactElement {
   const { root, vault, openKnowledgeGraph } = useWorkspace();
+  const t = useT();
   const [view, setView] = useState<SidebarView>('files');
 
   const selectView = (id: SidebarView): void => {
@@ -83,13 +86,13 @@ export function Sidebar(): ReactElement {
 
   return (
     <aside className="sidebar" data-testid="sidebar">
-      <nav className="icon-rail" aria-label="Widoki panelu bocznego">
+      <nav className="icon-rail" aria-label={t('sidebar.aria')}>
         {RAIL_ITEMS.map((item) => (
           <button
             key={item.id}
             type="button"
             className={`rail-btn${view === item.id ? ' active' : ''}`}
-            title={item.label}
+            title={t(item.labelKey)}
             data-testid={`rail-${item.id}`}
             aria-pressed={view === item.id}
             onClick={() => selectView(item.id)}
@@ -103,23 +106,23 @@ export function Sidebar(): ReactElement {
           <FileTree key={`${root}|${vault ?? ''}`} />
         </div>
         <div className={`view-panel pad${view === 'search' ? '' : ' hidden'}`}>
-          <h2 className="view-title">Szukaj</h2>
+          <h2 className="view-title">{t('sidebar.view.search')}</h2>
           <SearchPanel />
         </div>
         <div className={`view-panel pad scroll${view === 'git' ? '' : ' hidden'}`}>
-          <h2 className="view-title">Historia git</h2>
+          <h2 className="view-title">{t('sidebar.view.git')}</h2>
           <GitPanel key={root} />
         </div>
         <div className={`view-panel pad scroll${view === 'knowledge' ? '' : ' hidden'}`}>
-          <h2 className="view-title">Wiedza</h2>
+          <h2 className="view-title">{t('sidebar.view.knowledge')}</h2>
           <KnowledgePanel key={root} />
         </div>
         <div className={`view-panel pad scroll${view === 'skills' ? '' : ' hidden'}`}>
-          <h2 className="view-title">Skille i agenci</h2>
+          <h2 className="view-title">{t('sidebar.view.skills')}</h2>
           <SkillsPanel />
         </div>
         <div className={`view-panel pad scroll${view === 'mcp' ? '' : ' hidden'}`}>
-          <h2 className="view-title">Serwery MCP</h2>
+          <h2 className="view-title">{t('sidebar.view.mcp')}</h2>
           <McpPanel />
         </div>
       </section>

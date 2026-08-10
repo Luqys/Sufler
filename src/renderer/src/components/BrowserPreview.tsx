@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
 import { formatElementReference, normalizeUrl, type PickedElement } from '../../../shared/preview';
 import { useDocks } from '../docks';
+import { t as tNow, useT } from '../i18n';
 import { useDialogs } from '../ui-dialogs';
 
 /** Minimalny interfejs elementu <webview> (bez typów electrona w rendererze). */
@@ -19,6 +20,7 @@ interface WebviewIpcMessageEvent extends Event {
 let lastUrl = 'http://localhost:3000';
 
 export function BrowserPreview(): ReactElement {
+  const t = useT();
   const { insertToActiveClaude } = useDocks();
   const { notify } = useDialogs();
   const [address, setAddress] = useState(lastUrl);
@@ -37,7 +39,8 @@ export function BrowserPreview(): ReactElement {
       const reference = formatElementReference(picked);
       if (!insertToActiveClaude(reference)) {
         void navigator.clipboard.writeText(reference);
-        notify('Brak sesji Claude — odniesienie skopiowano do schowka.', 'info');
+        // Moduł i18n czyta język w momencie zdarzenia — bez zależności od t z useT().
+        notify(tNow('preview.copied'), 'info');
       }
     },
     [insertToActiveClaude, notify],
@@ -111,12 +114,12 @@ export function BrowserPreview(): ReactElement {
           }}
         />
         <button type="button" className="bar-btn" data-testid="preview-go" onClick={load}>
-          Otwórz
+          {t('preview.go')}
         </button>
         <button
           type="button"
           className="bar-btn"
-          title="Przeładuj stronę"
+          title={t('preview.reload')}
           onClick={() => webviewRef.current?.reload()}
           disabled={!currentUrl}
         >
@@ -126,11 +129,11 @@ export function BrowserPreview(): ReactElement {
           type="button"
           className={`bar-btn${picking ? ' active' : ''}`}
           data-testid="preview-pick"
-          title="Kliknij element na stronie, aby wstawić odniesienie do sesji Claude (Esc anuluje)"
+          title={t('preview.pickTitle')}
           onClick={togglePick}
           disabled={!currentUrl}
         >
-          {picking ? 'Wskazywanie…' : 'Wskaż element'}
+          {picking ? t('preview.picking') : t('preview.pick')}
         </button>
       </div>
       {currentUrl && preloadPath ? (
@@ -143,10 +146,7 @@ export function BrowserPreview(): ReactElement {
       ) : (
         <div className="editor-empty-wrap">
           <div className="editor-empty">
-            <p className="placeholder">
-              Wpisz adres (np. localhost:3000) i naciśnij Enter, aby otworzyć podgląd
-              aplikacji webowej. Potem „Wskaż element", by wysłać odniesienie do sesji Claude.
-            </p>
+            <p className="placeholder">{t('preview.empty')}</p>
           </div>
         </div>
       )}
