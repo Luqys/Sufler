@@ -102,6 +102,10 @@ export const PL = {
     'Brak połączenia z Obsidianem — uruchom Obsidiana z włączonym pluginem Local REST API.',
   'obsidian.sendRejected': 'Obsidian odrzucił zapis — sprawdź klucz API i nagłówek.',
 
+  // Szybkie otwieranie Cmd+P (M37)
+  'quickOpen.placeholder': 'Szukaj pliku po nazwie…',
+  'quickOpen.empty': 'Brak pasujących plików.',
+
   // Motywy i akcenty
   'theme.system': 'Systemowy',
   'theme.light': 'Jasny',
@@ -467,6 +471,9 @@ export const EN: Record<StringKey, string> = {
   'obsidian.sendUnreachable':
     'Cannot reach Obsidian — launch Obsidian with the Local REST API plugin enabled.',
   'obsidian.sendRejected': 'Obsidian rejected the write — check the API key and heading.',
+
+  'quickOpen.placeholder': 'Search files by name…',
+  'quickOpen.empty': 'No matching files.',
 
   'theme.system': 'System',
   'theme.light': 'Light',

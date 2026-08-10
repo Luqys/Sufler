@@ -12,6 +12,7 @@ import { Dock } from './Dock';
 import { EditorArea } from './EditorArea';
 import { LayoutToggles } from './LayoutToggles';
 import { LoginDialog } from './LoginDialog';
+import { QuickOpen } from './QuickOpen';
 import { SettingsDialog } from './SettingsDialog';
 import { Sidebar } from './Sidebar';
 import { Splitter } from './Splitter';
@@ -43,6 +44,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
   const t = useT();
   const [layout, setLayout] = useState(initialLayout);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [quickOpenVisible, setQuickOpenVisible] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   // Lustro stanu aktualizowane synchronicznie — handlery wskaźnika nie mogą
   // czekać na cykl renderowania Reacta.
@@ -113,6 +115,10 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
         // syntetycznych (np. testy), które omijają natywne menu.
         event.preventDefault();
         setSettingsOpen(true);
+      } else if (event.metaKey && !event.shiftKey && !event.ctrlKey && !event.altKey && key === 'p') {
+        // Cmd+P — szybkie otwieranie pliku (M37).
+        event.preventDefault();
+        setQuickOpenVisible((current) => !current);
       }
     };
     window.addEventListener('keydown', onKeyDown, true);
@@ -214,6 +220,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
       </div>
       {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}
       {loginOpen && <LoginDialog onClose={() => setLoginOpen(false)} />}
+      {quickOpenVisible && <QuickOpen onClose={() => setQuickOpenVisible(false)} />}
     </div>
   );
 }

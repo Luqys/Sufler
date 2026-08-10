@@ -12,6 +12,7 @@ import {
   type IdeBridgeRequestPayload,
   type IdeStatus,
   type KnowledgeFile,
+  type ListFilesResult,
   type McpStatusResult,
   type PtyCreateResult,
   type PtyDataEvent,
@@ -173,6 +174,8 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.ObsidianConfigGet),
   setObsidianConfig: (config: ObsidianRestConfig): Promise<ObsidianRestConfig> =>
     ipcRenderer.invoke(IPC.ObsidianConfigSet, config),
+  listProjectFiles: (root: string): Promise<ListFilesResult> =>
+    ipcRenderer.invoke(IPC.ProjectListFiles, root),
 };
 
 contextBridge.exposeInMainWorld('api', api);

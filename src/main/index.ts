@@ -30,6 +30,7 @@ import type { ObsidianRestConfig } from '../shared/obsidian-rest';
 import { installAppMenu } from './menu';
 import { readMcpConfig, runMcpGet, runMcpList } from './mcp/index';
 import { closeMcpWatcher, watchMcpConfig } from './mcp/watcher';
+import { runListFiles } from './quick-open';
 import { runProjectSearch } from './search';
 import { closeTreeWatcher, setWatchedTreeDirs } from './tree-watcher';
 import { createPty, killAllPtys, killPty, listPtyPids, resizePty, writePty } from './pty-manager';
@@ -252,6 +253,7 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.ObsidianConfigSet, (_event, config: ObsidianRestConfig) =>
     setObsidianConfig(config),
   );
+  ipcMain.handle(IPC.ProjectListFiles, (_event, root: string) => runListFiles(root));
   ipcMain.handle(IPC.TreeWatchDirs, (event, dirs: string[]) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (win) {

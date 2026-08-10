@@ -76,7 +76,13 @@ export const IPC = {
   ObsidianSendDaily: 'obsidian:send-daily',
   ObsidianConfigGet: 'obsidian:config-get',
   ObsidianConfigSet: 'obsidian:config-set',
+  ProjectListFiles: 'project:list-files',
 } as const;
+
+/** Lista plików projektu (rg --files) — szybkie otwieranie Cmd+P. */
+export type ListFilesResult =
+  | { ok: true; files: string[]; truncated: boolean }
+  | { ok: false; error: string };
 
 export type SendToNoteResult =
   | { ok: true }
@@ -310,6 +316,8 @@ export interface WindowApi {
   sendToDailyNote(content: string): Promise<SendToNoteResult>;
   getObsidianConfig(): Promise<ObsidianRestConfig>;
   setObsidianConfig(config: ObsidianRestConfig): Promise<ObsidianRestConfig>;
+  /** Pliki projektu (ścieżki względne) do szybkiego otwierania Cmd+P. */
+  listProjectFiles(root: string): Promise<ListFilesResult>;
 }
 
 export type McpStatusResult =
