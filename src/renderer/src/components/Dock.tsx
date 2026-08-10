@@ -21,7 +21,7 @@ interface PaneViewProps {
 
 /** Jeden panel doku: własny pasek zakładek, [+], podział i terminal aktywnej karty. */
 function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactElement {
-  const { addTab, activateTab, closeTab, moveTab, splitTab } = useDocks();
+  const { addTab, activateTab, closeTab, moveTab, splitTab, detachTab } = useDocks();
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropHover, setDropHover] = useState(false);
 
@@ -71,6 +71,18 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
               onDragStart={(event) => {
                 event.dataTransfer.setData(DND_MIME, tab.id);
                 event.dataTransfer.effectAllowed = 'move';
+              }}
+              onDragEnd={(event) => {
+                // Upuszczenie poza oknem → sesja wyjeżdża do osobnego okna.
+                const margin = 40;
+                const outside =
+                  event.screenX < window.screenX - margin ||
+                  event.screenX > window.screenX + window.outerWidth + margin ||
+                  event.screenY < window.screenY - margin ||
+                  event.screenY > window.screenY + window.outerHeight + margin;
+                if (outside && (event.screenX !== 0 || event.screenY !== 0)) {
+                  detachTab(tab.id);
+                }
               }}
             >
               {tab.kind === 'claude' &&

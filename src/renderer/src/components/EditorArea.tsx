@@ -1,9 +1,11 @@
 import type { ReactElement } from 'react';
+import { isImagePath } from '../../../shared/media';
 import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../../shared/preview';
 import { useWorkspace } from '../workspace';
 import { BrowserPreview } from './BrowserPreview';
 import { EditorTabs } from './EditorTabs';
 import { GraphView } from './GraphView';
+import { ImageViewer } from './ImageViewer';
 import { MonacoEditor } from './MonacoEditor';
 
 export function EditorArea(): ReactElement {
@@ -39,6 +41,15 @@ export function EditorArea(): ReactElement {
       <main className="editor-area" data-testid="editor">
         <EditorTabs />
         <GraphView />
+      </main>
+    );
+  }
+
+  if (isImagePath(activePath)) {
+    return (
+      <main className="editor-area" data-testid="editor">
+        <EditorTabs />
+        <ImageViewer path={activePath} />
       </main>
     );
   }

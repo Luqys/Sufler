@@ -4,6 +4,7 @@ import type { TabKind } from '../shared/dock-tabs';
 import type { LayoutVisibilityKey } from '../shared/layout';
 import {
   IPC,
+  type DetachedTerminalInfo,
   type GitCommitFile,
   type GitLogResult,
   type GitStatusFile,
@@ -15,6 +16,7 @@ import {
   type PtyExitEvent,
   type ReadDirResult,
   type ReadFileResult,
+  type ReadImageResult,
   type SearchResult,
   type SkillsSnapshot,
   type TreeChangedEvent,
@@ -38,6 +40,8 @@ const api: WindowApi = {
   readDir: (dirPath: string): Promise<ReadDirResult> => ipcRenderer.invoke(IPC.FsReadDir, dirPath),
   readFile: (filePath: string): Promise<ReadFileResult> =>
     ipcRenderer.invoke(IPC.FsReadFile, filePath),
+  readImage: (filePath: string): Promise<ReadImageResult> =>
+    ipcRenderer.invoke(IPC.FsReadImage, filePath),
   writeFile: (filePath: string, content: string): Promise<WriteFileResult> =>
     ipcRenderer.invoke(IPC.FsWriteFile, filePath, content),
   watchFiles: (paths: string[]): Promise<void> => ipcRenderer.invoke(IPC.WatchSetFiles, paths),
@@ -108,6 +112,10 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.UsageLimitsGet, force),
   getKnowledgeGraph: (root: string): Promise<KnowledgeGraph> =>
     ipcRenderer.invoke(IPC.KnowledgeGraphGet, root),
+  openTerminalWindow: (info: DetachedTerminalInfo): Promise<void> =>
+    ipcRenderer.invoke(IPC.TerminalDetachOpen, info),
+  getDetachedInfo: (ptyId: number): Promise<DetachedTerminalInfo | null> =>
+    ipcRenderer.invoke(IPC.TerminalDetachInfo, ptyId),
 };
 
 contextBridge.exposeInMainWorld('api', api);

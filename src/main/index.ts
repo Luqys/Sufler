@@ -8,7 +8,7 @@ import { generateKnowledgeContext, listMarkdownFiles } from './knowledge';
 import { buildKnowledgeGraph } from './knowledge-graph';
 import { getUsageLimits } from './usage-limits';
 import { closeWatcher, setWatchedFiles } from './file-watcher';
-import { readDirListing, readFileForEditor, writeTextFile } from './fs-tree';
+import { readDirListing, readFileForEditor, readImageForPreview, writeTextFile } from './fs-tree';
 import { readLayout, writeLayout } from './layout-store';
 import { runGitLog, runGitShowCommit } from './git-log';
 import { runGitStatus } from './git-status';
@@ -18,6 +18,8 @@ import { closeMcpWatcher, watchMcpConfig } from './mcp/watcher';
 import { runProjectSearch } from './search';
 import { closeTreeWatcher, setWatchedTreeDirs } from './tree-watcher';
 import { createPty, killAllPtys, killPty, listPtyPids, resizePty, writePty } from './pty-manager';
+import { getDetachedInfo, openTerminalWindow } from './terminal-windows';
+import type { DetachedTerminalInfo } from '../shared/ipc';
 import {
   chooseProjectRoot,
   chooseVaultPath,
@@ -94,6 +96,7 @@ void app.whenReady().then(() => {
   );
   ipcMain.handle(IPC.FsReadDir, (_event, dirPath: string) => readDirListing(dirPath));
   ipcMain.handle(IPC.FsReadFile, (_event, filePath: string) => readFileForEditor(filePath));
+  ipcMain.handle(IPC.FsReadImage, (_event, filePath: string) => readImageForPreview(filePath));
   ipcMain.handle(IPC.FsWriteFile, (_event, filePath: string, content: string) =>
     writeTextFile(filePath, content),
   );
@@ -105,11 +108,12 @@ void app.whenReady().then(() => {
   });
   ipcMain.handle(
     IPC.PtyCreate,
-    (event, options: { kind: TabKind; cwd: string; args?: string[] }) => {
-      const win = BrowserWindow.fromWebContents(event.sender);
-      return win ? createPty(win, options) : { ok: false as const, error: 'Brak okna' };
-    },
+    (_event, options: { kind: TabKind; cwd: string; args?: string[] }) => createPty(options),
   );
+  ipcMain.handle(IPC.TerminalDetachOpen, (_event, info: DetachedTerminalInfo) => {
+    openTerminalWindow(info);
+  });
+  ipcMain.handle(IPC.TerminalDetachInfo, (_event, ptyId: number) => getDetachedInfo(ptyId));
   ipcMain.on(IPC.PtyWrite, (_event, ptyId: number, data: string) => {
     writePty(ptyId, data);
   });

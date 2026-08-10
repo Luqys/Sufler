@@ -24,7 +24,7 @@ import {
   type DocksState,
   type TabKind,
 } from '../../shared/dock-tabs';
-import { createTerminalInstance, disposeTerminalInstance } from './terminals';
+import { createTerminalInstance, disposeTerminalInstance, serializeTerminal } from './terminals';
 import { useWorkspace } from './workspace';
 
 interface AddTabOptions {
@@ -44,6 +44,8 @@ interface DocksValue {
   moveTab(id: string, targetDock: DockId, targetPaneId?: string): void;
   /** Wydziela zakładkę do nowego panelu obok (podział ekranu doku). */
   splitTab(id: string): void;
+  /** Wyciąga kartę do osobnego okna (proces i scrollback zostają). */
+  detachTab(id: string): void;
   /** Wpisuje tekst do pty aktywnej sesji Claude (preferuje aktywne zakładki paneli). */
   insertToActiveClaude(text: string): boolean;
 }
@@ -153,6 +155,26 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
     [applyDocks],
   );
 
+  const detachTab = useCallback(
+    (id: string) => {
+      const found = findTab(docksRef.current, id);
+      if (!found) {
+        return;
+      }
+      const serialized = serializeTerminal(id) ?? '';
+      disposeTerminalInstance(id);
+      applyDocks((state) => closeTabState(state, id));
+      void window.api.openTerminalWindow({
+        ptyId: found.tab.ptyId,
+        kind: found.tab.kind,
+        title: found.tab.title,
+        cwd: found.tab.cwd,
+        serialized,
+      });
+    },
+    [applyDocks],
+  );
+
   const insertToActiveClaude = useCallback((text: string): boolean => {
     const state = docksRef.current;
     const candidates = [
@@ -179,7 +201,16 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
 
   return (
     <DocksContext.Provider
-      value={{ docks, addTab, activateTab, closeTab, moveTab, splitTab, insertToActiveClaude }}
+      value={{
+        docks,
+        addTab,
+        activateTab,
+        closeTab,
+        moveTab,
+        splitTab,
+        detachTab,
+        insertToActiveClaude,
+      }}
     >
       {children}
     </DocksContext.Provider>

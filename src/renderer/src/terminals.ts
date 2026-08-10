@@ -1,4 +1,5 @@
 import { FitAddon } from '@xterm/addon-fit';
+import { SerializeAddon } from '@xterm/addon-serialize';
 import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 
@@ -11,6 +12,7 @@ import '@xterm/xterm/css/xterm.css';
 export interface TerminalInstance {
   term: Terminal;
   fit: FitAddon;
+  serialize: SerializeAddon;
   host: HTMLDivElement;
   ptyId: number;
   /** Dodatkowy odbiorca surowego wyjścia pty (np. heurystyka statusu Claude). */
@@ -43,13 +45,18 @@ window.api.onPtyData(({ ptyId, data }) => {
     instance.term.write(data);
     instance.onOutput?.(data);
   } else {
+    // Dane lecą do wszystkich okien — bufor obcych pty trzymamy z limitem.
     const pending = pendingOutput.get(ptyId) ?? [];
     pending.push(data);
+    if (pending.length > 300) {
+      pending.shift();
+    }
     pendingOutput.set(ptyId, pending);
   }
 });
 
 window.api.onPtyExit(({ ptyId }) => {
+  pendingOutput.delete(ptyId);
   const instance = byPtyId.get(ptyId);
   instance?.term.write('\r\n\x1b[2m[proces zakończony]\x1b[0m\r\n');
 });
@@ -70,9 +77,11 @@ export function createTerminalInstance(
   });
   const fit = new FitAddon();
   term.loadAddon(fit);
+  const serialize = new SerializeAddon();
+  term.loadAddon(serialize);
   term.open(host);
   term.onData((data) => window.api.ptyWrite(ptyId, data));
-  const instance: TerminalInstance = { term, fit, host, ptyId, onOutput };
+  const instance: TerminalInstance = { term, fit, serialize, host, ptyId, onOutput };
   instances.set(tabId, instance);
   byPtyId.set(ptyId, instance);
   const pending = pendingOutput.get(ptyId);
@@ -88,6 +97,19 @@ export function createTerminalInstance(
 
 export function getTerminalInstance(tabId: string): TerminalInstance | null {
   return instances.get(tabId) ?? null;
+}
+
+/** Zserializowany bufor terminala (scrollback) — do przenosin między oknami. */
+export function serializeTerminal(tabId: string): string | null {
+  const instance = instances.get(tabId);
+  if (!instance) {
+    return null;
+  }
+  try {
+    return instance.serialize.serialize({ scrollback: 2000 });
+  } catch {
+    return null;
+  }
 }
 
 export function disposeTerminalInstance(tabId: string): void {

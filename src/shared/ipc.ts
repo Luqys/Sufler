@@ -15,6 +15,7 @@ export const IPC = {
   PreviewGetPreloadPath: 'preview:get-preload-path',
   FsReadDir: 'fs:read-dir',
   FsReadFile: 'fs:read-file',
+  FsReadImage: 'fs:read-image',
   FsWriteFile: 'fs:write-file',
   WatchSetFiles: 'watch:set-files',
   WatchEvent: 'watch:event',
@@ -49,6 +50,8 @@ export const IPC = {
   GitShowCommit: 'git:show-commit',
   UsageLimitsGet: 'usage:limits',
   KnowledgeGraphGet: 'knowledge:graph',
+  TerminalDetachOpen: 'terminal:detach-open',
+  TerminalDetachInfo: 'terminal:detach-info',
 } as const;
 
 export interface DirEntry {
@@ -70,6 +73,10 @@ export type ReadFileResult =
   | { ok: true; content: string }
   | { ok: false; error: ReadFileError };
 
+export type ReadImageResult =
+  | { ok: true; dataUri: string; size: number }
+  | { ok: false; error: 'too-large' | 'not-image' | 'unreadable' };
+
 export type WriteFileResult = { ok: true } | { ok: false; error: string };
 
 export interface WatchEvent {
@@ -80,6 +87,15 @@ export interface WatchEvent {
 export type PtyCreateResult =
   | { ok: true; ptyId: number; pid: number; title: string }
   | { ok: false; error: string };
+
+/** Karta wyciągnięta do osobnego okna: proces + zserializowany scrollback. */
+export interface DetachedTerminalInfo {
+  ptyId: number;
+  kind: TabKind;
+  title: string;
+  cwd: string;
+  serialized: string;
+}
 
 export interface PtyDataEvent {
   ptyId: number;
@@ -141,6 +157,8 @@ export interface WindowApi {
   getWebviewPreloadPath(): Promise<string>;
   readDir(dirPath: string): Promise<ReadDirResult>;
   readFile(filePath: string): Promise<ReadFileResult>;
+  /** Obrazek jako data URI — do podglądu w zakładce edytora. */
+  readImage(filePath: string): Promise<ReadImageResult>;
   writeFile(filePath: string, content: string): Promise<WriteFileResult>;
   /** Deklaratywnie ustawia pełną listę obserwowanych plików (otwarte zakładki). */
   watchFiles(paths: string[]): Promise<void>;
@@ -180,6 +198,8 @@ export interface WindowApi {
   gitShowCommit(root: string, hash: string): Promise<GitCommitFile[]>;
   getUsageLimits(force?: boolean): Promise<UsageLimitsResult>;
   getKnowledgeGraph(root: string): Promise<KnowledgeGraph>;
+  openTerminalWindow(info: DetachedTerminalInfo): Promise<void>;
+  getDetachedInfo(ptyId: number): Promise<DetachedTerminalInfo | null>;
 }
 
 export type McpStatusResult =

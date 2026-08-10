@@ -1,4 +1,4 @@
-import type { BrowserWindow } from 'electron';
+import { BrowserWindow } from 'electron';
 import { spawn, type IPty } from 'node-pty';
 import { IPC, type PtyCreateResult } from '../shared/ipc';
 import type { TabKind } from '../shared/dock-tabs';
@@ -7,12 +7,20 @@ import { resolveShellEnv } from './shell-env';
 let nextPtyId = 1;
 const sessions = new Map<number, IPty>();
 
+/** Dane pty lecą do WSZYSTKICH okien (główne + odczepione terminale). */
+function broadcast(channel: string, payload: unknown): void {
+  for (const win of BrowserWindow.getAllWindows()) {
+    if (!win.isDestroyed()) {
+      win.webContents.send(channel, payload);
+    }
+  }
+}
+
 /**
  * Kluczowa zasada ze SPEC.md: zakładki `terminal` i `claude` różnią się
  * WYŁĄCZNIE komendą startową pseudoterminala.
  */
 export async function createPty(
-  win: BrowserWindow,
   options: { kind: TabKind; cwd: string; args?: string[] },
 ): Promise<PtyCreateResult> {
   const env = await resolveShellEnv();
@@ -29,15 +37,11 @@ export async function createPty(
     const ptyId = nextPtyId++;
     sessions.set(ptyId, session);
     session.onData((data) => {
-      if (!win.isDestroyed()) {
-        win.webContents.send(IPC.PtyData, { ptyId, data });
-      }
+      broadcast(IPC.PtyData, { ptyId, data });
     });
     session.onExit(({ exitCode }) => {
       sessions.delete(ptyId);
-      if (!win.isDestroyed()) {
-        win.webContents.send(IPC.PtyExit, { ptyId, exitCode });
-      }
+      broadcast(IPC.PtyExit, { ptyId, exitCode });
     });
     return {
       ok: true,

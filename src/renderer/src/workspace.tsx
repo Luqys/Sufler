@@ -17,6 +17,7 @@ import {
   type EditorTabsState,
 } from '../../shared/editor-tabs';
 import type { ReadFileError, WatchEvent } from '../../shared/ipc';
+import { isImagePath } from '../../shared/media';
 import { baseName } from '../../shared/paths';
 import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../shared/preview';
 import {
@@ -199,6 +200,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
       const pinned = options?.pinned ?? false;
       const open = (): void => applyTabs((state) => openTabState(state, path, baseName(path), pinned));
       if (buffersRef.current.has(path)) {
+        open();
+        return;
+      }
+      // Obrazki renderuje ImageViewer — bez bufora tekstowego i modelu Monaco.
+      if (isImagePath(path)) {
         open();
         return;
       }

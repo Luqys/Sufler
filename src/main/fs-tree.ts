@@ -1,10 +1,20 @@
 import { spawn } from 'node:child_process';
 import { readFile, readdir, rename, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { DirEntry, ReadDirResult, ReadFileResult, WriteFileResult } from '../shared/ipc';
+import type {
+  DirEntry,
+  ReadDirResult,
+  ReadFileResult,
+  ReadImageResult,
+  WriteFileResult,
+} from '../shared/ipc';
+import { imageMime } from '../shared/media';
 
 /** Spec wyklucza pliki >50 MB; tniemy znacznie wcześniej, zanim Monaco zacznie się krztusić. */
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+/** Zdjęcia bywają większe niż pliki tekstowe; data URI ~25 MB Chromium trawi bez problemu. */
+const MAX_IMAGE_SIZE = 25 * 1024 * 1024;
 
 /**
  * Wyjście `git check-ignore -z --stdin`: ścieżki rozdzielone NUL-ami, katalogi
@@ -89,6 +99,23 @@ export async function writeTextFile(filePath: string, content: string): Promise<
     return { ok: true };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+export async function readImageForPreview(filePath: string): Promise<ReadImageResult> {
+  const mime = imageMime(filePath);
+  if (!mime) {
+    return { ok: false, error: 'not-image' };
+  }
+  try {
+    const info = await stat(filePath);
+    if (info.size > MAX_IMAGE_SIZE) {
+      return { ok: false, error: 'too-large' };
+    }
+    const buffer = await readFile(filePath);
+    return { ok: true, dataUri: `data:${mime};base64,${buffer.toString('base64')}`, size: info.size };
+  } catch {
+    return { ok: false, error: 'unreadable' };
   }
 }
 

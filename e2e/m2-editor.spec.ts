@@ -47,6 +47,31 @@ test('Cmd+S zapisuje na dysk, a zmiana z zewnątrz pokazuje pasek z akcjami', as
   await app.close();
 });
 
+test('plik graficzny otwiera się jako podgląd obrazka, nie edytor', async () => {
+  const project = makeFixtureProject();
+  // 1×1 px PNG — wystarcza do sprawdzenia wczytania i wymiarów.
+  const png = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    'base64',
+  );
+  writeFileSync(join(project, 'logo.png'), png);
+  const app = await launchApp(makeConfigHome(), project);
+  const page = await app.firstWindow();
+
+  await page.getByTestId('file-tree').getByText('logo.png').click();
+  await expect(page.getByTestId('tab-active')).toContainText('logo.png');
+
+  const viewer = page.getByTestId('image-viewer');
+  await expect(viewer).toBeVisible();
+  await expect(viewer.locator('img')).toBeVisible();
+  await expect(viewer).toContainText('1 × 1 px');
+  await expect(viewer).toContainText('B'); // rozmiar pliku w bajtach
+  await expect(page.locator('.monaco-editor')).toHaveCount(0);
+
+  await page.screenshot({ path: 'e2e-artifacts/m2-podglad-obrazka.png' });
+  await app.close();
+});
+
 test('pojedyncze kliknięcie otwiera podgląd, podwójne przypina zakładkę', async () => {
   const project = makeFixtureProject();
   const app = await launchApp(makeConfigHome(), project);
