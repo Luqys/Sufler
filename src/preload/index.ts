@@ -9,7 +9,6 @@ import {
   type GitLogResult,
   type GitStatusFile,
   type KnowledgeFile,
-  type KnowledgeGenerateResult,
   type McpStatusResult,
   type PtyCreateResult,
   type PtyDataEvent,
@@ -104,8 +103,6 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.AppearanceSet, appearance),
   listKnowledge: (root: string): Promise<KnowledgeFile[]> =>
     ipcRenderer.invoke(IPC.KnowledgeList, root),
-  generateKnowledge: (root: string, paths: string[]): Promise<KnowledgeGenerateResult> =>
-    ipcRenderer.invoke(IPC.KnowledgeGenerate, root, paths),
   watchKnowledge: (root: string): Promise<void> => ipcRenderer.invoke(IPC.KnowledgeWatch, root),
   onKnowledgeChanged: (listener: () => void): void => {
     ipcRenderer.on(IPC.KnowledgeChanged, () => listener());

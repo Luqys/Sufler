@@ -1,15 +1,17 @@
 import { expect, test } from '@playwright/test';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { launchApp, makeConfigHome, makeFixtureProject } from './utils';
 
-test('panel Wiedza listuje pliki MD i generuje kontekst agenta', async () => {
+test('panel Wiedza listuje pliki MD projektu', async () => {
   const project = makeFixtureProject();
   mkdirSync(join(project, 'docs'));
   writeFileSync(
     join(project, 'docs', 'przewodnik.md'),
     '# Przewodnik\n\nSekretne-haslo-przewodnika.\n',
   );
+  // Pozostałość po dawnym generatorze kontekstu — nie może wracać na listę.
+  writeFileSync(join(project, 'kontekst-agenta.md'), '# Kontekst wiedzy agenta\n');
   const app = await launchApp(makeConfigHome(), project);
   const page = await app.firstWindow();
 
@@ -25,32 +27,16 @@ test('panel Wiedza listuje pliki MD i generuje kontekst agenta', async () => {
     }),
   ).toBeLessThanOrEqual(0);
 
-  // Lista: README + przewodnik, wszystkie domyślnie zaznaczone.
+  // Lista: README + przewodnik, bez pliku dawnego generatora.
   const rows = page.getByTestId('knowledge-file');
   await expect(rows).toHaveCount(2);
   await expect(panel).toContainText('README.md');
   await expect(panel).toContainText('przewodnik.md');
-  await expect(panel.getByTestId('knowledge-summary')).toContainText('Zaznaczone: 2 z 2');
-  await expect(panel.getByTestId('knowledge-generate')).toContainText('(2)');
+  await expect(panel).not.toContainText('kontekst-agenta.md');
+  await expect(panel.getByTestId('knowledge-summary')).toContainText('2 pliki');
 
   // Pliki z korzenia przed katalogami.
   await expect(rows.first()).toContainText('README.md');
-
-  await panel.getByTestId('knowledge-generate').click();
-  await expect(page.getByTestId('tab-active')).toContainText('kontekst-agenta.md', {
-    timeout: 15_000,
-  });
-  await expect(panel.getByTestId('knowledge-note')).toBeVisible();
-
-  const generated = readFileSync(join(project, 'kontekst-agenta.md'), 'utf8');
-  expect(generated).toContain('# Kontekst wiedzy agenta');
-  expect(generated).toContain('# 📄 README.md');
-  expect(generated).toContain('# 📄 docs/przewodnik.md');
-  expect(generated).toContain('Sekretne-haslo-przewodnika.');
-
-  // Wygenerowany plik nie wraca na listę źródeł.
-  await panel.getByTestId('knowledge-refresh').click();
-  await expect(rows).toHaveCount(2);
 
   await page.screenshot({ path: 'e2e-artifacts/m13-panel-wiedzy.png' });
   await app.close();

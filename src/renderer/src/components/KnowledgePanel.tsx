@@ -1,7 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useState, type ReactElement } from 'react';
 import type { KnowledgeFile } from '../../../shared/ipc';
-import { formatTokens } from '../../../shared/usage';
-import { useDocks } from '../docks';
 import { tf, tp, useT } from '../i18n';
 import { onKnowledgeChanged } from '../knowledge-events';
 import { useDialogs } from '../ui-dialogs';
@@ -15,14 +13,6 @@ const ICON_REFRESH = (
   </svg>
 );
 
-const ICON_SELECT_ALL = (
-  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="2" width="9" height="9" rx="2" />
-    <path d="M4.6 6.6l1.7 1.7 2.7-3" />
-    <path d="M13.9 5.5v6.4a2 2 0 0 1-2 2H5.5" />
-  </svg>
-);
-
 function splitPath(path: string): { dir: string; name: string } {
   const slash = path.lastIndexOf('/');
   return slash === -1
@@ -31,8 +21,8 @@ function splitPath(path: string): { dir: string; name: string } {
 }
 
 /**
- * „Wiedza": wszystkie pliki markdown projektu w jednym miejscu + generator
- * wspólnego kontekstu dla agenta (kontekst-agenta.md).
+ * „Wiedza": wszystkie pliki markdown projektu w jednym miejscu; Claude czyta je
+ * przez konspekt wiedzy i narzędzia MCP grafu (bez ręcznego sklejania kontekstu).
  */
 const ICON_GRAPH = (
   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
@@ -46,18 +36,11 @@ const ICON_GRAPH = (
 export function KnowledgePanel(): ReactElement {
   const t = useT();
   const { root, openFile, openKnowledgeGraph } = useWorkspace();
-  const { insertToActiveClaude } = useDocks();
   const { notify } = useDialogs();
   const [files, setFiles] = useState<KnowledgeFile[] | null>(null);
-  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
-  const [busy, setBusy] = useState(false);
-  const [lastGenerated, setLastGenerated] = useState<{ files: number } | null>(null);
 
   const refresh = useCallback(() => {
-    void window.api.listKnowledge(root).then((list) => {
-      setFiles(list);
-      setSelected(new Set(list.map((file) => file.path)));
-    });
+    void window.api.listKnowledge(root).then(setFiles);
   }, [root]);
 
   useEffect(() => {
@@ -66,45 +49,6 @@ export function KnowledgePanel(): ReactElement {
     void window.api.watchKnowledge(root);
     return onKnowledgeChanged(refresh);
   }, [refresh, root]);
-
-  const toggle = (path: string): void => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) {
-        next.delete(path);
-      } else {
-        next.add(path);
-      }
-      return next;
-    });
-  };
-
-  const toggleAll = (): void => {
-    setSelected((prev) =>
-      prev.size === (files?.length ?? 0)
-        ? new Set()
-        : new Set((files ?? []).map((file) => file.path)),
-    );
-  };
-
-  const generate = (): void => {
-    setBusy(true);
-    void window.api.generateKnowledge(root, [...selected]).then((result) => {
-      setBusy(false);
-      if (!result.ok) {
-        notify(tf('knowledge.generateFailed', { error: result.error }), 'error');
-        return;
-      }
-      setLastGenerated({ files: result.files });
-      openFile(result.path, { pinned: true });
-    });
-  };
-
-  const insertReference = (): void => {
-    if (!insertToActiveClaude('@kontekst-agenta.md ')) {
-      notify(t('common.noClaudeSession'), 'error');
-    }
-  };
 
   const [mcpStatus, setMcpStatus] = useState<{
     running: boolean;
@@ -122,27 +66,12 @@ export function KnowledgePanel(): ReactElement {
     });
   };
 
-  const total = files?.length ?? 0;
-  const selectedChars = useMemo(
-    () =>
-      (files ?? []).reduce(
-        (sum, file) => (selected.has(file.path) ? sum + file.chars : sum),
-        0,
-      ),
-    [files, selected],
-  );
-  // Zgrubny szacunek: ~4 znaki na token.
-  const tokenEstimate = Math.round(selectedChars / 4);
-
   return (
     <div className="knowledge-panel" data-testid="knowledge-panel">
       <p className="knowledge-hint placeholder">{t('knowledge.hint')}</p>
       <div className="knowledge-toolbar">
         <span className="knowledge-summary" data-testid="knowledge-summary">
-          {t('knowledge.selectedPrefix')}
-          <strong>{selected.size}</strong>
-          {tf('knowledge.selectedOf', { total })}
-          {selectedChars > 0 && <> {tf('knowledge.tokens', { tokens: formatTokens(tokenEstimate) })}</>}
+          {tp('unit.files', files?.length ?? 0)}
         </span>
         <button
           type="button"
@@ -152,15 +81,6 @@ export function KnowledgePanel(): ReactElement {
           onClick={openKnowledgeGraph}
         >
           {ICON_GRAPH}
-        </button>
-        <button
-          type="button"
-          className="tree-toolbtn"
-          data-testid="knowledge-toggle-all"
-          title={t('knowledge.toggleAll')}
-          onClick={toggleAll}
-        >
-          {ICON_SELECT_ALL}
         </button>
         <button
           type="button"
@@ -182,19 +102,13 @@ export function KnowledgePanel(): ReactElement {
         {(files ?? []).map((file) => {
           const { dir, name } = splitPath(file.path);
           return (
-            <label key={file.path} className="knowledge-row" data-testid="knowledge-file">
-              <input
-                type="checkbox"
-                checked={selected.has(file.path)}
-                onChange={() => toggle(file.path)}
-              />
+            <div key={file.path} className="knowledge-row" data-testid="knowledge-file">
               <span className="knowledge-file-icon">{fileIconFor(name)}</span>
               <button
                 type="button"
                 className="knowledge-open"
                 title={tf('knowledge.openFile', { path: file.path })}
-                onClick={(event) => {
-                  event.preventDefault();
+                onClick={() => {
                   openFile(`${root}/${file.path}`);
                 }}
               >
@@ -204,20 +118,11 @@ export function KnowledgePanel(): ReactElement {
               <span className="knowledge-lines" title={tp('unit.lines', file.lines)}>
                 {file.lines} {t('common.linesAbbr')}
               </span>
-            </label>
+            </div>
           );
         })}
       </div>
       <div className="knowledge-actions">
-        <button
-          type="button"
-          className="welcome-open knowledge-generate"
-          data-testid="knowledge-generate"
-          disabled={busy || selected.size === 0}
-          onClick={generate}
-        >
-          {busy ? t('knowledge.generating') : tf('knowledge.generate', { n: selected.size })}
-        </button>
         <div className="knowledge-mcp" data-testid="knowledge-mcp">
           <span className="knowledge-mcp-status">
             <span className={`mcp-dot ${mcpStatus?.running ? 'connected' : 'error'}`} />
@@ -235,23 +140,6 @@ export function KnowledgePanel(): ReactElement {
           </button>
         </div>
         <p className="knowledge-note placeholder">{t('knowledge.mcpNote')}</p>
-        {lastGenerated && (
-          <div className="knowledge-result" data-testid="knowledge-note">
-            <span className="knowledge-result-text">
-              <span className="knowledge-result-check">✓</span> kontekst-agenta.md ·{' '}
-              {tf('knowledge.resultFiles', { n: lastGenerated.files })}
-            </span>
-            <button
-              type="button"
-              className="bar-btn"
-              data-testid="knowledge-insert"
-              title={t('knowledge.insertTitle')}
-              onClick={insertReference}
-            >
-              {t('knowledge.insert')}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

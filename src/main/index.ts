@@ -7,7 +7,7 @@ import { IPC } from '../shared/ipc';
 import { applyAppearanceAtBoot, getAppearance, setAppearance } from './appearance';
 import { saveClipboardImage } from './clipboard-image';
 import { t, tf } from './i18n';
-import { generateKnowledgeContext, listMarkdownFiles } from './knowledge';
+import { listMarkdownFiles } from './knowledge';
 import { buildKnowledgeGraph } from './knowledge-graph';
 import { closeKnowledgeWatcher, watchKnowledge } from './knowledge-watcher';
 import { getUsageLimits } from './usage-limits';
@@ -114,9 +114,6 @@ void app.whenReady().then(() => {
   });
   ipcMain.handle(IPC.UsageLimitsGet, (_event, force?: boolean) => getUsageLimits(force));
   ipcMain.handle(IPC.KnowledgeList, (_event, root: string) => listMarkdownFiles(root));
-  ipcMain.handle(IPC.KnowledgeGenerate, (_event, root: string, paths: string[]) =>
-    generateKnowledgeContext(root, paths),
-  );
   ipcMain.handle(IPC.KnowledgeGraphGet, (_event, root: string) => buildKnowledgeGraph(root));
   ipcMain.handle(IPC.KnowledgeWatch, (event, root: string) => {
     const win = BrowserWindow.fromWebContents(event.sender);

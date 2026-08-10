@@ -1094,12 +1094,6 @@ body.dragging-horizontal .splitter.horizontal::after {
   background: color-mix(in srgb, var(--text) 6%, transparent);
 }
 
-.knowledge-row input {
-  accent-color: var(--accent);
-  flex: none;
-  margin: 0;
-}
-
 .knowledge-file-icon {
   flex: none;
   display: grid;
@@ -1156,42 +1150,6 @@ body.dragging-horizontal .splitter.horizontal::after {
   gap: 8px;
   padding-top: 10px;
   border-top: 1px solid var(--border);
-}
-
-.knowledge-generate {
-  align-self: stretch;
-  text-align: center;
-  /* W ciasnym sidebarze poświata przycisku powitalnego jest zbyt ciężka. */
-  box-shadow: none;
-}
-
-.knowledge-generate:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.knowledge-result {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 6px 8px;
-  border: 1px solid color-mix(in srgb, #22c55e 40%, transparent);
-  border-radius: 8px;
-  background: color-mix(in srgb, #22c55e 10%, transparent);
-  font-size: 11.5px;
-}
-
-.knowledge-result-text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.knowledge-result-check {
-  color: #16a34a;
-  font-weight: 700;
 }
 
 .knowledge-mcp {

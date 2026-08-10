@@ -108,6 +108,7 @@ export const PL = {
   'unit.edges': 'połączenie|połączenia|połączeń',
   'unit.lines': 'linia|linie|linii',
   'unit.matches': 'trafienie|trafienia|trafień',
+  'unit.files': 'plik|pliki|plików',
 
   // Drzewo plików
   'ft.noAccess': 'Brak dostępu',
@@ -162,30 +163,20 @@ export const PL = {
   'graph.hint': 'Klik = powiązania · podwójny klik = otwórz · przeciągnij węzeł/tło · kółko = zoom',
 
   // Panel wiedzy
-  'knowledge.generateFailed': 'Nie udało się wygenerować kontekstu: {error}',
   'knowledge.hint':
-    'Zaznacz pliki markdown i sklej je w jeden kontekst wiedzy dla agenta. Konspekt wiedzy (`konspekt-wiedzy.md`) aktualizuje się sam przy każdej zmianie notatek, a Claude pobiera go narzędziem MCP `konspekt` — zawsze wie, co gdzie jest.',
-  'knowledge.selectedPrefix': 'Zaznaczone: ',
-  'knowledge.selectedOf': ' z {total}',
-  'knowledge.tokens': '· ≈ {tokens} tokenów',
+    'Wszystkie notatki markdown projektu w jednym miejscu. Konspekt wiedzy (`konspekt-wiedzy.md`) aktualizuje się sam przy każdej zmianie notatek, a Claude pobiera go narzędziem MCP `konspekt` — zawsze wie, co gdzie jest.',
   'knowledge.graphOpen': 'Graf wiedzy: notatki, linki i autorzy (à la Obsidian)',
-  'knowledge.toggleAll': 'Zaznacz wszystkie / żaden',
   'knowledge.refresh': 'Odśwież listę',
   'knowledge.scanning': 'Skanuję pliki .md…',
   'knowledge.noFiles':
     'Brak plików markdown w projekcie. Notatki, README i dokumentacja `.md` pojawią się tutaj automatycznie.',
   'knowledge.openFile': 'Otwórz {path}',
-  'knowledge.generating': 'Generuję…',
-  'knowledge.generate': 'Generuj kontekst ({n})',
   'knowledge.mcpLabel': 'MCP grafu wiedzy',
   'knowledge.mcpRunning': 'działa',
   'knowledge.mcpStarting': 'uruchamianie…',
   'knowledge.mcpRegister': 'Podłącz do Claude',
   'knowledge.mcpNote':
     'Po podłączeniu sesje Claude mają narzędzia: graf_wiedzy · notatka · powiazania — agent sam sprawdza, co jest z czym powiązane.',
-  'knowledge.resultFiles': '{n} plików',
-  'knowledge.insertTitle': 'Wstaw @kontekst-agenta.md do aktywnej sesji Claude',
-  'knowledge.insert': '@ do Claude',
 
   // Panel MCP
   'mcp.stateConnected': 'połączony',
@@ -304,7 +295,6 @@ export const PL = {
   // Proces główny (dialogi systemowe, błędy IPC)
   'main.openProject': 'Otwórz folder projektu',
   'main.chooseVault': 'Wybierz vault Obsidiana',
-  'main.knowledgeUnreadable': 'Żaden z wybranych plików nie dał się odczytać.',
   'main.mcpRegistered': 'Zarejestrowano serwer „wiedza-graf" w Claude (scope user).',
   'main.mcpAlready': 'Serwer „wiedza-graf" był już zarejestrowany.',
   'main.mcpRegisterFailed': 'Nie udało się zarejestrować: {error}',
@@ -408,6 +398,7 @@ export const EN: Record<StringKey, string> = {
   'unit.edges': 'connection|connections',
   'unit.lines': 'line|lines',
   'unit.matches': 'match|matches',
+  'unit.files': 'file|files',
 
   'ft.noAccess': 'No access',
   'ft.empty': '(empty)',
@@ -458,30 +449,20 @@ export const EN: Record<StringKey, string> = {
   'graph.noRelated': 'No links to other notes',
   'graph.hint': 'Click = links · double-click = open · drag a node/background · wheel = zoom',
 
-  'knowledge.generateFailed': 'Failed to generate the context: {error}',
   'knowledge.hint':
-    'Select markdown files and merge them into one knowledge context for the agent. The knowledge outline (`konspekt-wiedzy.md`) updates itself on every note change, and Claude fetches it with the MCP `konspekt` tool — it always knows what lives where.',
-  'knowledge.selectedPrefix': 'Selected: ',
-  'knowledge.selectedOf': ' of {total}',
-  'knowledge.tokens': '· ≈ {tokens} tokens',
+    'All the project’s markdown notes in one place. The knowledge outline (`konspekt-wiedzy.md`) updates itself on every note change, and Claude fetches it with the MCP `konspekt` tool — it always knows what lives where.',
   'knowledge.graphOpen': 'Knowledge graph: notes, links and authors (à la Obsidian)',
-  'knowledge.toggleAll': 'Select all / none',
   'knowledge.refresh': 'Refresh list',
   'knowledge.scanning': 'Scanning .md files…',
   'knowledge.noFiles':
     'No markdown files in the project. Notes, README and `.md` docs will show up here automatically.',
   'knowledge.openFile': 'Open {path}',
-  'knowledge.generating': 'Generating…',
-  'knowledge.generate': 'Generate context ({n})',
   'knowledge.mcpLabel': 'Knowledge graph MCP',
   'knowledge.mcpRunning': 'running',
   'knowledge.mcpStarting': 'starting…',
   'knowledge.mcpRegister': 'Connect to Claude',
   'knowledge.mcpNote':
     'Once connected, Claude sessions get the tools: graf_wiedzy · notatka · powiazania — the agent checks on its own what links to what.',
-  'knowledge.resultFiles': '{n} files',
-  'knowledge.insertTitle': 'Insert @kontekst-agenta.md into the active Claude session',
-  'knowledge.insert': '@ to Claude',
 
   'mcp.stateConnected': 'connected',
   'mcp.stateError': 'connection error',
@@ -589,7 +570,6 @@ export const EN: Record<StringKey, string> = {
 
   'main.openProject': 'Open project folder',
   'main.chooseVault': 'Choose an Obsidian vault',
-  'main.knowledgeUnreadable': 'None of the selected files could be read.',
   'main.mcpRegistered': 'Registered the "wiedza-graf" server in Claude (user scope).',
   'main.mcpAlready': 'The "wiedza-graf" server was already registered.',
   'main.mcpRegisterFailed': 'Registration failed: {error}',

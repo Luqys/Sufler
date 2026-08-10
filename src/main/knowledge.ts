@@ -1,16 +1,15 @@
 import { execFile } from 'node:child_process';
-import { t } from './i18n';
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
-import type { KnowledgeFile, KnowledgeGenerateResult } from '../shared/ipc';
+import type { KnowledgeFile } from '../shared/ipc';
 import { buildOutline } from '../shared/knowledge-outline';
 import { baseName } from '../shared/paths';
 import { writeTextFile } from './fs-tree';
 
 const execFileAsync = promisify(execFile);
 
-/** Plik wynikowy generatora — wykluczany z listy źródeł. */
+/** Plik dawnego generatora kontekstu — nadal wykluczany, bo mógł zostać w projektach. */
 export const KNOWLEDGE_OUTPUT = 'kontekst-agenta.md';
 
 /** Automatycznie utrzymywany konspekt wiedzy — też wykluczany ze źródeł. */
@@ -77,7 +76,7 @@ export async function listMarkdownFiles(root: string): Promise<KnowledgeFile[]> 
     }
     try {
       const content = await readFile(join(root, path), 'utf8');
-      files.push({ path, lines: countLines(content), chars: content.length });
+      files.push({ path, lines: countLines(content) });
     } catch {
       // plik zniknął — pomijamy
     }
@@ -123,40 +122,4 @@ export async function rebuildOutline(root: string): Promise<void> {
   if (existing !== outline) {
     await writeTextFile(target, outline);
   }
-}
-
-/** Skleja wybrane pliki .md w jeden dokument-kontekst dla agenta. */
-export async function generateKnowledgeContext(
-  root: string,
-  relPaths: string[],
-): Promise<KnowledgeGenerateResult> {
-  const sections: string[] = [];
-  const included: string[] = [];
-  for (const rel of relPaths) {
-    try {
-      const content = await readFile(join(root, rel), 'utf8');
-      included.push(rel);
-      sections.push(`\n\n---\n\n# 📄 ${rel}\n\n${content.trim()}\n`);
-    } catch {
-      // nieczytelny — pomijamy, resztę składamy dalej
-    }
-  }
-  if (included.length === 0) {
-    return { ok: false, error: t('main.knowledgeUnreadable') };
-  }
-  const header = [
-    '# Kontekst wiedzy agenta',
-    '',
-    `Projekt: ${baseName(root)} · plików: ${included.length} · wygenerowano: ${new Date().toISOString()}`,
-    '',
-    '## Spis treści',
-    ...included.map((rel, index) => `${index + 1}. ${rel}`),
-  ].join('\n');
-  const document = header + sections.join('');
-  const outputPath = join(root, KNOWLEDGE_OUTPUT);
-  const written = await writeTextFile(outputPath, document);
-  if (!written.ok) {
-    return { ok: false, error: written.error };
-  }
-  return { ok: true, path: outputPath, files: included.length, bytes: document.length };
 }

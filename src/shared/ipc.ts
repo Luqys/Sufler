@@ -45,7 +45,6 @@ export const IPC = {
   AppearanceGet: 'appearance:get',
   AppearanceSet: 'appearance:set',
   KnowledgeList: 'knowledge:list',
-  KnowledgeGenerate: 'knowledge:generate',
   KnowledgeWatch: 'knowledge:watch',
   KnowledgeChanged: 'knowledge:changed',
   GitLog: 'git:log',
@@ -201,7 +200,6 @@ export interface WindowApi {
   getAppearance(): Promise<Appearance>;
   setAppearance(appearance: Appearance): Promise<Appearance>;
   listKnowledge(root: string): Promise<KnowledgeFile[]>;
-  generateKnowledge(root: string, paths: string[]): Promise<KnowledgeGenerateResult>;
   /** Obserwacja notatek .md: zdarzenia zmian + automatyczny konspekt wiedzy. */
   watchKnowledge(root: string): Promise<void>;
   onKnowledgeChanged(listener: () => void): void;
@@ -250,13 +248,7 @@ export interface KnowledgeFile {
   /** Ścieżka względem korzenia projektu. */
   path: string;
   lines: number;
-  /** Długość treści w znakach — do szacowania tokenów kontekstu (~4 znaki/token). */
-  chars: number;
 }
-
-export type KnowledgeGenerateResult =
-  | { ok: true; path: string; files: number; bytes: number }
-  | { ok: false; error: string };
 
 export interface GitCommit {
   hash: string;
