@@ -1,6 +1,7 @@
 import { useState, type ReactElement } from 'react';
 import { useWorkspace } from '../workspace';
 import { FileTree } from './FileTree';
+import { SkillsPanel } from './SkillsPanel';
 
 type SidebarView = 'files' | 'skills' | 'mcp';
 
@@ -50,6 +51,7 @@ export function Sidebar(): ReactElement {
             type="button"
             className={`rail-btn${view === item.id ? ' active' : ''}`}
             title={item.label}
+            data-testid={`rail-${item.id}`}
             aria-pressed={view === item.id}
             onClick={() => setView(item.id)}
           >
@@ -61,9 +63,9 @@ export function Sidebar(): ReactElement {
         <div className={`view-panel${view === 'files' ? '' : ' hidden'}`}>
           <FileTree key={root} />
         </div>
-        <div className={`view-panel pad${view === 'skills' ? '' : ' hidden'}`}>
+        <div className={`view-panel pad scroll${view === 'skills' ? '' : ' hidden'}`}>
           <h2 className="view-title">Skille i agenci</h2>
-          <p className="placeholder">Panel skilli i agentów pojawi się w M5.</p>
+          <SkillsPanel />
         </div>
         <div className={`view-panel pad${view === 'mcp' ? '' : ' hidden'}`}>
           <h2 className="view-title">Serwery MCP</h2>

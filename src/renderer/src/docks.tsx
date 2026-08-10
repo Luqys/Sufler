@@ -30,6 +30,8 @@ interface DocksValue {
   activateTab(dock: DockId, id: string): void;
   closeTab(id: string): void;
   moveTab(id: string, targetDock: DockId): void;
+  /** Wpisuje tekst do pty aktywnej sesji Claude (preferuje aktywne zakładki). */
+  insertToActiveClaude(text: string): boolean;
 }
 
 const DocksContext = createContext<DocksValue | null>(null);
@@ -115,6 +117,23 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
     [applyDocks],
   );
 
+  const insertToActiveClaude = useCallback((text: string): boolean => {
+    const state = docksRef.current;
+    const activeTabs = (['right', 'bottom'] as const).map((dock) =>
+      state[dock].tabs.find((tab) => tab.id === state[dock].activeId),
+    );
+    const anyClaude = [...state.right.tabs, ...state.bottom.tabs].filter(
+      (tab) => tab.kind === 'claude' && tab.status !== 'exited',
+    );
+    const target =
+      activeTabs.find((tab) => tab?.kind === 'claude' && tab.status !== 'exited') ?? anyClaude[0];
+    if (!target) {
+      return false;
+    }
+    window.api.ptyWrite(target.ptyId, text);
+    return true;
+  }, []);
+
   // Wyjście procesu → status 'exited' na zakładce (proces ubijamy dopiero przy zamknięciu).
   useEffect(() => {
     window.api.onPtyExit(({ ptyId }) => {
@@ -128,7 +147,9 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
   }, [applyDocks]);
 
   return (
-    <DocksContext.Provider value={{ docks, addTab, activateTab, closeTab, moveTab }}>
+    <DocksContext.Provider
+      value={{ docks, addTab, activateTab, closeTab, moveTab, insertToActiveClaude }}
+    >
       {children}
     </DocksContext.Provider>
   );

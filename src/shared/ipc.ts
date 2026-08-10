@@ -17,6 +17,9 @@ export const IPC = {
   PtyKill: 'pty:kill',
   PtyData: 'pty:data',
   PtyExit: 'pty:exit',
+  SkillsGet: 'skills:get',
+  SkillsWatch: 'skills:watch',
+  SkillsChanged: 'skills:changed',
 } as const;
 
 export interface DirEntry {
@@ -59,6 +62,43 @@ export interface PtyExitEvent {
   exitCode: number;
 }
 
+export interface SkillEntry {
+  name: string;
+  description: string;
+  path: string;
+  /** disable-model-invocation: true — skill wywoływany tylko ręcznie. */
+  manual: boolean;
+  disallowedTools?: string;
+}
+
+export interface AgentEntry {
+  name: string;
+  description: string;
+  path: string;
+  tools?: string;
+  model?: string;
+}
+
+export interface RuleEntry {
+  name: string;
+  path: string;
+  paths?: string;
+}
+
+export interface ClaudeMdEntry {
+  label: string;
+  path: string;
+  lines: number;
+}
+
+export interface SkillsSnapshot {
+  projectSkills: SkillEntry[];
+  personalSkills: SkillEntry[];
+  agents: AgentEntry[];
+  rules: RuleEntry[];
+  claudeMd: ClaudeMdEntry[];
+}
+
 /** API udostępniane rendererowi przez contextBridge (window.api). */
 export interface WindowApi {
   getLayout(): Promise<LayoutState>;
@@ -79,4 +119,7 @@ export interface WindowApi {
   /** Subskrypcje na całe życie okna. */
   onPtyData(listener: (event: PtyDataEvent) => void): void;
   onPtyExit(listener: (event: PtyExitEvent) => void): void;
+  getSkills(root: string): Promise<SkillsSnapshot>;
+  watchSkills(root: string): Promise<void>;
+  onSkillsChanged(listener: () => void): void;
 }

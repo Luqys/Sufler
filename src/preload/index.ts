@@ -7,6 +7,7 @@ import {
   type PtyExitEvent,
   type ReadDirResult,
   type ReadFileResult,
+  type SkillsSnapshot,
   type WatchEvent,
   type WindowApi,
   type WriteFileResult,
@@ -41,6 +42,11 @@ const api: WindowApi = {
   },
   onPtyExit: (listener: (event: PtyExitEvent) => void): void => {
     ipcRenderer.on(IPC.PtyExit, (_event, payload: PtyExitEvent) => listener(payload));
+  },
+  getSkills: (root: string): Promise<SkillsSnapshot> => ipcRenderer.invoke(IPC.SkillsGet, root),
+  watchSkills: (root: string): Promise<void> => ipcRenderer.invoke(IPC.SkillsWatch, root),
+  onSkillsChanged: (listener: () => void): void => {
+    ipcRenderer.on(IPC.SkillsChanged, () => listener());
   },
 };
 

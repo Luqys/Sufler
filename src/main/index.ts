@@ -8,6 +8,8 @@ import { readLayout, writeLayout } from './layout-store';
 import { createPty, killAllPtys, killPty, listPtyPids, resizePty, writePty } from './pty-manager';
 import { chooseProjectRoot, getProjectRoot } from './project';
 import { resolveShellEnv } from './shell-env';
+import { readSkillsSnapshot } from './skills';
+import { closeSkillsWatcher, watchSkillsSources } from './skills-watcher';
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -70,6 +72,13 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.PtyKill, (_event, ptyId: number) => {
     killPty(ptyId);
   });
+  ipcMain.handle(IPC.SkillsGet, (_event, root: string) => readSkillsSnapshot(root));
+  ipcMain.handle(IPC.SkillsWatch, (event, root: string) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+      watchSkillsSources(win, root);
+    }
+  });
 
   // Rozgrzewamy cache środowiska shella, zanim powstanie pierwszy terminal.
   void resolveShellEnv();
@@ -92,5 +101,6 @@ app.on('window-all-closed', () => {
 
 app.on('will-quit', () => {
   closeWatcher();
+  closeSkillsWatcher();
   killAllPtys();
 });
