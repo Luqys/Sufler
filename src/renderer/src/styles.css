@@ -41,7 +41,9 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   font-size: 13px;
   color: var(--text);
-  background: var(--bg);
+  /* Okno ma vibrancy 'sidebar' — tło malują poszczególne obszary,
+     a półprzezroczysty sidebar przepuszcza materiał systemowy. */
+  background: transparent;
   overflow: hidden;
   user-select: none;
   -webkit-font-smoothing: antialiased;
@@ -130,7 +132,7 @@ body.dragging-horizontal .splitter.horizontal::after {
   display: flex;
   min-width: 0;
   overflow: hidden;
-  background: var(--panel);
+  background: color-mix(in srgb, var(--panel) 78%, transparent);
 }
 
 .icon-rail {
@@ -141,7 +143,7 @@ body.dragging-horizontal .splitter.horizontal::after {
   align-items: center;
   gap: 4px;
   padding-top: 10px;
-  background: var(--panel-alt);
+  background: color-mix(in srgb, var(--panel-alt) 70%, transparent);
 }
 
 .rail-btn {
@@ -407,6 +409,64 @@ body.dragging-horizontal .splitter.horizontal::after {
   font-size: 11px;
   color: var(--muted);
   border-left: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+/* --- Dialog ustawień --- */
+
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgb(0 0 0 / 0.35);
+  display: grid;
+  place-items: center;
+}
+
+.settings-dialog {
+  width: min(480px, calc(100vw - 80px));
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.35);
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-header h2 {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-path {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: text;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.settings-section .bar-btn {
+  align-self: flex-start;
 }
 
 .view-title {

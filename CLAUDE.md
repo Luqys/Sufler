@@ -9,6 +9,7 @@ i kamienie milowe: **SPEC.md** — przeczytaj przed rozpoczęciem pracy.
 - `npm test` — testy jednostkowe (vitest, katalog `tests/`)
 - `npm run e2e` — build + testy Playwright (otwiera na chwilę okna aplikacji; zrzuty w `e2e-artifacts/`)
 - `npm run typecheck`, `npm run lint`
+- `npm run dist` — `.dmg` dla arm64 i x64 (bez podpisu; node-pty z prebuildów, `npmRebuild: false`)
 
 Definicja ukończenia kamienia milowego: wszystkie cztery komendy zielone
 + zrzut ekranu ze scenariusza e2e.

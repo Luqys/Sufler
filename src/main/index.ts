@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, nativeTheme } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'node:path';
 import type { TabKind } from '../shared/dock-tabs';
 import { IPC } from '../shared/ipc';
@@ -6,6 +6,7 @@ import { closeWatcher, setWatchedFiles } from './file-watcher';
 import { readDirListing, readFileForEditor, writeTextFile } from './fs-tree';
 import { readLayout, writeLayout } from './layout-store';
 import { runGitStatus } from './git-status';
+import { installAppMenu } from './menu';
 import { readMcpConfig, runMcpGet, runMcpList } from './mcp/index';
 import { closeMcpWatcher, watchMcpConfig } from './mcp/watcher';
 import { runProjectSearch } from './search';
@@ -32,7 +33,10 @@ function createWindow(): void {
     title: 'VisualN3O',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 14, y: 11 },
-    backgroundColor: nativeTheme.shouldUseDarkColors ? '#1e1f24' : '#f5f5f7',
+    // Vibrancy sidebara (SPEC.md, M9) — tło okna musi zostać przezroczyste,
+    // półprzezroczyste warstwy maluje CSS.
+    vibrancy: 'sidebar',
+    visualEffectState: 'followWindow',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -122,6 +126,12 @@ void app.whenReady().then(() => {
 
   // Rozgrzewamy cache środowiska shella, zanim powstanie pierwszy terminal.
   void resolveShellEnv();
+
+  installAppMenu(() => {
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send(IPC.OpenSettings);
+    }
+  });
 
   // Do testów e2e (Playwright electronApp.evaluate): podgląd żywych pty.
   (globalThis as Record<string, unknown>)['vn3oListPtyPids'] = listPtyPids;

@@ -33,6 +33,7 @@ export const IPC = {
   VaultGet: 'vault:get',
   VaultChoose: 'vault:choose-dialog',
   VaultClear: 'vault:clear',
+  OpenSettings: 'app:open-settings',
 } as const;
 
 export interface DirEntry {
@@ -147,6 +148,8 @@ export interface WindowApi {
   getVaultPath(): Promise<string | null>;
   chooseVault(): Promise<string | null>;
   clearVault(): Promise<void>;
+  /** Menu aplikacji → Ustawienia (Cmd+,). */
+  onOpenSettings(listener: () => void): void;
 }
 
 export type McpStatusResult =

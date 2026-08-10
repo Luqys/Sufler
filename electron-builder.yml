@@ -1,0 +1,24 @@
+appId: io.n3osystem.visualn3o
+productName: VisualN3O
+directories:
+  output: dist
+files:
+  - out/**
+  - package.json
+# node-pty: moduł natywny — bez przebudowy (prebuildy N-API dla arm64 i x64
+# leżą w pakiecie), rozpakowany z asar, bo ładuje spawn-helper z dysku.
+npmRebuild: false
+asarUnpack:
+  - "**/node_modules/node-pty/**"
+mac:
+  category: public.app-category.developer-tools
+  darkModeSupport: true
+  # Świadomie bez App Sandbox i bez podpisu Developer ID (SPEC.md, sekcja M9);
+  # electron-builder podpisuje ad-hoc, co wystarcza lokalnie na Apple Silicon.
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+dmg:
+  artifactName: ${productName}-${version}-${arch}.${ext}

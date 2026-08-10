@@ -74,6 +74,9 @@ const api: WindowApi = {
   getVaultPath: (): Promise<string | null> => ipcRenderer.invoke(IPC.VaultGet),
   chooseVault: (): Promise<string | null> => ipcRenderer.invoke(IPC.VaultChoose),
   clearVault: (): Promise<void> => ipcRenderer.invoke(IPC.VaultClear),
+  onOpenSettings: (listener: () => void): void => {
+    ipcRenderer.on(IPC.OpenSettings, () => listener());
+  },
 };
 
 contextBridge.exposeInMainWorld('api', api);

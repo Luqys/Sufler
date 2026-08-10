@@ -14,6 +14,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "e2e": "electron-vite build && playwright test",
+    "dist": "electron-vite build && electron-builder --mac",
     "postinstall": "node scripts/fix-node-pty.js"
   },
   "devDependencies": {
@@ -28,6 +29,7 @@
     "@xterm/xterm": "^6.0.0",
     "chokidar": "^5.0.0",
     "electron": "^43.3.0",
+    "electron-builder": "^26.15.3",
     "electron-vite": "^5.0.0",
     "eslint": "^10.8.1",
     "eslint-plugin-react-hooks": "^7.1.1",

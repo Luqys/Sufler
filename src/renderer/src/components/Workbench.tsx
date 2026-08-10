@@ -9,6 +9,7 @@ import { baseName } from '../../../shared/paths';
 import { useWorkspace } from '../workspace';
 import { Dock } from './Dock';
 import { EditorArea } from './EditorArea';
+import { SettingsDialog } from './SettingsDialog';
 import { Sidebar } from './Sidebar';
 import { Splitter } from './Splitter';
 
@@ -19,6 +20,7 @@ const MIN_EDITOR_HEIGHT = 160;
 export function Workbench({ initialLayout }: { initialLayout: LayoutState }): ReactElement {
   const { root } = useWorkspace();
   const [layout, setLayout] = useState(initialLayout);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   // Lustro stanu aktualizowane synchronicznie — handlery wskaźnika nie mogą
   // czekać na cykl renderowania Reacta.
   const layoutRef = useRef(initialLayout);
@@ -83,11 +85,21 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
       } else if (event.metaKey && event.shiftKey && !event.ctrlKey && !event.altKey && key === 'c') {
         event.preventDefault();
         toggleVisibility('rightDockVisible');
+      } else if (event.metaKey && !event.shiftKey && !event.ctrlKey && !event.altKey && key === ',') {
+        // Zwykle przechwytuje to accelerator menu; fallback dla zdarzeń
+        // syntetycznych (np. testy), które omijają natywne menu.
+        event.preventDefault();
+        setSettingsOpen(true);
       }
     };
     window.addEventListener('keydown', onKeyDown, true);
     return () => window.removeEventListener('keydown', onKeyDown, true);
   }, [toggleVisibility]);
+
+  // Menu aplikacji → Ustawienia (Cmd+,). Subskrypcja na całe życie okna.
+  useEffect(() => {
+    window.api.onOpenSettings(() => setSettingsOpen(true));
+  }, []);
 
   const origin = (): LayoutState => dragOrigin.current ?? layoutRef.current;
 
@@ -152,6 +164,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
           </>
         )}
       </div>
+      {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}
     </div>
   );
 }
