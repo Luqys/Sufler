@@ -1,11 +1,17 @@
 import { useEffect, useRef, type ReactElement } from 'react';
+import type { RevealTarget } from '../workspace';
 import { getModel } from '../editor/models';
 import { monaco } from '../monaco-setup';
 
 /** Pozycje kursora/scrolla per plik — przetrwają przełączanie zakładek. */
 const viewStates = new Map<string, monaco.editor.ICodeEditorViewState | null>();
 
-export function MonacoEditor({ path }: { path: string }): ReactElement {
+interface MonacoEditorProps {
+  path: string;
+  reveal?: RevealTarget;
+}
+
+export function MonacoEditor({ path, reveal }: MonacoEditorProps): ReactElement {
   const hostRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const currentPathRef = useRef<string | null>(null);
@@ -50,6 +56,17 @@ export function MonacoEditor({ path }: { path: string }): ReactElement {
     }
     editor.focus();
   }, [path]);
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor || !reveal) {
+      return;
+    }
+    const position = { lineNumber: reveal.line, column: reveal.column };
+    editor.setPosition(position);
+    editor.revealPositionInCenter(position);
+    editor.focus();
+  }, [reveal]);
 
   return <div ref={hostRef} className="monaco-host" data-testid="monaco-host" />;
 }

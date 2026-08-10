@@ -1,5 +1,10 @@
-import { useCallback, useRef, useState, type ReactElement } from 'react';
-import { clampSize, type LayoutSizeKey, type LayoutState } from '../../../shared/layout';
+import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
+import {
+  clampSize,
+  type LayoutSizeKey,
+  type LayoutState,
+  type LayoutVisibilityKey,
+} from '../../../shared/layout';
 import { baseName } from '../../../shared/paths';
 import { useWorkspace } from '../workspace';
 import { Dock } from './Dock';
@@ -57,7 +62,46 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
     void window.api.setLayout(layoutRef.current);
   }, []);
 
+  const toggleVisibility = useCallback(
+    (key: LayoutVisibilityKey) => {
+      apply({ [key]: !layoutRef.current[key] });
+      void window.api.setLayout(layoutRef.current);
+    },
+    [apply],
+  );
+
+  // Skróty (SPEC.md): Cmd+B sidebar, Ctrl+` dolny dok, Cmd+Shift+C prawy dok.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent): void => {
+      const key = event.key.toLowerCase();
+      if (event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey && key === 'b') {
+        event.preventDefault();
+        toggleVisibility('sidebarVisible');
+      } else if (event.ctrlKey && !event.metaKey && !event.altKey && event.key === '`') {
+        event.preventDefault();
+        toggleVisibility('bottomDockVisible');
+      } else if (event.metaKey && event.shiftKey && !event.ctrlKey && !event.altKey && key === 'c') {
+        event.preventDefault();
+        toggleVisibility('rightDockVisible');
+      }
+    };
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
+  }, [toggleVisibility]);
+
   const origin = (): LayoutState => dragOrigin.current ?? layoutRef.current;
+
+  const columns: string[] = [];
+  if (layout.sidebarVisible) {
+    columns.push(`${layout.sidebarWidth}px`, `${SPLITTER_SIZE}px`);
+  }
+  columns.push('minmax(0, 1fr)');
+  if (layout.rightDockVisible) {
+    columns.push(`${SPLITTER_SIZE}px`, `${layout.rightDockWidth}px`);
+  }
+  const centerRows = layout.bottomDockVisible
+    ? `minmax(0, 1fr) ${SPLITTER_SIZE}px ${layout.bottomDockHeight}px`
+    : 'minmax(0, 1fr)';
 
   return (
     <div className="shell">
@@ -66,42 +110,47 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
         className="workbench"
         data-testid="workbench"
         ref={rootRef}
-        style={{
-          gridTemplateColumns: `${layout.sidebarWidth}px ${SPLITTER_SIZE}px minmax(0, 1fr) ${SPLITTER_SIZE}px ${layout.rightDockWidth}px`,
-        }}
+        style={{ gridTemplateColumns: columns.join(' ') }}
       >
-        <Sidebar />
-        <Splitter
-          orientation="vertical"
-          testId="splitter-sidebar"
-          onDragStart={beginDrag}
-          onDrag={(dx) => resize('sidebarWidth', origin().sidebarWidth + dx)}
-          onDragEnd={endDrag}
-        />
-        <div
-          className="center"
-          style={{
-            gridTemplateRows: `minmax(0, 1fr) ${SPLITTER_SIZE}px ${layout.bottomDockHeight}px`,
-          }}
-        >
+        {layout.sidebarVisible && (
+          <>
+            <Sidebar />
+            <Splitter
+              orientation="vertical"
+              testId="splitter-sidebar"
+              onDragStart={beginDrag}
+              onDrag={(dx) => resize('sidebarWidth', origin().sidebarWidth + dx)}
+              onDragEnd={endDrag}
+            />
+          </>
+        )}
+        <div className="center" style={{ gridTemplateRows: centerRows }}>
           <EditorArea />
-          <Splitter
-            orientation="horizontal"
-            testId="splitter-bottom"
-            onDragStart={beginDrag}
-            onDrag={(_dx, dy) => resize('bottomDockHeight', origin().bottomDockHeight - dy)}
-            onDragEnd={endDrag}
-          />
-          <Dock id="bottom" title="Dolny dok" />
+          {layout.bottomDockVisible && (
+            <>
+              <Splitter
+                orientation="horizontal"
+                testId="splitter-bottom"
+                onDragStart={beginDrag}
+                onDrag={(_dx, dy) => resize('bottomDockHeight', origin().bottomDockHeight - dy)}
+                onDragEnd={endDrag}
+              />
+              <Dock id="bottom" title="Dolny dok" />
+            </>
+          )}
         </div>
-        <Splitter
-          orientation="vertical"
-          testId="splitter-right"
-          onDragStart={beginDrag}
-          onDrag={(dx) => resize('rightDockWidth', origin().rightDockWidth - dx)}
-          onDragEnd={endDrag}
-        />
-        <Dock id="right" title="Prawy dok" />
+        {layout.rightDockVisible && (
+          <>
+            <Splitter
+              orientation="vertical"
+              testId="splitter-right"
+              onDragStart={beginDrag}
+              onDrag={(dx) => resize('rightDockWidth', origin().rightDockWidth - dx)}
+              onDragEnd={endDrag}
+            />
+            <Dock id="right" title="Prawy dok" />
+          </>
+        )}
       </div>
     </div>
   );

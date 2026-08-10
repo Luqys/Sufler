@@ -18,6 +18,9 @@ export function makeFixtureProject(): string {
   mkdirSync(join(dir, 'node_modules', 'fake-pkg'), { recursive: true });
   writeFileSync(join(dir, 'node_modules', 'fake-pkg', 'index.js'), 'module.exports = 1;\n');
   execSync('git init', { cwd: dir, stdio: 'ignore' });
+  const gitEnv = 'git -c user.email=e2e@vn3o.test -c user.name=e2e';
+  execSync(`${gitEnv} add -A`, { cwd: dir, stdio: 'ignore' });
+  execSync(`${gitEnv} commit -q -m init`, { cwd: dir, stdio: 'ignore' });
   return dir;
 }
 

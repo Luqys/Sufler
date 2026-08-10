@@ -1,11 +1,21 @@
-import { useCallback, useEffect, useState, type CSSProperties, type ReactElement } from 'react';
-import type { DirEntry } from '../../../shared/ipc';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactElement,
+} from 'react';
+import type { DirEntry, TreeChangedEvent } from '../../../shared/ipc';
 import { baseName } from '../../../shared/paths';
 import { useWorkspace } from '../workspace';
 
 type Listing =
   | { status: 'loaded'; entries: DirEntry[] }
   | { status: 'error'; message: string };
+
+type GitState = 'modified' | 'untracked';
 
 const ICON_CHEVRON = (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -41,11 +51,29 @@ const ICON_EYE = (
   </svg>
 );
 
+// Jedna subskrypcja IPC na życie okna; komponent podmienia handler przy remoncie.
+let treeChangedHandler: ((event: TreeChangedEvent) => void) | null = null;
+let treeSubscribed = false;
+function ensureTreeSubscription(): void {
+  if (!treeSubscribed) {
+    treeSubscribed = true;
+    window.api.onTreeChanged((event) => treeChangedHandler?.(event));
+  }
+}
+
 export function FileTree(): ReactElement {
   const { root, tabsState, openFile, chooseProject } = useWorkspace();
   const [listings, setListings] = useState<ReadonlyMap<string, Listing>>(new Map());
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [showIgnored, setShowIgnored] = useState(false);
+  const [gitFiles, setGitFiles] = useState<ReadonlyMap<string, GitState>>(new Map());
+  const listingsRef = useRef(listings);
+  const pendingDirs = useRef(new Set<string>());
+  const debounceTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    listingsRef.current = listings;
+  }, [listings]);
 
   const load = useCallback(async (dirPath: string) => {
     const result = await window.api.readDir(dirPath);
@@ -61,9 +89,70 @@ export function FileTree(): ReactElement {
     });
   }, []);
 
+  const refreshGitStatus = useCallback(() => {
+    void window.api.gitStatus(root).then((files) => {
+      setGitFiles(new Map(files.map((file) => [`${root}/${file.path}`, file.state])));
+    });
+  }, [root]);
+
   useEffect(() => {
     void load(root);
-  }, [load, root]);
+    refreshGitStatus();
+  }, [load, refreshGitStatus, root]);
+
+  // Obserwujemy wyłącznie korzeń + rozwinięte katalogi (ryzyko nr 3 ze SPEC.md).
+  useEffect(() => {
+    void window.api.watchTreeDirs([root, ...expanded]);
+  }, [root, expanded]);
+
+  useEffect(() => {
+    const handle = (event: TreeChangedEvent): void => {
+      const slash = event.path.lastIndexOf('/');
+      const parent = slash > 0 ? event.path.slice(0, slash) : event.path;
+      pendingDirs.current.add(parent);
+      if (debounceTimer.current !== null) {
+        window.clearTimeout(debounceTimer.current);
+      }
+      debounceTimer.current = window.setTimeout(() => {
+        debounceTimer.current = null;
+        const dirs = [...pendingDirs.current];
+        pendingDirs.current.clear();
+        for (const dir of dirs) {
+          if (listingsRef.current.has(dir)) {
+            void load(dir);
+          }
+        }
+        refreshGitStatus();
+      }, 300);
+    };
+    treeChangedHandler = handle;
+    ensureTreeSubscription();
+    return () => {
+      if (treeChangedHandler === handle) {
+        treeChangedHandler = null;
+      }
+    };
+  }, [load, refreshGitStatus]);
+
+  /** Kolor katalogów-przodków zmienionych plików; „modified" wygrywa z „untracked". */
+  const gitDirs = useMemo(() => {
+    const dirs = new Map<string, GitState>();
+    for (const [path, state] of gitFiles) {
+      let current = path;
+      while (current.length > root.length) {
+        current = current.slice(0, current.lastIndexOf('/'));
+        if (current.length <= root.length) {
+          break;
+        }
+        const previous = dirs.get(current);
+        dirs.set(
+          current,
+          previous === 'modified' || state === 'modified' ? 'modified' : 'untracked',
+        );
+      }
+    }
+    return dirs;
+  }, [gitFiles, root]);
 
   const toggleDir = (path: string): void => {
     setExpanded((prev) => {
@@ -84,6 +173,7 @@ export function FileTree(): ReactElement {
     for (const dir of new Set([root, ...listings.keys()])) {
       void load(dir);
     }
+    refreshGitStatus();
   };
 
   const renderDir = (dirPath: string, depth: number): ReactElement | ReactElement[] => {
@@ -113,12 +203,19 @@ export function FileTree(): ReactElement {
     }
     return visible.map((entry) => {
       const isOpen = entry.kind === 'dir' && expanded.has(entry.path);
+      const gitState =
+        entry.kind === 'file'
+          ? gitFiles.get(entry.path)
+          : (gitFiles.get(entry.path) ?? gitDirs.get(entry.path));
       const classes = ['tree-row'];
       if (entry.ignored) {
         classes.push('ignored');
       }
       if (tabsState.activePath === entry.path) {
         classes.push('selected');
+      }
+      if (gitState) {
+        classes.push(`git-${gitState}`);
       }
       return (
         <div key={entry.path}>

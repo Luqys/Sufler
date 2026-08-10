@@ -4,7 +4,8 @@ import { EditorTabs } from './EditorTabs';
 import { MonacoEditor } from './MonacoEditor';
 
 export function EditorArea(): ReactElement {
-  const { tabsState, buffers, reloadActiveFromDisk, keepMyVersion, closeTab } = useWorkspace();
+  const { tabsState, buffers, revealTarget, reloadActiveFromDisk, keepMyVersion, closeTab } =
+    useWorkspace();
   const activePath = tabsState.activePath;
 
   if (!activePath) {
@@ -63,7 +64,10 @@ export function EditorArea(): ReactElement {
           <p className="placeholder">{buffer.loadError}</p>
         </div>
       ) : (
-        <MonacoEditor path={activePath} />
+        <MonacoEditor
+          path={activePath}
+          reveal={revealTarget?.path === activePath ? revealTarget : undefined}
+        />
       )}
     </main>
   );

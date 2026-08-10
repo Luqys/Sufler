@@ -87,7 +87,15 @@ test('rozmiary paneli po przeciągnięciu splitterów przeżywają restart aplik
 
   await expect
     .poll(() => readLayoutFile(layoutFile), { timeout: 10_000 })
-    .toEqual({ version: 1, sidebarWidth: 320, rightDockWidth: 430, bottomDockHeight: 280 });
+    .toEqual({
+      version: 1,
+      sidebarWidth: 320,
+      rightDockWidth: 430,
+      bottomDockHeight: 280,
+      sidebarVisible: true,
+      rightDockVisible: true,
+      bottomDockVisible: true,
+    });
 
   await page.screenshot({ path: 'e2e-artifacts/m0-po-zmianie-rozmiarow.png' });
   await app.close();

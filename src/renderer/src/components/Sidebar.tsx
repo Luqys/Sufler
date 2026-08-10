@@ -2,9 +2,10 @@ import { useState, type ReactElement } from 'react';
 import { useWorkspace } from '../workspace';
 import { FileTree } from './FileTree';
 import { McpPanel } from './McpPanel';
+import { SearchPanel } from './SearchPanel';
 import { SkillsPanel } from './SkillsPanel';
 
-type SidebarView = 'files' | 'skills' | 'mcp';
+type SidebarView = 'files' | 'search' | 'skills' | 'mcp';
 
 interface RailItem {
   id: SidebarView;
@@ -33,8 +34,16 @@ const ICON_MCP = (
   </svg>
 );
 
+const ICON_SEARCH = (
+  <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+    <circle cx="7" cy="7" r="4.4" />
+    <path d="M10.4 10.4L14 14" />
+  </svg>
+);
+
 const RAIL_ITEMS: RailItem[] = [
   { id: 'files', label: 'Pliki', icon: ICON_FILES },
+  { id: 'search', label: 'Szukaj w projekcie', icon: ICON_SEARCH },
   { id: 'skills', label: 'Skille i agenci', icon: ICON_SKILLS },
   { id: 'mcp', label: 'Serwery MCP', icon: ICON_MCP },
 ];
@@ -63,6 +72,10 @@ export function Sidebar(): ReactElement {
       <section className="sidebar-view">
         <div className={`view-panel${view === 'files' ? '' : ' hidden'}`}>
           <FileTree key={root} />
+        </div>
+        <div className={`view-panel pad${view === 'search' ? '' : ' hidden'}`}>
+          <h2 className="view-title">Szukaj</h2>
+          <SearchPanel />
         </div>
         <div className={`view-panel pad scroll${view === 'skills' ? '' : ' hidden'}`}>
           <h2 className="view-title">Skille i agenci</h2>

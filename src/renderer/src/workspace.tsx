@@ -36,12 +36,21 @@ export interface BufferInfo {
   loadError: string | null;
 }
 
+export interface RevealTarget {
+  path: string;
+  line: number;
+  column: number;
+  nonce: number;
+}
+
 interface WorkspaceValue {
   root: string;
   tabsState: EditorTabsState;
   buffers: ReadonlyMap<string, BufferInfo>;
   dirtyPaths: ReadonlySet<string>;
+  revealTarget: RevealTarget | null;
   openFile(path: string, options?: { pinned?: boolean }): void;
+  openFileAt(path: string, line: number, column: number): void;
   activateTab(path: string): void;
   pinTab(path: string): void;
   closeTab(path: string): void;
@@ -185,6 +194,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
       });
     },
     [applyTabs, patchBuffers],
+  );
+
+  const [revealTarget, setRevealTarget] = useState<RevealTarget | null>(null);
+  const revealNonce = useRef(0);
+
+  const openFileAt = useCallback(
+    (path: string, line: number, column: number) => {
+      revealNonce.current += 1;
+      setRevealTarget({ path, line, column, nonce: revealNonce.current });
+      openFile(path);
+    },
+    [openFile],
   );
 
   const activateTab = useCallback(
@@ -352,7 +373,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         tabsState,
         buffers,
         dirtyPaths,
+        revealTarget,
         openFile,
+        openFileAt,
         activateTab,
         pinTab,
         closeTab,

@@ -5,8 +5,11 @@ import { IPC } from '../shared/ipc';
 import { closeWatcher, setWatchedFiles } from './file-watcher';
 import { readDirListing, readFileForEditor, writeTextFile } from './fs-tree';
 import { readLayout, writeLayout } from './layout-store';
+import { runGitStatus } from './git-status';
 import { readMcpConfig, runMcpGet, runMcpList } from './mcp/index';
 import { closeMcpWatcher, watchMcpConfig } from './mcp/watcher';
+import { runProjectSearch } from './search';
+import { closeTreeWatcher, setWatchedTreeDirs } from './tree-watcher';
 import { createPty, killAllPtys, killPty, listPtyPids, resizePty, writePty } from './pty-manager';
 import { chooseProjectRoot, getProjectRoot } from './project';
 import { resolveShellEnv } from './shell-env';
@@ -92,6 +95,16 @@ void app.whenReady().then(() => {
       watchMcpConfig(win, root);
     }
   });
+  ipcMain.handle(IPC.GitStatusGet, (_event, root: string) => runGitStatus(root));
+  ipcMain.handle(IPC.TreeWatchDirs, (event, dirs: string[]) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+      setWatchedTreeDirs(win, dirs);
+    }
+  });
+  ipcMain.handle(IPC.SearchRun, (_event, root: string, query: string) =>
+    runProjectSearch(root, query),
+  );
 
   // Rozgrzewamy cache środowiska shella, zanim powstanie pierwszy terminal.
   void resolveShellEnv();
@@ -116,5 +129,6 @@ app.on('will-quit', () => {
   closeWatcher();
   closeSkillsWatcher();
   closeMcpWatcher();
+  closeTreeWatcher();
   killAllPtys();
 });

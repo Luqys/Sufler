@@ -26,6 +26,10 @@ export const IPC = {
   McpGetDetails: 'mcp:get-details',
   McpWatch: 'mcp:watch',
   McpChanged: 'mcp:changed',
+  GitStatusGet: 'git:status',
+  TreeWatchDirs: 'tree:watch-dirs',
+  TreeChanged: 'tree:changed',
+  SearchRun: 'search:run',
 } as const;
 
 export interface DirEntry {
@@ -133,8 +137,35 @@ export interface WindowApi {
   getMcpDetails(root: string, name: string): Promise<McpDetail[]>;
   watchMcp(root: string): Promise<void>;
   onMcpChanged(listener: () => void): void;
+  gitStatus(root: string): Promise<GitStatusFile[]>;
+  watchTreeDirs(dirs: string[]): Promise<void>;
+  onTreeChanged(listener: (event: TreeChangedEvent) => void): void;
+  searchProject(root: string, query: string): Promise<SearchResult>;
 }
 
 export type McpStatusResult =
   | { ok: true; entries: McpListEntry[] }
+  | { ok: false; error: string };
+
+export interface GitStatusFile {
+  /** Ścieżka względem korzenia projektu. */
+  path: string;
+  state: 'modified' | 'untracked';
+}
+
+export interface TreeChangedEvent {
+  /** Ścieżka zmienionego wpisu (dziecko obserwowanego katalogu). */
+  path: string;
+}
+
+export interface SearchMatch {
+  /** Ścieżka względem korzenia projektu. */
+  path: string;
+  line: number;
+  column: number;
+  preview: string;
+}
+
+export type SearchResult =
+  | { ok: true; matches: SearchMatch[]; truncated: boolean }
   | { ok: false; error: string };

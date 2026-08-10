@@ -3,7 +3,12 @@ export interface LayoutState {
   sidebarWidth: number;
   rightDockWidth: number;
   bottomDockHeight: number;
+  sidebarVisible: boolean;
+  rightDockVisible: boolean;
+  bottomDockVisible: boolean;
 }
+
+export type LayoutVisibilityKey = 'sidebarVisible' | 'rightDockVisible' | 'bottomDockVisible';
 
 export type LayoutSizeKey = 'sidebarWidth' | 'rightDockWidth' | 'bottomDockHeight';
 
@@ -25,6 +30,9 @@ export function defaultLayout(): LayoutState {
     sidebarWidth: LAYOUT_LIMITS.sidebarWidth.default,
     rightDockWidth: LAYOUT_LIMITS.rightDockWidth.default,
     bottomDockHeight: LAYOUT_LIMITS.bottomDockHeight.default,
+    sidebarVisible: true,
+    rightDockVisible: true,
+    bottomDockVisible: true,
   };
 }
 
@@ -45,6 +53,11 @@ function readSize(raw: Record<string, unknown>, key: LayoutSizeKey): number {
  * Toleruje dowolne dane wejściowe (uszkodzony plik, stary format, ręczna edycja)
  * i zawsze zwraca poprawny stan układu.
  */
+function readFlag(raw: Record<string, unknown>, key: LayoutVisibilityKey): boolean {
+  const value = raw[key];
+  return typeof value === 'boolean' ? value : true;
+}
+
 export function normalizeLayout(raw: unknown): LayoutState {
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
     return defaultLayout();
@@ -55,5 +68,8 @@ export function normalizeLayout(raw: unknown): LayoutState {
     sidebarWidth: readSize(obj, 'sidebarWidth'),
     rightDockWidth: readSize(obj, 'rightDockWidth'),
     bottomDockHeight: readSize(obj, 'bottomDockHeight'),
+    sidebarVisible: readFlag(obj, 'sidebarVisible'),
+    rightDockVisible: readFlag(obj, 'rightDockVisible'),
+    bottomDockVisible: readFlag(obj, 'bottomDockVisible'),
   };
 }

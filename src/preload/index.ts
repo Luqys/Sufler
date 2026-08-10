@@ -2,13 +2,16 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { TabKind } from '../shared/dock-tabs';
 import {
   IPC,
+  type GitStatusFile,
   type McpStatusResult,
   type PtyCreateResult,
   type PtyDataEvent,
   type PtyExitEvent,
   type ReadDirResult,
   type ReadFileResult,
+  type SearchResult,
   type SkillsSnapshot,
+  type TreeChangedEvent,
   type WatchEvent,
   type WindowApi,
   type WriteFileResult,
@@ -60,6 +63,14 @@ const api: WindowApi = {
   onMcpChanged: (listener: () => void): void => {
     ipcRenderer.on(IPC.McpChanged, () => listener());
   },
+  gitStatus: (root: string): Promise<GitStatusFile[]> =>
+    ipcRenderer.invoke(IPC.GitStatusGet, root),
+  watchTreeDirs: (dirs: string[]): Promise<void> => ipcRenderer.invoke(IPC.TreeWatchDirs, dirs),
+  onTreeChanged: (listener: (event: TreeChangedEvent) => void): void => {
+    ipcRenderer.on(IPC.TreeChanged, (_event, payload: TreeChangedEvent) => listener(payload));
+  },
+  searchProject: (root: string, query: string): Promise<SearchResult> =>
+    ipcRenderer.invoke(IPC.SearchRun, root, query),
 };
 
 contextBridge.exposeInMainWorld('api', api);

@@ -19,8 +19,22 @@ describe('normalizeLayout', () => {
   });
 
   it('zachowuje poprawne wartości w zakresie', () => {
-    const state = { version: 1, sidebarWidth: 300, rightDockWidth: 420, bottomDockHeight: 260 };
+    const state = {
+      version: 1,
+      sidebarWidth: 300,
+      rightDockWidth: 420,
+      bottomDockHeight: 260,
+      sidebarVisible: true,
+      rightDockVisible: false,
+      bottomDockVisible: true,
+    };
     expect(normalizeLayout(state)).toEqual(state);
+  });
+
+  it('flagi widoczności: brak lub śmieci → domyślnie true, false zachowane', () => {
+    expect(normalizeLayout({}).sidebarVisible).toBe(true);
+    expect(normalizeLayout({ sidebarVisible: 'nie' }).sidebarVisible).toBe(true);
+    expect(normalizeLayout({ bottomDockVisible: false }).bottomDockVisible).toBe(false);
   });
 
   it('uzupełnia brakujące pola wartościami domyślnymi', () => {
