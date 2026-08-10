@@ -54,9 +54,11 @@ export function UsageIndicator(): ReactElement {
     return () => window.clearInterval(minute);
   }, []);
 
-  const planLimits = limits?.ok ? limits.limits : null;
+  // Po nieudanym pobraniu pokazujemy ostatnie znane wartości (stale).
+  const planLimits = limits ? (limits.ok ? limits.limits : (limits.stale ?? null)) : null;
   const session = planLimits?.session ?? null;
   const weekly = planLimits?.weekly ?? null;
+  const errorText = limits && !limits.ok ? limits.error : null;
 
   return (
     <div className="usage-wrap">
@@ -69,9 +71,10 @@ export function UsageIndicator(): ReactElement {
             ? tf('usage.titleSession', { p: session.percent, when: resetLabel(session.resetsAt) }) +
               (weekly
                 ? tf('usage.titleWeek', { p: weekly.percent, when: resetLabel(weekly.resetsAt) })
-                : '')
-            : limits && !limits.ok
-              ? tf('usage.titleError', { error: limits.error })
+                : '') +
+              (errorText ? ` · ${tf('usage.titleError', { error: errorText })}` : '')
+            : errorText
+              ? tf('usage.titleError', { error: errorText })
               : t('usage.titleDefault')
         }
         onClick={() => setOpen(!open)}
@@ -87,7 +90,7 @@ export function UsageIndicator(): ReactElement {
           </>
         ) : (
           <span className="usage-pill-text">
-            {limits && !limits.ok ? t('usage.pillError') : t('usage.pillLoading')}
+            {errorText ? t('usage.pillError') : t('usage.pillLoading')}
           </span>
         )}
       </button>
@@ -136,7 +139,10 @@ export function UsageIndicator(): ReactElement {
               </div>
             )}
             {limits && !limits.ok && (
-              <p className="usage-note placeholder">{tf('usage.error', { error: limits.error })}</p>
+              <p className="usage-note placeholder">
+                {tf('usage.error', { error: limits.error })}
+                {limits.stale && ` ${t('usage.stale')}`}
+              </p>
             )}
           </div>
         </>

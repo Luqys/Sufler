@@ -1,7 +1,12 @@
 import { execFile } from 'node:child_process';
 import { t, tf } from './i18n';
 import { promisify } from 'node:util';
-import { parseLimitsResponse, type UsageLimitsResult } from '../shared/limits';
+import {
+  parseLimitsResponse,
+  rateLimitCooldownMs,
+  type UsageLimits,
+  type UsageLimitsResult,
+} from '../shared/limits';
 
 const execFileAsync = promisify(execFile);
 
@@ -10,6 +15,14 @@ const USAGE_ENDPOINT = 'https://api.anthropic.com/api/oauth/usage';
 const CACHE_TTL_MS = 60_000;
 
 let cache: { at: number; result: UsageLimitsResult } | null = null;
+/** Ostatnie poprawne limity — fallback, gdy odświeżenie zawiedzie. */
+let lastGood: UsageLimits | null = null;
+/** Do tego czasu nie odpytujemy endpointu po HTTP 429 (nawet z force). */
+let quietUntil = 0;
+
+function failure(error: string): UsageLimitsResult {
+  return lastGood ? { ok: false, error, stale: lastGood } : { ok: false, error };
+}
 
 /** Token OAuth z Keychain (ten sam, którego używa Claude Code). Nigdy nie logowany. */
 async function readAccessToken(): Promise<string | null> {
@@ -39,6 +52,13 @@ export async function getUsageLimits(force = false): Promise<UsageLimitsResult> 
     if (override === 'off') {
       return { ok: false, error: 'wyłączone w testach' };
     }
+    // Symulacja odpowiedzi HTTP w testach: 'status:<kod>'.
+    if (override.startsWith('status:')) {
+      const status = Number(override.slice('status:'.length));
+      return status === 429
+        ? { ok: false, error: tf('main.usageRateLimited', { minutes: 5 }) }
+        : { ok: false, error: tf('main.usageHttp', { status }) };
+    }
     try {
       return { ok: true, limits: parseLimitsResponse(JSON.parse(override)) };
     } catch {
@@ -47,6 +67,10 @@ export async function getUsageLimits(force = false): Promise<UsageLimitsResult> 
   }
 
   const now = Date.now();
+  // Cisza po 429 obowiązuje także ręczne odświeżenie — endpoint prosił o przerwę.
+  if (now < quietUntil && cache) {
+    return cache.result;
+  }
   if (!force && cache && now - cache.at < CACHE_TTL_MS) {
     return cache.result;
   }
@@ -54,7 +78,7 @@ export async function getUsageLimits(force = false): Promise<UsageLimitsResult> 
   let result: UsageLimitsResult;
   const token = await readAccessToken();
   if (!token) {
-    result = { ok: false, error: t('main.usageNoToken') };
+    result = failure(t('main.usageNoToken'));
   } else {
     try {
       const response = await fetch(USAGE_ENDPOINT, {
@@ -64,19 +88,25 @@ export async function getUsageLimits(force = false): Promise<UsageLimitsResult> 
         },
         signal: AbortSignal.timeout(10_000),
       });
-      if (!response.ok) {
-        result = {
-          ok: false,
-          error:
-            response.status === 401
-              ? t('main.usageExpired')
-              : tf('main.usageHttp', { status: response.status }),
-        };
+      if (response.status === 429) {
+        const cooldown = rateLimitCooldownMs(response.headers.get('retry-after'), now);
+        quietUntil = now + cooldown;
+        result = failure(
+          tf('main.usageRateLimited', { minutes: Math.max(1, Math.round(cooldown / 60_000)) }),
+        );
+      } else if (!response.ok) {
+        result = failure(
+          response.status === 401
+            ? t('main.usageExpired')
+            : tf('main.usageHttp', { status: response.status }),
+        );
       } else {
-        result = { ok: true, limits: parseLimitsResponse(await response.json()) };
+        const limits = parseLimitsResponse(await response.json());
+        lastGood = limits;
+        result = { ok: true, limits };
       }
     } catch (error) {
-      result = { ok: false, error: tf('main.usageFetchFailed', { error: String(error) }) };
+      result = failure(tf('main.usageFetchFailed', { error: String(error) }));
     }
   }
   cache = { at: now, result };

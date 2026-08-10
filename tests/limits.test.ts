@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseLimitsResponse } from '../src/shared/limits';
+import { parseLimitsResponse, rateLimitCooldownMs } from '../src/shared/limits';
 
 /** Fixture przechwycony z rzeczywistego api/oauth/usage (sierpień 2026, wycinek). */
 const REAL_RESPONSE = {
@@ -58,5 +58,28 @@ describe('parseLimitsResponse', () => {
     expect(parseLimitsResponse(null)).toEqual({ session: null, weekly: null });
     expect(parseLimitsResponse({ five_hour: { utilization: 'x' } }).session).toBeNull();
     expect(parseLimitsResponse({}).weekly).toBeNull();
+  });
+});
+
+describe('rateLimitCooldownMs', () => {
+  const now = Date.parse('2026-08-10T22:00:00Z');
+
+  it('Retry-After w sekundach, przycięte do przedziału 2–15 min', () => {
+    expect(rateLimitCooldownMs('120', now)).toBe(120_000);
+    expect(rateLimitCooldownMs('600', now)).toBe(600_000);
+    expect(rateLimitCooldownMs('10', now)).toBe(120_000);
+    expect(rateLimitCooldownMs('3600', now)).toBe(900_000);
+  });
+
+  it('Retry-After jako HTTP-date liczy różnicę względem teraz', () => {
+    expect(rateLimitCooldownMs(new Date(now + 600_000).toUTCString(), now)).toBe(600_000);
+    // Data z przeszłości spada na minimum.
+    expect(rateLimitCooldownMs(new Date(now - 60_000).toUTCString(), now)).toBe(120_000);
+  });
+
+  it('brak nagłówka albo śmieci → domyślne 5 min', () => {
+    expect(rateLimitCooldownMs(null, now)).toBe(300_000);
+    expect(rateLimitCooldownMs('', now)).toBe(300_000);
+    expect(rateLimitCooldownMs('za chwilę', now)).toBe(300_000);
   });
 });

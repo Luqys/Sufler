@@ -345,6 +345,7 @@ export const PL = {
   'usage.reset': 'reset {when}',
   'usage.week': 'Tydzień (wszystkie modele)',
   'usage.error': 'Limity planu: {error}',
+  'usage.stale': 'Pokazuję ostatnie znane wartości.',
 
   // Podgląd przeglądarki
   'preview.copied': 'Brak sesji Claude — odniesienie skopiowano do schowka.',
@@ -422,6 +423,8 @@ export const PL = {
   'main.usageNoToken': 'Brak tokenu Claude Code w Keychain — zaloguj się (✳).',
   'main.usageExpired': 'Token wygasł — odśwież logowanie w Claude Code (✳).',
   'main.usageHttp': 'Endpoint limitów odpowiedział HTTP {status}.',
+  'main.usageRateLimited':
+    'Za dużo zapytań o limity — odpocznę i spróbuję ponownie za ~{minutes} min.',
   'main.usageFetchFailed': 'Nie udało się pobrać limitów: {error}',
 } as const;
 
@@ -744,6 +747,7 @@ export const EN: Record<StringKey, string> = {
   'usage.reset': 'resets {when}',
   'usage.week': 'Week (all models)',
   'usage.error': 'Plan limits: {error}',
+  'usage.stale': 'Showing the last known values.',
 
   'preview.copied': 'No Claude session — the reference was copied to the clipboard.',
   'preview.go': 'Open',
@@ -814,6 +818,8 @@ export const EN: Record<StringKey, string> = {
   'main.usageNoToken': 'No Claude Code token in the Keychain — sign in (✳).',
   'main.usageExpired': 'Token expired — refresh your Claude Code sign-in (✳).',
   'main.usageHttp': 'The limits endpoint responded with HTTP {status}.',
+  'main.usageRateLimited':
+    'Too many limit requests — backing off, retrying in ~{minutes} min.',
   'main.usageFetchFailed': 'Failed to fetch limits: {error}',
 };
 
