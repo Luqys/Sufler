@@ -23,7 +23,14 @@ import {
   splitGroup as splitGroupState,
   type EditorGroupsState,
 } from '../../shared/editor-groups';
-import type { ReadFileError, WatchEvent } from '../../shared/ipc';
+import {
+  diffTabPath,
+  diffTabTitle,
+  isDiffPath,
+  parseDiffPath,
+  type DiffDescriptor,
+} from '../../shared/diff-tabs';
+import type { IdeBridgeRequestPayload, ReadFileError, WatchEvent } from '../../shared/ipc';
 import { isImagePath } from '../../shared/media';
 import { baseName } from '../../shared/paths';
 import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../shared/preview';
@@ -37,6 +44,12 @@ import {
   reloadModel,
   setDirtyListener,
 } from './editor/models';
+import {
+  getPendingDiff,
+  registerPendingDiff,
+  removePendingDiff,
+  resolvePendingDiff,
+} from './ide/pending-diffs';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { t, tf } from './i18n';
 import { useDialogs } from './ui-dialogs';
@@ -68,6 +81,11 @@ interface WorkspaceValue {
   openFileAt(path: string, line: number, column: number): void;
   openBrowserPreview(): void;
   openKnowledgeGraph(): void;
+  /** Zakładka diffa (M33): zmiany robocze, zmiana z commita albo propozycja CLI. */
+  openDiffTab(descriptor: DiffDescriptor): void;
+  /** Zapis propozycji openDiff (null → treść z rejestru) i odpowiedź FILE_SAVED do CLI. */
+  acceptIdeDiff(descriptor: Extract<DiffDescriptor, { kind: 'ide' }>, content: string | null): void;
+  rejectIdeDiff(descriptor: Extract<DiffDescriptor, { kind: 'ide' }>): void;
   chooseVault(): void;
   clearVault(): void;
   /** Uaktywnia grupę (kliknięcie gdziekolwiek w jej obrębie). */
@@ -148,6 +166,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
       const after = new Set(allOpenPaths(groupsRef.current));
       for (const path of before) {
         if (!after.has(path)) {
+          // Zamknięcie propozycji CLI bez decyzji liczy się jako odrzucenie —
+          // inaczej sesja Claude czekałaby na odpowiedź w nieskończoność.
+          const diffDescriptor = parseDiffPath(path);
+          if (diffDescriptor?.kind === 'ide') {
+            resolvePendingDiff(diffDescriptor.requestId, 'rejected');
+            removePendingDiff(diffDescriptor.requestId);
+          }
           disposeModel(path);
           patchBuffers((next) => {
             next.delete(path);
@@ -435,6 +460,169 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     );
   }, [applyGroups]);
 
+  const openDiffTab = useCallback(
+    (descriptor: DiffDescriptor) => {
+      const title = diffTabTitle(descriptor, {
+        worktreeSuffix: t('diff.worktreeSuffix'),
+        ideDefault: t('diff.ideDefault'),
+      });
+      applyGroups((state) => openTabInActiveGroup(state, diffTabPath(descriptor), title, true));
+    },
+    [applyGroups],
+  );
+
+  /** Zamyka ścieżkę we wszystkich grupach (diffy otwierane są przypięte). */
+  const closeEverywhere = useCallback(
+    (path: string) => {
+      applyGroups((state) => {
+        let next = state;
+        for (const group of state.groups) {
+          if (group.tabs.some((tab) => tab.path === path)) {
+            next = closeTabInGroup(next, group.id, path);
+          }
+        }
+        return next;
+      });
+    },
+    [applyGroups],
+  );
+
+  const acceptIdeDiff = useCallback(
+    (descriptor: Extract<DiffDescriptor, { kind: 'ide' }>, content: string | null) => {
+      const pendingDiff = getPendingDiff(descriptor.requestId);
+      const finalContent = content ?? pendingDiff?.newContents ?? '';
+      void window.api.writeFile(descriptor.newPath, finalContent).then((result) => {
+        if (!result.ok) {
+          notify(tf('editor.saveFailed', { error: result.error }), 'error');
+          return;
+        }
+        // Plik otwarty w edytorze dostaje nową treść od razu, bez paska „zmiana zewnętrzna".
+        if (buffersRef.current.has(descriptor.newPath)) {
+          reloadModel(descriptor.newPath, finalContent);
+          patchBuffers((next) =>
+            next.set(descriptor.newPath, {
+              savedText: finalContent,
+              external: null,
+              loadError: null,
+            }),
+          );
+        }
+        resolvePendingDiff(descriptor.requestId, 'saved');
+        closeEverywhere(diffTabPath(descriptor));
+      });
+    },
+    [closeEverywhere, notify, patchBuffers],
+  );
+
+  const rejectIdeDiff = useCallback(
+    (descriptor: Extract<DiffDescriptor, { kind: 'ide' }>) => {
+      resolvePendingDiff(descriptor.requestId, 'rejected');
+      closeEverywhere(diffTabPath(descriptor));
+    },
+    [closeEverywhere],
+  );
+
+  // Mostek serwera „ide": żądania CLI (openDiff/openFile/getOpenEditors…)
+  // obsługiwane na aktualnym stanie przez ref — subskrypcja raz na życie okna.
+  const ideRequestRef = useRef<(request: IdeBridgeRequestPayload) => void>(() => {});
+  useEffect(() => {
+    ideRequestRef.current = (request: IdeBridgeRequestPayload) => {
+      const respond = (result: unknown): void => window.api.ideBridgeRespond(request.id, result);
+      const params = request.params;
+      switch (request.method) {
+        case 'openDiff': {
+          const oldPath = String(params['old_file_path'] ?? '');
+          const newPath = String(params['new_file_path'] ?? oldPath);
+          const newContents = String(params['new_file_contents'] ?? '');
+          const tabName = typeof params['tab_name'] === 'string' ? params['tab_name'] : '';
+          registerPendingDiff(request.id, { oldPath, newPath, newContents, tabName });
+          openDiffTab({ kind: 'ide', requestId: request.id, oldPath, newPath, tabName });
+          // Odpowiedź dopiero po decyzji użytkownika (Zastosuj/Odrzuć/zamknięcie).
+          break;
+        }
+        case 'openFile': {
+          const filePath = String(params['filePath'] ?? params['path'] ?? '');
+          if (filePath) {
+            openFile(filePath, { pinned: true });
+            respond({ success: true, message: `Opened ${filePath}` });
+          } else {
+            respond({ success: false, message: 'filePath required' });
+          }
+          break;
+        }
+        case 'getOpenEditors': {
+          const state = groupsRef.current;
+          const active = activeGroup(state).activePath;
+          const paths = allOpenPaths(state).filter((path) => !path.startsWith('vn3o://'));
+          respond({
+            tabs: paths.map((path) => ({
+              uri: `file://${path}`,
+              path,
+              label: baseName(path),
+              isActive: path === active,
+              isDirty: isDirty(path),
+            })),
+          });
+          break;
+        }
+        case 'checkDocumentDirty': {
+          const filePath = String(params['filePath'] ?? '');
+          respond({ success: true, filePath, isDirty: isDirty(filePath) });
+          break;
+        }
+        case 'saveDocument': {
+          const filePath = String(params['filePath'] ?? '');
+          const content = getModelValue(filePath);
+          if (content === null) {
+            respond({ success: false, message: 'Document is not open' });
+            break;
+          }
+          void window.api.writeFile(filePath, content).then((result) => {
+            if (result.ok) {
+              markSaved(filePath);
+              if (buffersRef.current.has(filePath)) {
+                patchBuffers((next) =>
+                  next.set(filePath, { savedText: content, external: null, loadError: null }),
+                );
+              }
+            }
+            respond({ success: result.ok });
+          });
+          break;
+        }
+        case 'close_tab': {
+          const tabName = String(params['tab_name'] ?? '');
+          let found: string | null = null;
+          for (const group of groupsRef.current.groups) {
+            for (const tab of group.tabs) {
+              if (tab.title === tabName || baseName(tab.path) === tabName) {
+                found = tab.path;
+              }
+            }
+          }
+          if (found) {
+            closeEverywhere(found);
+          }
+          respond({ success: found !== null });
+          break;
+        }
+        case 'closeAllDiffTabs': {
+          const diffPaths = allOpenPaths(groupsRef.current).filter((path) => isDiffPath(path));
+          for (const path of diffPaths) {
+            closeEverywhere(path);
+          }
+          respond({ success: true, closed: diffPaths.length });
+          break;
+        }
+        default:
+          respond({ success: false, message: `Unknown method: ${request.method}` });
+      }
+    };
+  });
+  useEffect(() => {
+    window.api.onIdeBridgeRequest((request) => ideRequestRef.current(request));
+  }, []);
+
   const openKnowledgeGraph = useCallback(() => {
     applyGroups((state) =>
       openTabInActiveGroup(state, KNOWLEDGE_GRAPH_PATH, t('tabs.graphTitle'), true),
@@ -483,6 +671,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         openFileAt,
         openBrowserPreview,
         openKnowledgeGraph,
+        openDiffTab,
+        acceptIdeDiff,
+        rejectIdeDiff,
         focusGroup,
         splitEditorGroup,
         activateTab,

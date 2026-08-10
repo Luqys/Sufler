@@ -33,7 +33,41 @@ export function MonacoEditor({ path, reveal }: MonacoEditorProps): ReactElement 
       padding: { top: 8 },
     });
     editorRef.current = editor;
+    // Serwer „ide": zaznaczenie w edytorze trafia do cache w main i jako
+    // notyfikacja selection_changed do podłączonych sesji Claude.
+    let selectionTimer: number | null = null;
+    const selectionSub = editor.onDidChangeCursorSelection(() => {
+      if (selectionTimer !== null) {
+        window.clearTimeout(selectionTimer);
+      }
+      selectionTimer = window.setTimeout(() => {
+        selectionTimer = null;
+        const path = currentPathRef.current;
+        const model = editor.getModel();
+        const selection = editor.getSelection();
+        if (!path || path.startsWith('vn3o://') || !model || !selection) {
+          return;
+        }
+        window.api.ideSelectionChanged({
+          text: model.getValueInRange(selection),
+          filePath: path,
+          fileUrl: `file://${path}`,
+          selection: {
+            start: {
+              line: selection.startLineNumber - 1,
+              character: selection.startColumn - 1,
+            },
+            end: { line: selection.endLineNumber - 1, character: selection.endColumn - 1 },
+            isEmpty: selection.isEmpty(),
+          },
+        });
+      }, 150);
+    });
     return () => {
+      selectionSub.dispose();
+      if (selectionTimer !== null) {
+        window.clearTimeout(selectionTimer);
+      }
       if (currentPathRef.current) {
         viewStates.set(currentPathRef.current, editor.saveViewState());
       }

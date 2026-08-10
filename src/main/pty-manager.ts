@@ -2,6 +2,7 @@ import { BrowserWindow } from 'electron';
 import { spawn, type IPty } from 'node-pty';
 import { IPC, type PtyCreateResult } from '../shared/ipc';
 import type { TabKind } from '../shared/dock-tabs';
+import { ideEnvForClaude } from './ide-server';
 import { resolveShellEnv } from './shell-env';
 
 let nextPtyId = 1;
@@ -23,9 +24,13 @@ function broadcast(channel: string, payload: unknown): void {
 export async function createPty(
   options: { kind: TabKind; cwd: string; args?: string[] },
 ): Promise<PtyCreateResult> {
-  const env = await resolveShellEnv();
+  const env = { ...(await resolveShellEnv()) };
   const shell = env['SHELL'] || '/bin/zsh';
   const command = options.kind === 'claude' ? 'claude' : shell;
+  if (options.kind === 'claude') {
+    // CLI znajdzie nasz serwer „ide" (diffy w Monaco, podgląd zaznaczenia).
+    Object.assign(env, await ideEnvForClaude());
+  }
   try {
     const session = spawn(command, options.args ?? [], {
       name: 'xterm-256color',

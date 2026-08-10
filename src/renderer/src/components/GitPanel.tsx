@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { assignLanes, maxLaneCount, type LaneRow } from '../../../shared/git-graph';
 import type { StringKey } from '../../../shared/i18n';
-import type { GitCommit, GitCommitFile, GitLogResult } from '../../../shared/ipc';
+import type { GitCommit, GitCommitFile, GitLogResult, GitStatusFile } from '../../../shared/ipc';
 import { getLocale, t, tf, useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 
@@ -129,11 +129,12 @@ function relativeDate(iso: string): string {
   return new Date(then).toLocaleDateString(getLocale());
 }
 
-/** Historia commitów repozytorium projektu (git log + diff-tree). */
+/** Historia commitów repozytorium projektu (git log + diff-tree) + zmiany robocze. */
 export function GitPanel(): ReactElement {
   const t = useT();
-  const { root } = useWorkspace();
+  const { root, openDiffTab } = useWorkspace();
   const [result, setResult] = useState<GitLogResult | null>(null);
+  const [changes, setChanges] = useState<GitStatusFile[]>([]);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [details, setDetails] = useState<ReadonlyMap<string, GitCommitFile[] | 'loading'>>(
     new Map(),
@@ -148,6 +149,11 @@ export function GitPanel(): ReactElement {
         setResult(log);
         setDetails(new Map());
         setExpanded(new Set());
+      }
+    });
+    void window.api.gitStatus(forRoot).then((files) => {
+      if (rootRef.current === forRoot) {
+        setChanges(files);
       }
     });
   }, []);
@@ -210,6 +216,30 @@ export function GitPanel(): ReactElement {
       {result?.ok && result.commits.length === 0 && (
         <p className="placeholder">{t('git.noCommits')}</p>
       )}
+      {result?.ok && changes.length > 0 && (
+        <div className="git-changes" data-testid="git-changes">
+          <div className="view-title git-changes-title">{t('git.changesTitle')}</div>
+          {changes.map((file) => (
+            <button
+              key={file.path}
+              type="button"
+              className="git-file git-change"
+              data-testid="git-change-file"
+              title={
+                file.state === 'modified' ? t('git.statusModified') : t('git.statusUntracked')
+              }
+              onClick={() => openDiffTab({ kind: 'worktree', path: file.path })}
+            >
+              <span
+                className={`git-status git-status-${file.state === 'modified' ? 'M' : 'U'}`}
+              >
+                {file.state === 'modified' ? 'M' : 'U'}
+              </span>
+              <span className="git-file-path">{file.path}</span>
+            </button>
+          ))}
+        </div>
+      )}
       <div className="git-list">
         {result?.ok &&
           result.commits.map((commit, index) => {
@@ -256,16 +286,27 @@ export function GitPanel(): ReactElement {
                       )}
                       {Array.isArray(commitFiles) &&
                         commitFiles.map((file) => (
-                          <div
+                          <button
                             key={`${file.status}:${file.path}`}
-                            className="git-file"
+                            type="button"
+                            className="git-file git-change"
+                            data-testid="git-commit-file"
                             title={statusLabel(file.status)}
+                            onClick={() =>
+                              openDiffTab({
+                                kind: 'commit',
+                                hash: commit.hash,
+                                parent: commit.parents[0] ?? null,
+                                path: file.path,
+                                status: file.status,
+                              })
+                            }
                           >
                             <span className={`git-status git-status-${file.status}`}>
                               {file.status}
                             </span>
                             <span className="git-file-path">{file.path}</span>
-                          </div>
+                          </button>
                         ))}
                     </div>
                   </div>

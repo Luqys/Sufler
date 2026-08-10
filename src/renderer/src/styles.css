@@ -1830,6 +1830,74 @@ body.dragging-horizontal .splitter.horizontal::after {
   color: var(--text);
 }
 
+/* M33: zmiany robocze + klikalne pliki commitów → zakładki diffów */
+.git-changes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.git-changes-title {
+  margin: 0 0 4px;
+}
+
+.git-change {
+  border: none;
+  background: none;
+  padding: 2px 4px;
+  margin: 0 -4px;
+  border-radius: 5px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.git-change:hover {
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+.git-status-U {
+  background: #0891b2;
+}
+
+.diff-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.diff-host {
+  flex: 1;
+  min-height: 0;
+}
+
+.diff-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  font-size: 12px;
+}
+
+.diff-bar-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.diff-accept {
+  background: #d97757;
+  border-color: #d97757;
+  color: #fff;
+}
+
 .usage-panel {
   position: absolute;
   top: 30px;

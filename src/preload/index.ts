@@ -7,7 +7,10 @@ import {
   type DetachedTerminalInfo,
   type GitCommitFile,
   type GitLogResult,
+  type GitShowFileResult,
   type GitStatusFile,
+  type IdeBridgeRequestPayload,
+  type IdeStatus,
   type KnowledgeFile,
   type McpStatusResult,
   type PtyCreateResult,
@@ -28,6 +31,7 @@ import {
   type WriteFileResult,
 } from '../shared/ipc';
 import type { KnowledgeGraph } from '../shared/graph';
+import type { IdeSelection } from '../shared/ide-protocol';
 import type { LayoutState } from '../shared/layout';
 import type { UsageLimitsResult } from '../shared/limits';
 import type { McpConfigServer, McpDetail } from '../shared/mcp';
@@ -134,6 +138,20 @@ const api: WindowApi = {
   saveClipboardImage: (): Promise<SaveClipboardImageResult> =>
     ipcRenderer.invoke(IPC.ClipboardSaveImage),
   pathForFile: (file: File): string => webUtils.getPathForFile(file),
+  onIdeBridgeRequest: (listener: (request: IdeBridgeRequestPayload) => void): void => {
+    ipcRenderer.on(IPC.IdeBridgeRequest, (_event, payload: IdeBridgeRequestPayload) =>
+      listener(payload),
+    );
+  },
+  ideBridgeRespond: (id: number, result: unknown): void => {
+    ipcRenderer.send(IPC.IdeBridgeResponse, { id, result });
+  },
+  ideSelectionChanged: (selection: IdeSelection): void => {
+    ipcRenderer.send(IPC.IdeSelectionChanged, selection);
+  },
+  getIdeStatus: (): Promise<IdeStatus> => ipcRenderer.invoke(IPC.IdeStatusGet),
+  gitShowFile: (root: string, rev: string, path: string): Promise<GitShowFileResult> =>
+    ipcRenderer.invoke(IPC.GitShowFile, root, rev, path),
 };
 
 contextBridge.exposeInMainWorld('api', api);

@@ -142,6 +142,18 @@ export const PL = {
   'git.noSubject': '(bez opisu)',
   'git.loadingFiles': 'Wczytywanie zmian…',
   'git.noFiles': 'Brak zmian plików.',
+  'git.changesTitle': 'Zmiany robocze',
+  'git.statusUntracked': 'nieśledzony',
+
+  // Diffy (M33) — panel Git i propozycje openDiff z sesji Claude
+  'diff.worktreeSuffix': 'zmiany',
+  'diff.ideDefault': 'Propozycja Claude',
+  'diff.accept': 'Zastosuj',
+  'diff.reject': 'Odrzuć',
+  'diff.loading': 'Wczytywanie różnic…',
+  'diff.unavailable': 'Nie udało się wczytać różnic.',
+  'diff.binary': 'Plik binarny — bez podglądu różnic.',
+  'diff.expired': 'Ta propozycja wygasła — poproś Claude o ponowienie zmiany.',
 
   // Graf wiedzy
   'graph.uncommitted': '(niezacommitowane)',
@@ -467,6 +479,17 @@ export const EN: Record<StringKey, string> = {
   'git.noSubject': '(no subject)',
   'git.loadingFiles': 'Loading changes…',
   'git.noFiles': 'No file changes.',
+  'git.changesTitle': 'Working changes',
+  'git.statusUntracked': 'untracked',
+
+  'diff.worktreeSuffix': 'changes',
+  'diff.ideDefault': 'Claude proposal',
+  'diff.accept': 'Apply',
+  'diff.reject': 'Reject',
+  'diff.loading': 'Loading diff…',
+  'diff.unavailable': 'Could not load the diff.',
+  'diff.binary': 'Binary file — no diff preview.',
+  'diff.expired': 'This proposal has expired — ask Claude to retry the change.',
 
   'graph.uncommitted': '(uncommitted)',
   'graph.modeAuthor': 'Author',

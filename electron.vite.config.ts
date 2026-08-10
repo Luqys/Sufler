@@ -7,8 +7,9 @@ export default defineConfig({
     build: {
       rollupOptions: {
         // node-pty: moduł natywny; agent-sdk: niesie własny plik CLI, którego
-        // ścieżki wylicza względem siebie — oba ładowane w runtime z node_modules.
-        external: ['node-pty', '@anthropic-ai/claude-agent-sdk'],
+        // ścieżki wylicza względem siebie; ws: po zbundlowaniu gubi ramki
+        // (opcjonalne natywne zależności) — wszystkie ładowane z node_modules.
+        external: ['node-pty', '@anthropic-ai/claude-agent-sdk', 'ws'],
       },
     },
   },

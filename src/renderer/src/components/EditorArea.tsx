@@ -1,10 +1,12 @@
 import type { ReactElement } from 'react';
 import { useT } from '../i18n';
 import type { EditorGroup } from '../../../shared/editor-groups';
+import { isDiffPath } from '../../../shared/diff-tabs';
 import { isImagePath } from '../../../shared/media';
 import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../../shared/preview';
 import { useWorkspace } from '../workspace';
 import { BrowserPreview } from './BrowserPreview';
+import { DiffView } from './DiffView';
 import { EditorTabs } from './EditorTabs';
 import { GraphView } from './GraphView';
 import { ImageViewer } from './ImageViewer';
@@ -33,6 +35,10 @@ function GroupContent({ group, focused }: { group: EditorGroup; focused: boolean
 
   if (activePath === KNOWLEDGE_GRAPH_PATH) {
     return <GraphView />;
+  }
+
+  if (isDiffPath(activePath)) {
+    return <DiffView path={activePath} />;
   }
 
   if (isImagePath(activePath)) {

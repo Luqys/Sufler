@@ -1,4 +1,5 @@
 import { useState, type DragEvent, type ReactElement } from 'react';
+import { isDiffPath } from '../../../shared/diff-tabs';
 import type { EditorGroup } from '../../../shared/editor-groups';
 import { baseName } from '../../../shared/paths';
 import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../../shared/preview';
@@ -40,6 +41,13 @@ const ICON_GRAPH = (
   </svg>
 );
 
+const ICON_DIFF = (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#d97757" strokeWidth="1.4">
+    <path d="M5 2.2v7.2M5 9.4a2.2 2.2 0 1 0 0 4.4 2.2 2.2 0 0 0 0-4.4Z" />
+    <path d="M11 13.8V6.6M11 6.6a2.2 2.2 0 1 1 0-4.4 2.2 2.2 0 0 1 0 4.4Z" />
+  </svg>
+);
+
 /** Ikona zakładki: widoki specjalne mają własne „faviconki", pliki — wg typu. */
 function tabIcon(path: string): ReactElement {
   if (path === KNOWLEDGE_GRAPH_PATH) {
@@ -47,6 +55,9 @@ function tabIcon(path: string): ReactElement {
   }
   if (path === BROWSER_PREVIEW_PATH) {
     return ICON_GLOBE_SMALL;
+  }
+  if (isDiffPath(path)) {
+    return ICON_DIFF;
   }
   return fileIconFor(baseName(path));
 }

@@ -15,7 +15,9 @@ import { closeWatcher, setWatchedFiles } from './file-watcher';
 import { readDirListing, readFileForEditor, readImageForPreview, writeTextFile } from './fs-tree';
 import { migrateLegacyConfigDir, readLayout, writeLayout } from './layout-store';
 import { runGitLog, runGitShowCommit } from './git-log';
+import { runGitShowFile } from './git-show';
 import { runGitStatus } from './git-status';
+import { startIdeServer, stopIdeServer, updateIdeWorkspaceFolders } from './ide-server';
 import { installAppMenu } from './menu';
 import { readMcpConfig, runMcpGet, runMcpList } from './mcp/index';
 import { closeMcpWatcher, watchMcpConfig } from './mcp/watcher';
@@ -131,10 +133,18 @@ void app.whenReady().then(() => {
   });
   ipcMain.handle(IPC.ProjectGetRoot, () => getProjectRoot());
   ipcMain.handle(IPC.ProjectRecentRoots, () => getRecentRoots());
-  ipcMain.handle(IPC.ProjectSetRoot, (_event, path: string) => setProjectRoot(path));
-  ipcMain.handle(IPC.ProjectOpenDialog, (event) => {
+  ipcMain.handle(IPC.ProjectSetRoot, (_event, path: string) => {
+    const changed = setProjectRoot(path);
+    updateIdeWorkspaceFolders();
+    return changed;
+  });
+  ipcMain.handle(IPC.ProjectOpenDialog, async (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    return win ? chooseProjectRoot(win) : null;
+    const picked = win ? await chooseProjectRoot(win) : null;
+    if (picked) {
+      updateIdeWorkspaceFolders();
+    }
+    return picked;
   });
   ipcMain.handle(IPC.PreviewGetPreloadPath, () =>
     pathToFileURL(join(__dirname, '../preload/webview.js')).href,
@@ -220,6 +230,9 @@ void app.whenReady().then(() => {
     }
   });
   ipcMain.handle(IPC.GitStatusGet, (_event, root: string) => runGitStatus(root));
+  ipcMain.handle(IPC.GitShowFile, (_event, root: string, rev: string, path: string) =>
+    runGitShowFile(root, rev, path),
+  );
   ipcMain.handle(IPC.TreeWatchDirs, (event, dirs: string[]) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (win) {
@@ -243,6 +256,9 @@ void app.whenReady().then(() => {
 
   // Serwer MCP grafu wiedzy (loopback) — Claude Code widzi strukturę notatek.
   startWiedzaMcp();
+
+  // Serwer „ide" (loopback) — CLI w naszych zakładkach otwiera diffy w Monaco.
+  startIdeServer(() => getProjectRoot());
 
   refreshMenu();
 
@@ -269,5 +285,6 @@ app.on('will-quit', () => {
   closeTreeWatcher();
   closeKnowledgeWatcher();
   stopWiedzaMcp();
+  stopIdeServer();
   killAllPtys();
 });

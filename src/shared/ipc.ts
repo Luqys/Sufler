@@ -1,5 +1,6 @@
 import type { Appearance } from './appearance';
 import type { TabKind } from './dock-tabs';
+import type { IdeSelection } from './ide-protocol';
 import type { KnowledgeGraph } from './graph';
 import type { LayoutState, LayoutVisibilityKey } from './layout';
 import type { UsageLimitsResult } from './limits';
@@ -60,7 +61,29 @@ export const IPC = {
   WiedzaMcpStatus: 'wiedza-mcp:status',
   WiedzaMcpRegister: 'wiedza-mcp:register',
   ClipboardSaveImage: 'clipboard:save-image',
+  IdeBridgeRequest: 'ide:bridge-request',
+  IdeBridgeResponse: 'ide:bridge-response',
+  IdeSelectionChanged: 'ide:selection-changed',
+  IdeStatusGet: 'ide:status',
+  GitShowFile: 'git:show-file',
 } as const;
+
+/** Żądanie serwera „ide" do renderera (openDiff, openFile, getOpenEditors…). */
+export interface IdeBridgeRequestPayload {
+  id: number;
+  method: string;
+  params: Record<string, unknown>;
+}
+
+export interface IdeStatus {
+  running: boolean;
+  port: number | null;
+}
+
+export type GitShowFileResult =
+  | { ok: true; content: string }
+  /** absent — plik nie istnieje w tej rewizji (dodany/usunięty). */
+  | { ok: false; error: 'absent' | 'binary' | 'failed' };
 
 /** Obrazek ze schowka zapisany do pliku tymczasowego (wklejanie do terminala). */
 export type SaveClipboardImageResult = { ok: true; path: string } | { ok: false };
@@ -253,6 +276,14 @@ export interface WindowApi {
   saveClipboardImage(): Promise<SaveClipboardImageResult>;
   /** Ścieżka dyskowa pliku z drag & drop (Electron webUtils). */
   pathForFile(file: File): string;
+  /** Subskrypcja na całe życie okna: żądania serwera „ide" (tylko okno główne). */
+  onIdeBridgeRequest(listener: (request: IdeBridgeRequestPayload) => void): void;
+  ideBridgeRespond(id: number, result: unknown): void;
+  /** Zmiana zaznaczenia w edytorze → cache w main + notyfikacja do CLI. */
+  ideSelectionChanged(selection: IdeSelection): void;
+  getIdeStatus(): Promise<IdeStatus>;
+  /** Treść pliku z rewizji gita (`git show rev:ścieżka`) — do zakładek diffów. */
+  gitShowFile(root: string, rev: string, path: string): Promise<GitShowFileResult>;
 }
 
 export type McpStatusResult =
