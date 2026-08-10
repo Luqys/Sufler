@@ -33,7 +33,7 @@ import {
 import type { IdeBridgeRequestPayload, ReadFileError, WatchEvent } from '../../shared/ipc';
 import { isImagePath } from '../../shared/media';
 import { baseName } from '../../shared/paths';
-import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../shared/preview';
+import { BROWSER_PREVIEW_PATH, HELP_PATH, KNOWLEDGE_GRAPH_PATH, SETTINGS_PATH } from '../../shared/preview';
 import {
   disposeModel,
   ensureModel,
@@ -71,8 +71,6 @@ export interface RevealTarget {
 
 interface WorkspaceValue {
   root: string;
-  /** Vault Obsidiana — źródło indeksu wikilinków; ustawiany w Ustawieniach. */
-  vault: string | null;
   /** Grupy edytora (M31) — podział przestrzeni roboczej na kolumny. */
   groups: EditorGroupsState;
   buffers: ReadonlyMap<string, BufferInfo>;
@@ -82,13 +80,13 @@ interface WorkspaceValue {
   openFileAt(path: string, line: number, column: number): void;
   openBrowserPreview(): void;
   openKnowledgeGraph(): void;
+  openSettingsTab(): void;
+  openHelpTab(): void;
   /** Zakładka diffa (M33): zmiany robocze, zmiana z commita albo propozycja CLI. */
   openDiffTab(descriptor: DiffDescriptor): void;
   /** Zapis propozycji openDiff (null → treść z rejestru) i odpowiedź FILE_SAVED do CLI. */
   acceptIdeDiff(descriptor: Extract<DiffDescriptor, { kind: 'ide' }>, content: string | null): void;
   rejectIdeDiff(descriptor: Extract<DiffDescriptor, { kind: 'ide' }>): void;
-  chooseVault(): void;
-  clearVault(): void;
   /** Uaktywnia grupę (kliknięcie gdziekolwiek w jej obrębie). */
   focusGroup(groupId: string): void;
   /** Dzieli grupę — nowa grupa obok, z klonem aktywnej zakładki. Bez limitu. */
@@ -185,8 +183,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     [dropDirty, patchBuffers],
   );
 
-  const [vault, setVault] = useState<string | null>(null);
-
   useEffect(() => {
     let cancelled = false;
     void window.api.getProjectRoot().then((projectRoot) => {
@@ -195,26 +191,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         setRootResolved(true);
       }
     });
-    void window.api.getVaultPath().then((vaultPath) => {
-      if (!cancelled) {
-        setVault(vaultPath);
-      }
-    });
     return () => {
       cancelled = true;
     };
-  }, []);
-
-  const chooseVault = useCallback(() => {
-    void window.api.chooseVault().then((picked) => {
-      if (picked) {
-        setVault(picked);
-      }
-    });
-  }, []);
-
-  const clearVault = useCallback(() => {
-    void window.api.clearVault().then(() => setVault(null));
   }, []);
 
   // Brudny podgląd przypina się automatycznie — inaczej kolejny podgląd
@@ -240,11 +219,21 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     return () => setDirtyListener(null);
   }, [applyGroups]);
 
+  /** SKILL.md nazywa kartę katalogiem skilla — inaczej wszystkie karty wyglądają tak samo. */
+  const tabTitleFor = (path: string): string => {
+    const name = baseName(path);
+    if (name !== 'SKILL.md') {
+      return name;
+    }
+    const parts = path.split('/');
+    return parts[parts.length - 2] ?? name;
+  };
+
   const openFile = useCallback(
     (path: string, options?: { pinned?: boolean }) => {
       const pinned = options?.pinned ?? false;
       const open = (): void =>
-        applyGroups((state) => openTabInActiveGroup(state, path, baseName(path), pinned));
+        applyGroups((state) => openTabInActiveGroup(state, path, tabTitleFor(path), pinned));
       if (buffersRef.current.has(path)) {
         open();
         return;
@@ -635,6 +624,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     );
   }, [applyGroups]);
 
+  const openSettingsTab = useCallback(() => {
+    applyGroups((state) => openTabInActiveGroup(state, SETTINGS_PATH, t('tabs.settingsTitle'), true));
+  }, [applyGroups]);
+
+  const openHelpTab = useCallback(() => {
+    applyGroups((state) => openTabInActiveGroup(state, HELP_PATH, t('tabs.helpTitle'), true));
+  }, [applyGroups]);
+
   // Cmd+S zapisuje aktywną zakładkę niezależnie od tego, co ma fokus.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -668,7 +665,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     <WorkspaceContext.Provider
       value={{
         root,
-        vault,
         groups,
         buffers,
         dirtyPaths,
@@ -677,6 +673,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         openFileAt,
         openBrowserPreview,
         openKnowledgeGraph,
+        openSettingsTab,
+        openHelpTab,
         openDiffTab,
         acceptIdeDiff,
         rejectIdeDiff,
@@ -690,8 +688,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         reloadActiveFromDisk,
         keepMyVersion,
         chooseProject,
-        chooseVault,
-        clearVault,
       }}
     >
       {children}

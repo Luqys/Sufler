@@ -31,6 +31,8 @@ interface RowProps {
   badges?: Array<{ text: string; title?: string }>;
   /** Wyszarzenie wiersza skilla wyłączonego przez skillOverrides. */
   dimmed?: boolean;
+  /** Delikatnie zielone tło włączonego skilla/agenta. */
+  tinted?: boolean;
   toggle?: RowToggle;
   onOpen(path: string): void;
   onMetaClick?(): void;
@@ -42,6 +44,7 @@ function EntryRow({
   path,
   badges,
   dimmed,
+  tinted,
   toggle,
   onOpen,
   onMetaClick,
@@ -54,7 +57,7 @@ function EntryRow({
     }
   };
   return (
-    <div className={`skill-item${dimmed ? ' skill-item-off' : ''}`}>
+    <div className={`skill-item${dimmed ? ' skill-item-off' : ''}${tinted ? ' skill-item-on' : ''}`}>
       <button type="button" className="skill-row" title={path} onClick={handleClick}>
         <span className="skill-line">
           <span className="skill-name">{name}</span>
@@ -213,8 +216,8 @@ export function SkillsPanel(): ReactElement {
       description={skill.description}
       path={skill.path}
       dimmed={!skill.enabled}
+      tinted={skill.enabled}
       badges={[
-        ...(!skill.enabled ? [{ text: t('skills.offBadge'), title: 'skillOverrides: off' }] : []),
         ...(skill.override === 'name-only' || skill.override === 'user-invocable-only'
           ? [{ text: skill.override, title: `skillOverrides: ${skill.override}` }]
           : []),
@@ -278,12 +281,8 @@ export function SkillsPanel(): ReactElement {
                 description={agent.description}
                 path={agent.path}
                 dimmed={!agent.enabled}
-                badges={[
-                  ...(!agent.enabled
-                    ? [{ text: t('skills.offBadge'), title: `permissions.deny: Agent(${agent.name})` }]
-                    : []),
-                  ...(agent.model ? [{ text: agent.model, title: 'model' }] : []),
-                ]}
+                tinted={agent.enabled}
+                badges={agent.model ? [{ text: agent.model, title: 'model' }] : []}
                 toggle={{
                   checked: agent.enabled,
                   locked: agent.deniedElsewhere,

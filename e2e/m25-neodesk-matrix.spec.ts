@@ -14,7 +14,7 @@ test('nazwa Sufler i motyw matrixowy: paleta UI, terminal, zapis stanu', async (
 
   // Ustawienia → motyw Matrix nakłada data-flavor na <html>.
   await page.keyboard.press('Meta+,');
-  await expect(page.getByTestId('settings-dialog')).toBeVisible();
+  await expect(page.getByTestId('settings-view')).toBeVisible();
   await page.getByTestId('theme-matrix').click();
   await expect(page.locator('html')).toHaveAttribute('data-flavor', 'matrix');
   await page.keyboard.press('Escape');

@@ -15,10 +15,10 @@ test('język UI: przełączenie na angielski działa w całej aplikacji i zapisu
 
   // Ustawienia → English.
   await page.keyboard.press('Meta+,');
-  await expect(page.getByTestId('settings-dialog')).toBeVisible();
+  await expect(page.getByTestId('settings-view')).toBeVisible();
   await page.getByTestId('language-en').click();
-  await expect(page.getByTestId('settings-dialog')).toContainText('Settings');
-  await expect(page.getByTestId('settings-dialog')).toContainText('Appearance');
+  await expect(page.getByTestId('settings-view')).toContainText('Settings');
+  await expect(page.getByTestId('settings-view')).toContainText('Appearance');
   await page.keyboard.press('Escape');
 
   // Teksty w rendererze przełączone bez restartu.

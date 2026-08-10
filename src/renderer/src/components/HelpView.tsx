@@ -1,10 +1,6 @@
-import { useEffect, type ReactElement } from 'react';
+import { type ReactElement } from 'react';
 import type { StringKey } from '../../../shared/i18n';
 import { useT } from '../i18n';
-
-interface HelpDialogProps {
-  onClose(): void;
-}
 
 /** Sekcje samouczka — tytuł i treść w słowniku i18n (PL/EN). */
 const SECTIONS: Array<{ id: string; titleKey: StringKey; bodyKey: StringKey }> = [
@@ -29,36 +25,14 @@ const SHORTCUTS: Array<{ keys: string; labelKey: StringKey }> = [
   { keys: 'Cmd+Shift+L', labelKey: 'help.keys.daily' },
 ];
 
-/** Samouczek: przewodnik po panelach, dokach i skrótach — przycisk „?". */
-export function HelpDialog({ onClose }: HelpDialogProps): ReactElement {
+/** Samouczek jako karta w obszarze edytora (M47) — przewodnik po aplikacji. */
+export function HelpView(): ReactElement {
   const t = useT();
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') {
-        event.stopPropagation();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown, true);
-    return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [onClose]);
-
   return (
-    <div className="settings-overlay" onClick={onClose}>
-      <div
-        className="settings-dialog help-dialog"
-        data-testid="help-dialog"
-        role="dialog"
-        aria-label={t('help.title')}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <header className="settings-header">
-          <h2>{t('help.title')}</h2>
-          <button type="button" className="tree-toolbtn" title={t('common.close')} onClick={onClose}>
-            ×
-          </button>
-        </header>
+    (
+      <div className="settings-page help-page" data-testid="help-view">
+        <h2 className="settings-page-title">{t('help.title')}</h2>
         <p className="help-intro placeholder">{t('help.intro')}</p>
         {SECTIONS.map((section) => (
           <section key={section.id} className="settings-section help-section">
@@ -80,6 +54,6 @@ export function HelpDialog({ onClose }: HelpDialogProps): ReactElement {
           </dl>
         </section>
       </div>
-    </div>
+    )
   );
 }

@@ -11,7 +11,7 @@ function makeVault(): string {
   return dir;
 }
 
-test('drzewo bez vaulta: skonfigurowany vault nie pojawia się w drzewie, zostaje w Ustawieniach', async () => {
+test('drzewo bez vaulta: skonfigurowany vault nie pojawia się ani w drzewie, ani w Ustawieniach', async () => {
   const project = makeFixtureProject();
   const vault = makeVault();
   const app = await launchApp(makeConfigHome(), project, { VISUALN3O_VAULT: vault });
@@ -24,12 +24,12 @@ test('drzewo bez vaulta: skonfigurowany vault nie pojawia się w drzewie, zostaj
   await expect(page.getByTestId('vault-add')).toHaveCount(0);
   await expect(tree.getByText('Dziennik.md')).toHaveCount(0);
 
-  // Ścieżka vaulta wciąż w Ustawieniach — karmi indeks wikilinków.
+  // Od M47 vault zniknął także z Ustawień — Obsidian został przy notatce dziennej.
   await page.keyboard.press('Meta+Comma');
-  const dialog = page.getByTestId('settings-dialog');
+  const dialog = page.getByTestId('settings-view');
   await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText('Vault Obsidiana');
-  await expect(dialog).toContainText(vault);
+  await expect(dialog).not.toContainText('Vault Obsidiana');
+  await expect(dialog).toContainText('Obsidian — notatka dzienna');
 
   await page.screenshot({ path: 'e2e-artifacts/m40-bez-vaulta.png' });
   await app.close();

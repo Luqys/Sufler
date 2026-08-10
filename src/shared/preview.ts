@@ -15,6 +15,12 @@ export const BROWSER_PREVIEW_PATH = 'vn3o://preview';
 /** Pseudo-ścieżka zakładki grafu wiedzy (notatki .md + linki + autorzy). */
 export const KNOWLEDGE_GRAPH_PATH = 'vn3o://graph';
 
+/** Karta Ustawień w obszarze edytora (M47). */
+export const SETTINGS_PATH = 'vn3o://ustawienia';
+
+/** Karta Samouczka w obszarze edytora (M47). */
+export const HELP_PATH = 'vn3o://samouczek';
+
 export function normalizeUrl(input: string): string {
   const trimmed = input.trim();
   if (trimmed === '') {

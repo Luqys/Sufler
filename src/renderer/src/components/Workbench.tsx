@@ -10,11 +10,9 @@ import { useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 import { Dock } from './Dock';
 import { EditorArea } from './EditorArea';
-import { HelpDialog } from './HelpDialog';
 import { LayoutToggles } from './LayoutToggles';
 import { LoginDialog } from './LoginDialog';
 import { QuickOpen } from './QuickOpen';
-import { SettingsDialog } from './SettingsDialog';
 import { Sidebar } from './Sidebar';
 import { Splitter } from './Splitter';
 import { ThemeToggle } from './ThemeToggle';
@@ -41,13 +39,11 @@ const MIN_CENTER_WIDTH = 320;
 const MIN_EDITOR_HEIGHT = 160;
 
 export function Workbench({ initialLayout }: { initialLayout: LayoutState }): ReactElement {
-  const { root } = useWorkspace();
+  const { root, openSettingsTab, openHelpTab } = useWorkspace();
   const t = useT();
   const [layout, setLayout] = useState(initialLayout);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [quickOpenVisible, setQuickOpenVisible] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
   // Lustro stanu aktualizowane synchronicznie — handlery wskaźnika nie mogą
   // czekać na cykl renderowania Reacta.
   const layoutRef = useRef(initialLayout);
@@ -116,7 +112,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
         // Zwykle przechwytuje to accelerator menu; fallback dla zdarzeń
         // syntetycznych (np. testy), które omijają natywne menu.
         event.preventDefault();
-        setSettingsOpen(true);
+        openSettingsTab();
       } else if (event.metaKey && !event.shiftKey && !event.ctrlKey && !event.altKey && key === 'p') {
         // Cmd+P — szybkie otwieranie pliku (M37).
         event.preventDefault();
@@ -125,10 +121,13 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
     };
     window.addEventListener('keydown', onKeyDown, true);
     return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [toggleVisibility]);
+  }, [toggleVisibility, openSettingsTab]);
 
   const toggleVisibilityRef = useRef(toggleVisibility);
   toggleVisibilityRef.current = toggleVisibility;
+
+  const openSettingsTabRef = useRef(openSettingsTab);
+  openSettingsTabRef.current = openSettingsTab;
 
   /** Ikonka Claude na pasku: widżet logowania (modal z `claude /login`). */
   const openClaudeLogin = useCallback(() => {
@@ -137,7 +136,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
 
   // Menu aplikacji → Ustawienia (Cmd+,) i przełączniki paneli z menu Widok.
   useEffect(() => {
-    window.api.onOpenSettings(() => setSettingsOpen(true));
+    window.api.onOpenSettings(() => openSettingsTabRef.current());
     window.api.onTogglePanel((key) => toggleVisibilityRef.current(key));
   }, []);
 
@@ -163,20 +162,9 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
           <button
             type="button"
             className="titlebar-btn"
-            data-testid="claude-login-button"
-            title={t('titlebar.login')}
-            onClick={openClaudeLogin}
-          >
-            {ICON_CLAUDE_SPARK}
-          </button>
-          <ThemeToggle />
-          <LayoutToggles layout={layout} onToggle={toggleVisibility} />
-          <button
-            type="button"
-            className="titlebar-btn"
             data-testid="settings-button"
             title={t('titlebar.settings')}
-            onClick={() => setSettingsOpen(true)}
+            onClick={openSettingsTab}
           >
             ⚙︎
           </button>
@@ -185,10 +173,21 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
             className="titlebar-btn"
             data-testid="help-button"
             title={t('help.open')}
-            onClick={() => setHelpOpen(true)}
+            onClick={openHelpTab}
           >
             ?
           </button>
+          <button
+            type="button"
+            className="titlebar-btn"
+            data-testid="claude-login-button"
+            title={t('titlebar.login')}
+            onClick={openClaudeLogin}
+          >
+            {ICON_CLAUDE_SPARK}
+          </button>
+          <ThemeToggle />
+          <LayoutToggles layout={layout} onToggle={toggleVisibility} />
           <UsageIndicator />
         </div>
       </header>
@@ -238,10 +237,8 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
           </>
         )}
       </div>
-      {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}
       {loginOpen && <LoginDialog onClose={() => setLoginOpen(false)} />}
       {quickOpenVisible && <QuickOpen onClose={() => setQuickOpenVisible(false)} />}
-      {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)} />}
     </div>
   );
 }

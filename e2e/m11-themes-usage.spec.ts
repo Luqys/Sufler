@@ -16,7 +16,7 @@ test('motyw ciemny i akcent przeżywają restart (nativeTheme + data-accent)', a
   await expect(page.getByTestId('workbench')).toBeVisible();
 
   await page.keyboard.press('Meta+Comma');
-  await expect(page.getByTestId('settings-dialog')).toBeVisible();
+  await expect(page.getByTestId('settings-view')).toBeVisible();
   await page.getByTestId('theme-dark').click();
   await page.getByTestId('accent-blue').click();
 
