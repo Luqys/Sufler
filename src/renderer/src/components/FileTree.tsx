@@ -61,8 +61,12 @@ function ensureTreeSubscription(): void {
   }
 }
 
+/** Katalogi Obsidiana ukrywane w vaultcie (SPEC.md, warstwa 1). */
+const VAULT_HIDDEN = new Set(['.obsidian', '.trash']);
+
 export function FileTree(): ReactElement {
-  const { root, tabsState, openFile, chooseProject } = useWorkspace();
+  const { root, vault, tabsState, openFile, chooseProject, chooseVault, clearVault } =
+    useWorkspace();
   const [listings, setListings] = useState<ReadonlyMap<string, Listing>>(new Map());
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [showIgnored, setShowIgnored] = useState(false);
@@ -90,20 +94,31 @@ export function FileTree(): ReactElement {
   }, []);
 
   const refreshGitStatus = useCallback(() => {
-    void window.api.gitStatus(root).then((files) => {
-      setGitFiles(new Map(files.map((file) => [`${root}/${file.path}`, file.state])));
+    const targets = vault ? [root, vault] : [root];
+    void Promise.all(targets.map((target) => window.api.gitStatus(target))).then((results) => {
+      const merged = new Map<string, GitState>();
+      results.forEach((files, index) => {
+        const base = targets[index];
+        for (const file of files) {
+          merged.set(`${base}/${file.path}`, file.state);
+        }
+      });
+      setGitFiles(merged);
     });
-  }, [root]);
+  }, [root, vault]);
 
   useEffect(() => {
     void load(root);
+    if (vault) {
+      void load(vault);
+    }
     refreshGitStatus();
-  }, [load, refreshGitStatus, root]);
+  }, [load, refreshGitStatus, root, vault]);
 
-  // Obserwujemy wyłącznie korzeń + rozwinięte katalogi (ryzyko nr 3 ze SPEC.md).
+  // Obserwujemy wyłącznie korzenie + rozwinięte katalogi (ryzyko nr 3 ze SPEC.md).
   useEffect(() => {
-    void window.api.watchTreeDirs([root, ...expanded]);
-  }, [root, expanded]);
+    void window.api.watchTreeDirs([root, ...(vault ? [vault] : []), ...expanded]);
+  }, [root, vault, expanded]);
 
   useEffect(() => {
     const handle = (event: TreeChangedEvent): void => {
@@ -176,7 +191,11 @@ export function FileTree(): ReactElement {
     refreshGitStatus();
   };
 
-  const renderDir = (dirPath: string, depth: number): ReactElement | ReactElement[] => {
+  const renderDir = (
+    dirPath: string,
+    depth: number,
+    inVault: boolean,
+  ): ReactElement | ReactElement[] => {
     const indent: CSSProperties = { paddingLeft: 10 + depth * 14 };
     const listing = listings.get(dirPath);
     if (!listing) {
@@ -193,7 +212,10 @@ export function FileTree(): ReactElement {
         </div>
       );
     }
-    const visible = listing.entries.filter((entry) => showIgnored || !entry.ignored);
+    const visible = listing.entries.filter(
+      (entry) =>
+        (showIgnored || !entry.ignored) && !(inVault && depth === 0 && VAULT_HIDDEN.has(entry.name)),
+    );
     if (visible.length === 0) {
       return (
         <div className="tree-note" style={indent}>
@@ -236,7 +258,7 @@ export function FileTree(): ReactElement {
             </span>
             <span className="tree-name">{entry.name}</span>
           </button>
-          {isOpen && <div role="group">{renderDir(entry.path, depth + 1)}</div>}
+          {isOpen && <div role="group">{renderDir(entry.path, depth + 1, inVault)}</div>}
         </div>
       );
     });
@@ -277,7 +299,36 @@ export function FileTree(): ReactElement {
         </button>
       </div>
       <div className="tree-scroll" data-testid="file-tree">
-        {renderDir(root, 0)}
+        {renderDir(root, 0, false)}
+        {vault ? (
+          <>
+            <div className="tree-root-header" data-testid="vault-root-header">
+              <h2 className="view-title" title={vault}>
+                Notatki
+              </h2>
+              <button
+                type="button"
+                className="tree-toolbtn"
+                data-testid="vault-detach"
+                title="Odepnij vault Obsidiana"
+                onClick={clearVault}
+              >
+                ×
+              </button>
+            </div>
+            {renderDir(vault, 0, true)}
+          </>
+        ) : (
+          <button
+            type="button"
+            className="tree-row tree-add-vault"
+            data-testid="vault-add"
+            title="Vault Obsidiana jako drugi korzeń drzewa"
+            onClick={chooseVault}
+          >
+            + Dodaj vault Obsidiana…
+          </button>
+        )}
       </div>
     </div>
   );

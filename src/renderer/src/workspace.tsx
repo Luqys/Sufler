@@ -45,12 +45,16 @@ export interface RevealTarget {
 
 interface WorkspaceValue {
   root: string;
+  /** Vault Obsidiana — drugi korzeń drzewa plików (warstwa 1 integracji). */
+  vault: string | null;
   tabsState: EditorTabsState;
   buffers: ReadonlyMap<string, BufferInfo>;
   dirtyPaths: ReadonlySet<string>;
   revealTarget: RevealTarget | null;
   openFile(path: string, options?: { pinned?: boolean }): void;
   openFileAt(path: string, line: number, column: number): void;
+  chooseVault(): void;
+  clearVault(): void;
   activateTab(path: string): void;
   pinTab(path: string): void;
   closeTab(path: string): void;
@@ -130,6 +134,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     [dropDirty, patchBuffers],
   );
 
+  const [vault, setVault] = useState<string | null>(null);
+
   useEffect(() => {
     let cancelled = false;
     void window.api.getProjectRoot().then((projectRoot) => {
@@ -137,9 +143,26 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         setRoot(projectRoot);
       }
     });
+    void window.api.getVaultPath().then((vaultPath) => {
+      if (!cancelled) {
+        setVault(vaultPath);
+      }
+    });
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  const chooseVault = useCallback(() => {
+    void window.api.chooseVault().then((picked) => {
+      if (picked) {
+        setVault(picked);
+      }
+    });
+  }, []);
+
+  const clearVault = useCallback(() => {
+    void window.api.clearVault().then(() => setVault(null));
   }, []);
 
   // Brudny podgląd przypina się automatycznie — inaczej kolejny podgląd
@@ -370,6 +393,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     <WorkspaceContext.Provider
       value={{
         root,
+        vault,
         tabsState,
         buffers,
         dirtyPaths,
@@ -383,6 +407,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         reloadActiveFromDisk,
         keepMyVersion,
         chooseProject,
+        chooseVault,
+        clearVault,
       }}
     >
       {children}

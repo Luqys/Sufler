@@ -126,6 +126,12 @@ export function McpPanel(): ReactElement {
               {server.scope && <span className="badge">{server.scope}</span>}
               <span className={`mcp-chevron${isOpen ? ' open' : ''}`}>▸</span>
             </button>
+            {server.name.toLowerCase() === 'obsidian' && server.state === 'error' && (
+              <div className="mcp-hint" data-testid="obsidian-hint">
+                Serwer MCP Obsidiana działa tylko przy otwartym Obsidianie — uruchom Obsidiana
+                i odśwież.
+              </div>
+            )}
             {isOpen && (
               <div className="mcp-details">
                 {server.detail && <div className="mcp-detail-line">{server.detail}</div>}

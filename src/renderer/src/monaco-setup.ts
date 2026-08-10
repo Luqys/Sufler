@@ -40,4 +40,37 @@ function applyTheme(): void {
 darkMedia.addEventListener('change', applyTheme);
 applyTheme();
 
+// Frontmatter YAML notatek markdown jako zwijalny region (SPEC.md, Obsidian w. 1).
+monaco.languages.registerFoldingRangeProvider('markdown', {
+  provideFoldingRanges(model) {
+    if (model.getLineCount() < 3 || model.getLineContent(1).trim() !== '---') {
+      return [];
+    }
+    const limit = Math.min(model.getLineCount(), 80);
+    for (let line = 2; line <= limit; line++) {
+      if (model.getLineContent(line).trim() === '---') {
+        return [{ start: 1, end: line, kind: monaco.languages.FoldingRangeKind.Region }];
+      }
+    }
+    return [];
+  },
+});
+
+/** Zakres frontmattera (1..n) albo null — do automatycznego zwinięcia przy otwarciu. */
+export function frontmatterRange(model: monaco.editor.ITextModel): { start: number; end: number } | null {
+  if (model.getLanguageId() !== 'markdown') {
+    return null;
+  }
+  if (model.getLineCount() < 3 || model.getLineContent(1).trim() !== '---') {
+    return null;
+  }
+  const limit = Math.min(model.getLineCount(), 80);
+  for (let line = 2; line <= limit; line++) {
+    if (model.getLineContent(line).trim() === '---') {
+      return { start: 1, end: line };
+    }
+  }
+  return null;
+}
+
 export { monaco };

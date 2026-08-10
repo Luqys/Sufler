@@ -71,6 +71,9 @@ const api: WindowApi = {
   },
   searchProject: (root: string, query: string): Promise<SearchResult> =>
     ipcRenderer.invoke(IPC.SearchRun, root, query),
+  getVaultPath: (): Promise<string | null> => ipcRenderer.invoke(IPC.VaultGet),
+  chooseVault: (): Promise<string | null> => ipcRenderer.invoke(IPC.VaultChoose),
+  clearVault: (): Promise<void> => ipcRenderer.invoke(IPC.VaultClear),
 };
 
 contextBridge.exposeInMainWorld('api', api);

@@ -401,6 +401,14 @@ body.dragging-horizontal .splitter.horizontal::after {
   color: var(--muted);
 }
 
+.mcp-hint {
+  margin: 0 6px 4px 22px;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: var(--muted);
+  border-left: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
 .view-title {
   font-size: 11px;
   font-weight: 700;
@@ -663,6 +671,30 @@ body.dragging-horizontal .splitter.horizontal::after {
 
 .tree-row.git-untracked .tree-name {
   color: var(--git-untracked);
+}
+
+.tree-root-header {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 8px 4px 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+.tree-root-header .view-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-add-vault {
+  color: var(--muted);
+  margin-top: 10px;
+  padding-left: 10px;
 }
 
 /* --- Panel wyszukiwania --- */

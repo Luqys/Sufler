@@ -30,6 +30,9 @@ export const IPC = {
   TreeWatchDirs: 'tree:watch-dirs',
   TreeChanged: 'tree:changed',
   SearchRun: 'search:run',
+  VaultGet: 'vault:get',
+  VaultChoose: 'vault:choose-dialog',
+  VaultClear: 'vault:clear',
 } as const;
 
 export interface DirEntry {
@@ -141,6 +144,9 @@ export interface WindowApi {
   watchTreeDirs(dirs: string[]): Promise<void>;
   onTreeChanged(listener: (event: TreeChangedEvent) => void): void;
   searchProject(root: string, query: string): Promise<SearchResult>;
+  getVaultPath(): Promise<string | null>;
+  chooseVault(): Promise<string | null>;
+  clearVault(): Promise<void>;
 }
 
 export type McpStatusResult =

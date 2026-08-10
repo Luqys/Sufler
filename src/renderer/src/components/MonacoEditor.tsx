@@ -1,10 +1,13 @@
 import { useEffect, useRef, type ReactElement } from 'react';
 import type { RevealTarget } from '../workspace';
 import { getModel } from '../editor/models';
-import { monaco } from '../monaco-setup';
+import { frontmatterRange, monaco } from '../monaco-setup';
 
 /** Pozycje kursora/scrolla per plik — przetrwają przełączanie zakładek. */
 const viewStates = new Map<string, monaco.editor.ICodeEditorViewState | null>();
+
+/** Frontmatter zwijamy tylko przy pierwszym otwarciu pliku w tej sesji. */
+const frontmatterFolded = new Set<string>();
 
 interface MonacoEditorProps {
   path: string;
@@ -55,6 +58,20 @@ export function MonacoEditor({ path, reveal }: MonacoEditorProps): ReactElement 
       editor.restoreViewState(state);
     }
     editor.focus();
+
+    // Zwinięcie frontmattera YAML przy pierwszym otwarciu notatki markdown.
+    const model = editor.getModel();
+    if (model && !frontmatterFolded.has(path) && frontmatterRange(model)) {
+      frontmatterFolded.add(path);
+      const timer = window.setTimeout(() => {
+        if (editorRef.current === editor && currentPathRef.current === path) {
+          editor.setPosition({ lineNumber: 1, column: 1 });
+          void editor.getAction('editor.fold')?.run();
+        }
+      }, 120);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
   }, [path]);
 
   useEffect(() => {

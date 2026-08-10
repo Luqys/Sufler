@@ -4,6 +4,8 @@ import { configDir } from './layout-store';
 
 export interface AppState {
   lastProjectRoot?: string;
+  /** Ścieżka vaulta Obsidiana (drugi korzeń drzewa plików). */
+  vaultPath?: string;
 }
 
 function stateFilePath(): string {
@@ -17,9 +19,14 @@ export function readState(): AppState {
       return {};
     }
     const obj = raw as Record<string, unknown>;
-    return typeof obj['lastProjectRoot'] === 'string'
-      ? { lastProjectRoot: obj['lastProjectRoot'] }
-      : {};
+    const state: AppState = {};
+    if (typeof obj['lastProjectRoot'] === 'string') {
+      state.lastProjectRoot = obj['lastProjectRoot'];
+    }
+    if (typeof obj['vaultPath'] === 'string') {
+      state.vaultPath = obj['vaultPath'];
+    }
+    return state;
   } catch {
     return {};
   }

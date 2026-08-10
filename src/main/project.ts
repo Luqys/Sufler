@@ -53,6 +53,35 @@ export async function chooseProjectRoot(win: BrowserWindow): Promise<string | nu
     return null;
   }
   currentRoot = picked;
-  writeState({ lastProjectRoot: picked });
+  writeState({ ...readState(), lastProjectRoot: picked });
   return picked;
+}
+
+/** Warstwa 1 integracji z Obsidianem: vault jako drugi korzeń drzewa. */
+export function getVaultPath(): string | null {
+  const fromEnv = process.env['VISUALN3O_VAULT'];
+  if (isDirectory(fromEnv)) {
+    return fromEnv;
+  }
+  const fromState = readState().vaultPath;
+  return isDirectory(fromState) ? fromState : null;
+}
+
+export async function chooseVaultPath(win: BrowserWindow): Promise<string | null> {
+  const result = await dialog.showOpenDialog(win, {
+    title: 'Wybierz vault Obsidiana',
+    properties: ['openDirectory'],
+  });
+  const picked = result.filePaths[0];
+  if (result.canceled || !picked) {
+    return null;
+  }
+  writeState({ ...readState(), vaultPath: picked });
+  return picked;
+}
+
+export function clearVaultPath(): void {
+  const state = readState();
+  delete state.vaultPath;
+  writeState(state);
 }

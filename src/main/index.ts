@@ -11,7 +11,13 @@ import { closeMcpWatcher, watchMcpConfig } from './mcp/watcher';
 import { runProjectSearch } from './search';
 import { closeTreeWatcher, setWatchedTreeDirs } from './tree-watcher';
 import { createPty, killAllPtys, killPty, listPtyPids, resizePty, writePty } from './pty-manager';
-import { chooseProjectRoot, getProjectRoot } from './project';
+import {
+  chooseProjectRoot,
+  chooseVaultPath,
+  clearVaultPath,
+  getProjectRoot,
+  getVaultPath,
+} from './project';
 import { resolveShellEnv } from './shell-env';
 import { readSkillsSnapshot } from './skills';
 import { closeSkillsWatcher, watchSkillsSources } from './skills-watcher';
@@ -105,6 +111,14 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.SearchRun, (_event, root: string, query: string) =>
     runProjectSearch(root, query),
   );
+  ipcMain.handle(IPC.VaultGet, () => getVaultPath());
+  ipcMain.handle(IPC.VaultChoose, (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    return win ? chooseVaultPath(win) : null;
+  });
+  ipcMain.handle(IPC.VaultClear, () => {
+    clearVaultPath();
+  });
 
   // Rozgrzewamy cache środowiska shella, zanim powstanie pierwszy terminal.
   void resolveShellEnv();
