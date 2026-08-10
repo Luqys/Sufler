@@ -2,6 +2,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { SerializeAddon } from '@xterm/addon-serialize';
 import { Terminal, type ITheme } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
+import { quotePathForPrompt } from '../../shared/media';
 
 /**
  * Rejestr instancji xterm poza drzewem Reacta. Przenoszenie zakładki między
@@ -126,6 +127,30 @@ export function createTerminalInstance(
   term.loadAddon(serialize);
   term.open(host);
   term.onData((data) => window.api.ptyWrite(ptyId, data));
+  // Wklejenie obrazka (np. zrzutu ekranu): schowek ma bitmapę bez tekstu —
+  // zapisujemy ją do pliku i wklejamy ścieżkę (Claude Code czyta obrazki po
+  // ścieżce). Nasłuch w fazie capture wyprzedza własny handler xterm.
+  host.addEventListener(
+    'paste',
+    (event) => {
+      const data = event.clipboardData;
+      if (!data) {
+        return;
+      }
+      const hasText = data.types.includes('text/plain');
+      const hasImage = Array.from(data.items).some((item) => item.type.startsWith('image/'));
+      if (hasImage && !hasText) {
+        event.preventDefault();
+        event.stopPropagation();
+        void window.api.saveClipboardImage().then((saved) => {
+          if (saved.ok) {
+            term.paste(`${quotePathForPrompt(saved.path)} `);
+          }
+        });
+      }
+    },
+    true,
+  );
   const instance: TerminalInstance = { term, fit, serialize, host, ptyId, onOutput };
   instances.set(tabId, instance);
   byPtyId.set(ptyId, instance);

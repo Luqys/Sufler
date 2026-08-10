@@ -3,10 +3,16 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type ClipboardEvent,
   type ReactElement,
 } from 'react';
+import { CHAT_PATH } from '../../../shared/chat';
+import type { DockId } from '../../../shared/dock-tabs';
+import { quotePathForPrompt } from '../../../shared/media';
 import { baseName } from '../../../shared/paths';
 import { getChatState, interruptChat, resetChat, sendChat, subscribeChat } from '../chat-store';
+import { useDocks } from '../docks';
+import { useDialogs } from '../ui-dialogs';
 import { useWorkspace } from '../workspace';
 
 const ICON_TOOL = (
@@ -15,12 +21,80 @@ const ICON_TOOL = (
   </svg>
 );
 
+const ICON_SEND = (
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" />
+  </svg>
+);
+
+const ICON_STOP = (
+  <svg width="11" height="11" viewBox="0 0 16 16">
+    <rect x="3" y="3" width="10" height="10" rx="2" fill="currentColor" />
+  </svg>
+);
+
+const ICON_RESET = (
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.8 8a5.2 5.2 0 1 1 1.5 3.7" />
+    <path d="M2.6 8.2V4.9M2.6 8.2h3.3" transform="translate(0 3.2)" />
+  </svg>
+);
+
+const ICON_PLUS = (
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+    <path d="M8 3v10M3 8h10" />
+  </svg>
+);
+
+/** Ramka okna z podświetloną strefą — przyciski „otwórz czat w…". */
+function placeIcon(zone: 'editor' | 'right' | 'bottom'): ReactElement {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
+      <rect x="1.8" y="2.4" width="12.4" height="11.2" rx="1.5" />
+      {zone === 'editor' && <rect x="3.4" y="4" width="6.2" height="8" fill="currentColor" stroke="none" opacity="0.55" />}
+      {zone === 'right' && <rect x="10" y="4" width="2.7" height="8" fill="currentColor" stroke="none" opacity="0.55" />}
+      {zone === 'bottom' && <rect x="3.4" y="9.4" width="9.3" height="2.6" fill="currentColor" stroke="none" opacity="0.55" />}
+    </svg>
+  );
+}
+
+/** Piksel-robot z ekranu powitalnego (jak w panelu Claude Code). */
+const ROBOT = (
+  <svg width="66" height="54" viewBox="0 0 24 20" className="chat-robot" aria-hidden="true">
+    <rect x="6" y="0" width="2" height="3" fill="currentColor" />
+    <rect x="16" y="0" width="2" height="3" fill="currentColor" />
+    <rect x="3" y="3" width="18" height="10" rx="1" fill="currentColor" />
+    <rect x="7" y="6" width="2.6" height="3.6" fill="var(--bg)" />
+    <rect x="14.4" y="6" width="2.6" height="3.6" fill="var(--bg)" />
+    <rect x="4.6" y="13" width="2.4" height="4" fill="currentColor" />
+    <rect x="9.4" y="13" width="2.4" height="6" fill="currentColor" />
+    <rect x="12.2" y="13" width="2.4" height="6" fill="currentColor" />
+    <rect x="17" y="13" width="2.4" height="4" fill="currentColor" />
+  </svg>
+);
+
+interface ChatViewProps {
+  /** Gdzie czat jest wyrenderowany: obszar edytora czy jeden z doków. */
+  place?: 'editor' | DockId;
+  /** Id karty doku — potrzebne do zamknięcia przy przenosinach z doku. */
+  dockTabId?: string;
+}
+
+const PLACE_LABELS: Record<'editor' | DockId, string> = {
+  editor: 'Otwórz czat w oknie edytora',
+  right: 'Otwórz czat w doku bocznym',
+  bottom: 'Otwórz czat w doku dolnym',
+};
+
 /** Czat z Claude: silnik Claude Code (Agent SDK), historia dymków + narzędzia. */
-export function ChatView(): ReactElement {
-  const { root } = useWorkspace();
+export function ChatView({ place = 'editor', dockTabId }: ChatViewProps): ReactElement {
+  const { root, openChat, closeTab: closeEditorTab } = useWorkspace();
+  const { openChatTab, closeTab: closeDockTab } = useDocks();
+  const { notify } = useDialogs();
   const state = useSyncExternalStore(subscribeChat, getChatState);
   const [draft, setDraft] = useState('');
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
@@ -35,34 +109,98 @@ export function ChatView(): ReactElement {
     sendChat(root, text);
   };
 
+  /** Przenosiny całego czatu: edytor ↔ doki. Historia żyje w chat-store. */
+  const moveTo = (target: 'editor' | DockId): void => {
+    if (target === place) {
+      return;
+    }
+    if (target === 'editor') {
+      openChat();
+    } else {
+      // Ukryty dok musi się pokazać, inaczej czat „zniknie" (słucha Workbench).
+      window.dispatchEvent(new CustomEvent('vn3o:reveal-dock', { detail: target }));
+      openChatTab(target);
+    }
+    if (place === 'editor') {
+      closeEditorTab(CHAT_PATH);
+    } else if (target === 'editor' && dockTabId) {
+      closeDockTab(dockTabId);
+    }
+  };
+
+  const insertImagePath = (path: string): void => {
+    setDraft((current) => {
+      const lead = current && !current.endsWith(' ') ? `${current} ` : current;
+      return `${lead}${quotePathForPrompt(path)} `;
+    });
+    inputRef.current?.focus();
+  };
+
+  const attachFromClipboard = (): void => {
+    void window.api.saveClipboardImage().then((saved) => {
+      if (saved.ok) {
+        insertImagePath(saved.path);
+      } else {
+        notify('Brak obrazka w schowku — skopiuj zrzut ekranu i spróbuj ponownie.');
+      }
+    });
+  };
+
+  /** Wklejenie obrazka (bez tekstu) → ścieżka pliku tymczasowego do promptu. */
+  const onPaste = (event: ClipboardEvent<HTMLTextAreaElement>): void => {
+    const data = event.clipboardData;
+    const hasText = data.types.includes('text/plain');
+    const hasImage = Array.from(data.items).some((item) => item.type.startsWith('image/'));
+    if (hasImage && !hasText) {
+      event.preventDefault();
+      void window.api.saveClipboardImage().then((saved) => {
+        if (saved.ok) {
+          insertImagePath(saved.path);
+        }
+      });
+    }
+  };
+
+  const otherPlaces = (['editor', 'right', 'bottom'] as const).filter((zone) => zone !== place);
+
   return (
     <div className="chat-view" data-testid="chat-view">
       <div className="chat-toolbar">
-        <span className="chat-title">Czat z Claude</span>
+        <span className="chat-title">
+          <span className="chat-title-spark">✳</span> Claude Code
+        </span>
         <span className="chat-hint" title={root}>
-          silnik Claude Code · {baseName(root)}
+          {baseName(root)}
           {state.costUsd !== null && state.costUsd > 0 && ` · $${state.costUsd.toFixed(2)}`}
         </span>
-        {state.busy ? (
-          <button type="button" className="bar-btn" data-testid="chat-interrupt" onClick={interruptChat}>
-            Przerwij
-          </button>
-        ) : (
+        {otherPlaces.map((zone) => (
           <button
+            key={zone}
             type="button"
-            className="bar-btn"
-            data-testid="chat-reset"
-            disabled={state.entries.length === 0}
-            onClick={resetChat}
+            className="chat-toolbtn"
+            data-testid={`chat-move-${zone}`}
+            title={PLACE_LABELS[zone]}
+            onClick={() => moveTo(zone)}
           >
-            Nowa rozmowa
+            {placeIcon(zone)}
           </button>
-        )}
+        ))}
+        <button
+          type="button"
+          className="chat-toolbtn"
+          data-testid="chat-reset"
+          disabled={state.entries.length === 0}
+          title="Nowa rozmowa"
+          onClick={resetChat}
+        >
+          {ICON_RESET}
+        </button>
       </div>
       <div className="chat-list" ref={listRef}>
         {state.entries.length === 0 && (
           <div className="chat-empty">
-            <p className="chat-empty-title">✳</p>
+            {ROBOT}
+            <p className="chat-empty-title">Trafiłeś w absolutnie właściwe miejsce!</p>
             <p className="placeholder">
               Rozmawiasz z Claude nad projektem {baseName(root)} — z dostępem do plików
               i narzędzi, na Twoim logowaniu Claude Code.
@@ -94,29 +232,57 @@ export function ChatView(): ReactElement {
           submit();
         }}
       >
-        <textarea
-          className="chat-input"
-          data-testid="chat-input"
-          placeholder="Napisz do Claude… (Enter wysyła, Shift+Enter — nowa linia)"
-          value={draft}
-          rows={Math.min(6, draft.split('\n').length)}
-          onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-              event.preventDefault();
-              submit();
-            }
-          }}
-        />
-        <button
-          type="submit"
-          className="chat-send"
-          data-testid="chat-send"
-          disabled={state.busy || !draft.trim()}
-          title="Wyślij (Enter)"
-        >
-          Wyślij
-        </button>
+        <div className="chat-inputbox">
+          <textarea
+            ref={inputRef}
+            className="chat-input"
+            data-testid="chat-input"
+            placeholder="Napisz do Claude…"
+            value={draft}
+            rows={Math.min(6, draft.split('\n').length)}
+            onChange={(event) => setDraft(event.target.value)}
+            onPaste={onPaste}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                submit();
+              }
+            }}
+          />
+          <div className="chat-inputrow">
+            <button
+              type="button"
+              className="chat-attach"
+              data-testid="chat-attach"
+              title="Wstaw obrazek ze schowka (albo wklej go wprost w pole tekstowe)"
+              onClick={attachFromClipboard}
+            >
+              {ICON_PLUS}
+            </button>
+            <span className="chat-input-hint">Enter — wyślij · Shift+Enter — nowa linia</span>
+            {state.busy ? (
+              <button
+                type="button"
+                className="chat-send stop"
+                data-testid="chat-interrupt"
+                title="Przerwij odpowiedź"
+                onClick={interruptChat}
+              >
+                {ICON_STOP}
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="chat-send"
+                data-testid="chat-send"
+                disabled={!draft.trim()}
+                title="Wyślij (Enter)"
+              >
+                {ICON_SEND}
+              </button>
+            )}
+          </div>
+        </div>
       </form>
     </div>
   );

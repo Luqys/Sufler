@@ -61,6 +61,26 @@ export function pinTab(state: EditorTabsState, path: string): EditorTabsState {
   };
 }
 
+/** Przenosi zakładkę na pozycję zakładki docelowej (przeciąganie w pasku). */
+export function reorderTab(
+  state: EditorTabsState,
+  fromPath: string,
+  toPath: string,
+): EditorTabsState {
+  if (fromPath === toPath) {
+    return state;
+  }
+  const fromIndex = state.tabs.findIndex((tab) => tab.path === fromPath);
+  const toIndex = state.tabs.findIndex((tab) => tab.path === toPath);
+  if (fromIndex === -1 || toIndex === -1) {
+    return state;
+  }
+  const tabs = [...state.tabs];
+  const [moved] = tabs.splice(fromIndex, 1);
+  tabs.splice(toIndex, 0, moved);
+  return { tabs, activePath: state.activePath };
+}
+
 export function closeTab(state: EditorTabsState, path: string): EditorTabsState {
   const index = state.tabs.findIndex((tab) => tab.path === path);
   if (index === -1) {

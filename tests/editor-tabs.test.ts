@@ -5,6 +5,7 @@ import {
   emptyTabsState,
   openTab,
   pinTab,
+  reorderTab,
   type EditorTabsState,
 } from '../src/shared/editor-tabs';
 
@@ -72,6 +73,34 @@ describe('pinTab', () => {
   it('nic nie robi dla już przypiętej', () => {
     const before = state([['/a', true]], '/a');
     expect(pinTab(before, '/a')).toBe(before);
+  });
+});
+
+describe('reorderTab', () => {
+  it('przenosi zakładkę na pozycję docelowej (w przód i w tył)', () => {
+    const before = state([['/a', true], ['/b', true], ['/c', true]], '/a');
+    expect(reorderTab(before, '/a', '/c').tabs.map((tab) => tab.path)).toEqual([
+      '/b',
+      '/c',
+      '/a',
+    ]);
+    expect(reorderTab(before, '/c', '/a').tabs.map((tab) => tab.path)).toEqual([
+      '/c',
+      '/a',
+      '/b',
+    ]);
+  });
+
+  it('nie zmienia aktywnej zakładki', () => {
+    const before = state([['/a', true], ['/b', true]], '/b');
+    expect(reorderTab(before, '/b', '/a').activePath).toBe('/b');
+  });
+
+  it('ignoruje nieznane ścieżki i przeciągnięcie na siebie', () => {
+    const before = state([['/a', true], ['/b', true]], '/a');
+    expect(reorderTab(before, '/a', '/x')).toBe(before);
+    expect(reorderTab(before, '/x', '/a')).toBe(before);
+    expect(reorderTab(before, '/a', '/a')).toBe(before);
   });
 });
 

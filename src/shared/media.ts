@@ -27,3 +27,14 @@ export function imageMime(path: string): string | null {
 export function isImagePath(path: string): boolean {
   return imageMime(path) !== null;
 }
+
+/**
+ * Cytowanie ścieżki wstawianej do promptu Claude lub terminala — spacje
+ * i znaki specjalne w apostrofach (składnia shella, czytelna też dla Claude).
+ */
+export function quotePathForPrompt(path: string): string {
+  if (/^[A-Za-z0-9_\-./~]+$/.test(path)) {
+    return path;
+  }
+  return `'${path.replace(/'/g, `'\\''`)}'`;
+}

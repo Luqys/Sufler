@@ -137,6 +137,20 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
     window.api.onTogglePanel((key) => toggleVisibilityRef.current(key));
   }, []);
 
+  // Przenosiny czatu do ukrytego doku muszą ten dok pokazać (patrz ChatView).
+  useEffect(() => {
+    const onReveal = (event: Event): void => {
+      const dock = (event as CustomEvent<'right' | 'bottom'>).detail;
+      const key: LayoutVisibilityKey = dock === 'right' ? 'rightDockVisible' : 'bottomDockVisible';
+      if (!layoutRef.current[key]) {
+        apply({ [key]: true });
+        void window.api.setLayout(layoutRef.current);
+      }
+    };
+    window.addEventListener('vn3o:reveal-dock', onReveal);
+    return () => window.removeEventListener('vn3o:reveal-dock', onReveal);
+  }, [apply]);
+
   const origin = (): LayoutState => dragOrigin.current ?? layoutRef.current;
 
   const columns: string[] = [];

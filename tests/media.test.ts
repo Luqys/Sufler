@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { imageMime, isImagePath } from '../src/shared/media';
+import { imageMime, isImagePath, quotePathForPrompt } from '../src/shared/media';
 
 describe('imageMime', () => {
   it('rozpoznaje popularne formaty graficzne po rozszerzeniu', () => {
@@ -22,5 +22,24 @@ describe('imageMime', () => {
   it('patrzy na ostatnie rozszerzenie', () => {
     expect(isImagePath('/proj/archiwum.png.bak')).toBe(false);
     expect(isImagePath('/proj/wykres.d3.svg')).toBe(true);
+  });
+});
+
+describe('quotePathForPrompt', () => {
+  it('proste ścieżki zostawia bez zmian', () => {
+    expect(quotePathForPrompt('/tmp/visualn3o-obrazki/schowek-1.png')).toBe(
+      '/tmp/visualn3o-obrazki/schowek-1.png',
+    );
+  });
+
+  it('ścieżki ze spacjami i polskimi znakami bierze w apostrofy', () => {
+    expect(quotePathForPrompt('/tmp/Zrzut ekranu 2026.png')).toBe(
+      "'/tmp/Zrzut ekranu 2026.png'",
+    );
+    expect(quotePathForPrompt('/tmp/zdjęcie.png')).toBe("'/tmp/zdjęcie.png'");
+  });
+
+  it('apostrof w ścieżce escapuje po shellowemu', () => {
+    expect(quotePathForPrompt("/tmp/o'brien.png")).toBe("'/tmp/o'\\''brien.png'");
   });
 });

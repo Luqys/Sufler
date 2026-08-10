@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import type { Appearance } from '../shared/appearance';
 import type { ChatEventPayload } from '../shared/chat';
 import type { TabKind } from '../shared/dock-tabs';
@@ -18,6 +18,7 @@ import {
   type ReadDirResult,
   type ReadFileResult,
   type ReadImageResult,
+  type SaveClipboardImageResult,
   type SearchResult,
   type SkillsSnapshot,
   type TreeChangedEvent,
@@ -132,6 +133,9 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.WiedzaMcpStatus),
   registerWiedzaMcp: (): Promise<{ ok: boolean; message: string }> =>
     ipcRenderer.invoke(IPC.WiedzaMcpRegister),
+  saveClipboardImage: (): Promise<SaveClipboardImageResult> =>
+    ipcRenderer.invoke(IPC.ClipboardSaveImage),
+  pathForFile: (file: File): string => webUtils.getPathForFile(file),
 };
 
 contextBridge.exposeInMainWorld('api', api);

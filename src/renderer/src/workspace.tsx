@@ -14,6 +14,7 @@ import {
   emptyTabsState,
   openTab as openTabState,
   pinTab as pinTabState,
+  reorderTab as reorderTabState,
   type EditorTabsState,
 } from '../../shared/editor-tabs';
 import { CHAT_PATH } from '../../shared/chat';
@@ -65,6 +66,8 @@ interface WorkspaceValue {
   clearVault(): void;
   activateTab(path: string): void;
   pinTab(path: string): void;
+  /** Przeciąganie zakładki w pasku — wstawia ją na pozycję zakładki docelowej. */
+  reorderTab(fromPath: string, toPath: string): void;
   closeTab(path: string): void;
   saveActiveFile(): void;
   reloadActiveFromDisk(): void;
@@ -254,6 +257,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
 
   const pinTab = useCallback(
     (path: string) => applyTabs((state) => pinTabState(state, path)),
+    [applyTabs],
+  );
+
+  const reorderTab = useCallback(
+    (fromPath: string, toPath: string) =>
+      applyTabs((state) => reorderTabState(state, fromPath, toPath)),
     [applyTabs],
   );
 
@@ -451,6 +460,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         openChat,
         activateTab,
         pinTab,
+        reorderTab,
         closeTab,
         saveActiveFile,
         reloadActiveFromDisk,

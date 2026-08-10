@@ -1806,6 +1806,17 @@ body.dragging-horizontal .splitter.horizontal::after {
   font-style: italic;
 }
 
+.tab-icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+
+/* Cel przeciągania zakładki — kreska wstawienia przy lewej krawędzi. */
+.tab.drop-before {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
 .tab-dirty {
   width: 7px;
   height: 7px;
@@ -1955,14 +1966,20 @@ body.dragging-horizontal .splitter.horizontal::after {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 12px;
+  gap: 8px;
+  padding: 6px 10px;
   border-bottom: 1px solid var(--border);
   font-size: 12.5px;
 }
 
 .chat-title {
-  font-weight: 600;
+  font-weight: 650;
+  font-family: Georgia, 'Times New Roman', serif;
+  white-space: nowrap;
+}
+
+.chat-title-spark {
+  color: var(--accent);
 }
 
 .chat-hint {
@@ -1973,6 +1990,34 @@ body.dragging-horizontal .splitter.horizontal::after {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.chat-toolbtn {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.chat-toolbtn:hover {
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  color: var(--text);
+}
+
+.chat-toolbtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.chat-toolbtn:disabled:hover {
+  background: transparent;
+  color: var(--muted);
 }
 
 .chat-list {
@@ -1992,9 +2037,15 @@ body.dragging-horizontal .splitter.horizontal::after {
   text-align: center;
 }
 
-.chat-empty-title {
-  font-size: 26px;
+.chat-robot {
   color: var(--accent);
+  margin-bottom: 14px;
+}
+
+.chat-empty-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text);
   margin-bottom: 8px;
 }
 
@@ -2077,41 +2128,85 @@ body.dragging-horizontal .splitter.horizontal::after {
 
 .chat-inputbar {
   flex: none;
+  padding: 8px 12px 12px;
+}
+
+/* Ramka pola wejściowego jak w panelu Claude Code: tekst na górze,
+   pod spodem wiersz z [+], podpowiedzią i przyciskiem wysyłki. */
+.chat-inputbox {
   display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  padding: 10px 12px;
-  border-top: 1px solid var(--border);
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel-alt) 55%, transparent);
+  padding: 8px 9px 7px;
+}
+
+.chat-inputbox:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .chat-input {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
   resize: none;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 8px 11px;
+  border: none;
+  padding: 1px 3px;
   font-family: inherit;
   font-size: 13px;
   line-height: 1.45;
-  background: color-mix(in srgb, var(--panel-alt) 55%, transparent);
+  background: transparent;
   color: var(--text);
 }
 
 .chat-input:focus {
   outline: none;
-  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.chat-inputrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-attach {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.chat-attach:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--text) 25%, transparent);
+}
+
+.chat-input-hint {
+  flex: 1;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 10.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .chat-send {
   flex: none;
-  padding: 8px 16px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
   border: none;
-  border-radius: 9px;
+  border-radius: 8px;
   background: var(--accent);
   color: #fff;
-  font-size: 12.5px;
-  font-weight: 600;
   cursor: pointer;
 }
 
@@ -2460,6 +2555,12 @@ body.dragging-horizontal .splitter.horizontal::after {
   background: var(--term-bg);
   color: var(--text);
   box-shadow: inset 0 2px 0 var(--accent);
+}
+
+.dock-tab-icon {
+  flex: none;
+  display: flex;
+  align-items: center;
 }
 
 .dock-tab.exited .dock-tab-title {

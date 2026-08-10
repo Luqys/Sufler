@@ -1,6 +1,7 @@
 import { useState, type DragEvent, type ReactElement } from 'react';
-import type { DockId, DockPane } from '../../../shared/dock-tabs';
+import type { DockId, DockPane, DockTabKind } from '../../../shared/dock-tabs';
 import { useDocks } from '../docks';
+import { ChatView } from './ChatView';
 import { TerminalView } from './TerminalView';
 
 const DND_MIME = 'application/x-visualn3o-tab';
@@ -34,6 +35,30 @@ const ICON_NEW_TERMINAL = (
     <path d="M8.5 12h5" />
   </svg>
 );
+
+const ICON_TAB_TERMINAL = (
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#89e051" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.5 3.5l4 4-4 4" />
+    <path d="M8.5 12h5" />
+  </svg>
+);
+
+const ICON_TAB_CHAT = (
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#4f8ff7" strokeWidth="1.5" strokeLinejoin="round">
+    <path d="M2 4A1.8 1.8 0 0 1 3.8 2.2h8.4A1.8 1.8 0 0 1 14 4v5.6a1.8 1.8 0 0 1-1.8 1.8H8.4l-3.1 2.6v-2.6H3.8A1.8 1.8 0 0 1 2 9.6V4Z" />
+  </svg>
+);
+
+/** „Favicon" karty doku — szybka orientacja, co siedzi w której karcie. */
+function dockTabIcon(kind: DockTabKind): ReactElement {
+  if (kind === 'claude') {
+    return ICON_NEW_CLAUDE;
+  }
+  if (kind === 'chat') {
+    return ICON_TAB_CHAT;
+  }
+  return ICON_TAB_TERMINAL;
+}
 
 interface PaneViewProps {
   dockId: DockId;
@@ -107,6 +132,7 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
                 }
               }}
             >
+              <span className="dock-tab-icon">{dockTabIcon(tab.kind)}</span>
               {tab.kind === 'claude' &&
                 tab.id !== pane.activeId &&
                 (tab.status === 'idle' || tab.status === 'needs-input') && (
@@ -166,7 +192,11 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
       </header>
       <div className="dock-body">
         {activeTab ? (
-          <TerminalView key={activeTab.id} tabId={activeTab.id} />
+          activeTab.kind === 'chat' ? (
+            <ChatView place={dockId} dockTabId={activeTab.id} />
+          ) : (
+            <TerminalView key={activeTab.id} tabId={activeTab.id} />
+          )
         ) : (
           <div className="dock-empty">
             <p className="placeholder">Kliknij +, aby otworzyć terminal lub sesję Claude.</p>

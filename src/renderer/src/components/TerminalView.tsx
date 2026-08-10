@@ -1,4 +1,5 @@
-import { useEffect, useRef, type ReactElement } from 'react';
+import { useEffect, useRef, type DragEvent, type ReactElement } from 'react';
+import { quotePathForPrompt } from '../../../shared/media';
 import { getTerminalInstance } from '../terminals';
 
 /**
@@ -77,5 +78,38 @@ export function TerminalView({ tabId }: { tabId: string }): ReactElement {
     };
   }, [tabId]);
 
-  return <div ref={containerRef} className="terminal-view" data-testid={`terminal-${tabId}`} />;
+  // Upuszczenie pliku (np. obrazka z Findera) wkleja jego ścieżkę do pty.
+  const onDragOver = (event: DragEvent<HTMLDivElement>): void => {
+    if (event.dataTransfer.types.includes('Files')) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  };
+
+  const onDrop = (event: DragEvent<HTMLDivElement>): void => {
+    const files = Array.from(event.dataTransfer.files);
+    if (files.length === 0) {
+      return;
+    }
+    event.preventDefault();
+    const instance = getTerminalInstance(tabId);
+    if (!instance) {
+      return;
+    }
+    const paths = files.map((file) => window.api.pathForFile(file)).filter(Boolean);
+    if (paths.length > 0) {
+      instance.term.paste(`${paths.map(quotePathForPrompt).join(' ')} `);
+      instance.term.focus();
+    }
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="terminal-view"
+      data-testid={`terminal-${tabId}`}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+    />
+  );
 }

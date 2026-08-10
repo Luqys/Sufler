@@ -61,7 +61,11 @@ export const IPC = {
   ChatReset: 'chat:reset',
   WiedzaMcpStatus: 'wiedza-mcp:status',
   WiedzaMcpRegister: 'wiedza-mcp:register',
+  ClipboardSaveImage: 'clipboard:save-image',
 } as const;
+
+/** Obrazek ze schowka zapisany do pliku tymczasowego (wklejanie do terminala/czatu). */
+export type SaveClipboardImageResult = { ok: true; path: string } | { ok: false };
 
 export interface DirEntry {
   name: string;
@@ -220,6 +224,10 @@ export interface WindowApi {
   onChatEvent(listener: (payload: ChatEventPayload) => void): void;
   getWiedzaMcpStatus(): Promise<{ running: boolean; url: string; error: string | null }>;
   registerWiedzaMcp(): Promise<{ ok: boolean; message: string }>;
+  /** Zapisuje obrazek ze schowka do pliku tymczasowego i zwraca jego ścieżkę. */
+  saveClipboardImage(): Promise<SaveClipboardImageResult>;
+  /** Ścieżka dyskowa pliku z drag & drop (Electron webUtils). */
+  pathForFile(file: File): string;
 }
 
 export type McpStatusResult =

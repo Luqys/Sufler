@@ -5,6 +5,7 @@ import type { TabKind } from '../shared/dock-tabs';
 import { IPC } from '../shared/ipc';
 import { applyAppearanceAtBoot, getAppearance, setAppearance } from './appearance';
 import { interruptChat, resetChat, sendChatMessage } from './chat';
+import { saveClipboardImage } from './clipboard-image';
 import { generateKnowledgeContext, listMarkdownFiles } from './knowledge';
 import { buildKnowledgeGraph } from './knowledge-graph';
 import { closeKnowledgeWatcher, watchKnowledge } from './knowledge-watcher';
@@ -146,6 +147,7 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.ChatReset, () => {
     resetChat();
   });
+  ipcMain.handle(IPC.ClipboardSaveImage, () => saveClipboardImage());
   ipcMain.handle(IPC.WiedzaMcpStatus, () => getWiedzaMcpStatus());
   ipcMain.handle(IPC.WiedzaMcpRegister, async () => {
     try {

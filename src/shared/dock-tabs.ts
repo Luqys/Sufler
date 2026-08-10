@@ -6,11 +6,16 @@
 
 export type DockId = 'right' | 'bottom';
 export type TabKind = 'terminal' | 'claude';
+/** Rodzaj karty doku: pty (terminal/claude) albo czat z Claude (bez procesu). */
+export type DockTabKind = TabKind | 'chat';
 export type TabStatus = 'idle' | 'running' | 'needs-input' | 'exited';
+
+/** Karta czatu nie ma procesu — ptyId ma tę wartość-wartownika. */
+export const CHAT_TAB_PTY = -1;
 
 export interface DockTab {
   id: string;
-  kind: TabKind;
+  kind: DockTabKind;
   title: string;
   cwd: string;
   /** Uchwyt procesu w main. Przenoszenie między dokami/panelami nie zmienia ptyId. */
