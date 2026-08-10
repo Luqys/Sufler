@@ -7,6 +7,7 @@ import {
   closeTab,
   emptyDocksState,
   findTab,
+  insertPaneAfter,
   moveTab,
   splitPane,
   updateTab,
@@ -125,5 +126,35 @@ describe('updateTab / allTabs / activeTabs', () => {
     expect(findTab(state, 'a')?.tab.status).toBe('exited');
     expect(allTabs(state).map((t) => t.id)).toEqual(['a', 'b']);
     expect(activeTabs(state).map((t) => t.id)).toEqual(['a', 'b']);
+  });
+});
+
+describe('insertPaneAfter', () => {
+  it('wstawia pusty panel tuż za wskazanym', () => {
+    let state = addTab(emptyDocksState, 'right', tab('a'));
+    state = addTab(state, 'right', tab('b', 2));
+    state = splitPane(state, 'b', 'pane-2');
+    state = insertPaneAfter(state, 'right', 'right-1', 'pane-3');
+    expect(state.right.panes.map((pane) => pane.id)).toEqual(['right-1', 'pane-3', 'pane-2']);
+    expect(state.right.panes[1]?.tabs).toHaveLength(0);
+  });
+
+  it('podział można powtarzać bez ograniczeń', () => {
+    let state: DocksState = emptyDocksState;
+    state = insertPaneAfter(state, 'right', 'right-1', 'pane-2');
+    state = insertPaneAfter(state, 'right', 'pane-2', 'pane-3');
+    state = insertPaneAfter(state, 'right', 'pane-2', 'pane-4');
+    expect(state.right.panes.map((pane) => pane.id)).toEqual([
+      'right-1',
+      'pane-2',
+      'pane-4',
+      'pane-3',
+    ]);
+  });
+
+  it('nieznany panel źródłowy → nowy panel na końcu; duplikat id → bez zmian', () => {
+    const state = insertPaneAfter(emptyDocksState, 'right', 'nie-ma', 'pane-2');
+    expect(state.right.panes.map((pane) => pane.id)).toEqual(['right-1', 'pane-2']);
+    expect(insertPaneAfter(state, 'right', 'right-1', 'pane-2')).toBe(state);
   });
 });

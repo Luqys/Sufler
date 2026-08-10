@@ -1,4 +1,5 @@
 import { useState, type DragEvent, type ReactElement } from 'react';
+import type { EditorGroup } from '../../../shared/editor-groups';
 import { baseName } from '../../../shared/paths';
 import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../../shared/preview';
 import { useT } from '../i18n';
@@ -12,6 +13,13 @@ const ICON_GLOBE = (
     <circle cx="8" cy="8" r="6.2" />
     <ellipse cx="8" cy="8" rx="2.8" ry="6.2" />
     <path d="M1.8 8h12.4M2.7 4.9h10.6M2.7 11.1h10.6" />
+  </svg>
+);
+
+const ICON_SPLIT = (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
+    <rect x="1.8" y="2.6" width="12.4" height="10.8" rx="1.6" />
+    <path d="M8 2.6v10.8" />
   </svg>
 );
 
@@ -43,9 +51,17 @@ function tabIcon(path: string): ReactElement {
   return fileIconFor(baseName(path));
 }
 
-export function EditorTabs(): ReactElement {
-  const { tabsState, dirtyPaths, activateTab, pinTab, reorderTab, closeTab, openBrowserPreview } =
-    useWorkspace();
+/** Pasek zakładek jednej grupy edytora — z przyciskiem podziału przestrzeni. */
+export function EditorTabs({ group }: { group: EditorGroup }): ReactElement {
+  const {
+    dirtyPaths,
+    activateTab,
+    pinTab,
+    reorderTab,
+    closeTab,
+    openBrowserPreview,
+    splitEditorGroup,
+  } = useWorkspace();
   const t = useT();
   const [dropPath, setDropPath] = useState<string | null>(null);
 
@@ -61,15 +77,15 @@ export function EditorTabs(): ReactElement {
     const fromPath = event.dataTransfer.getData(DND_MIME);
     if (fromPath) {
       event.preventDefault();
-      reorderTab(fromPath, path);
+      reorderTab(group.id, fromPath, path);
     }
     setDropPath(null);
   };
 
   return (
     <div className="editor-tabs" data-testid="editor-tabs">
-      {tabsState.tabs.map((tab) => {
-        const active = tab.path === tabsState.activePath;
+      {group.tabs.map((tab) => {
+        const active = tab.path === group.activePath;
         const dirty = dirtyPaths.has(tab.path);
         return (
           <div
@@ -80,8 +96,8 @@ export function EditorTabs(): ReactElement {
             data-testid={active ? 'tab-active' : 'tab'}
             title={tab.path}
             draggable
-            onClick={() => activateTab(tab.path)}
-            onDoubleClick={() => pinTab(tab.path)}
+            onClick={() => activateTab(group.id, tab.path)}
+            onDoubleClick={() => pinTab(group.id, tab.path)}
             onDragStart={(event) => {
               event.dataTransfer.setData(DND_MIME, tab.path);
               event.dataTransfer.effectAllowed = 'move';
@@ -99,7 +115,7 @@ export function EditorTabs(): ReactElement {
               title={t('common.closeTab')}
               onClick={(event) => {
                 event.stopPropagation();
-                closeTab(tab.path);
+                closeTab(group.id, tab.path);
               }}
             >
               ×
@@ -108,6 +124,15 @@ export function EditorTabs(): ReactElement {
         );
       })}
       <div className="editor-tabs-actions">
+        <button
+          type="button"
+          className="tree-toolbtn"
+          data-testid="editor-split"
+          title={t('tabs.split')}
+          onClick={() => splitEditorGroup(group.id)}
+        >
+          {ICON_SPLIT}
+        </button>
         <button
           type="button"
           className="tree-toolbtn"

@@ -33,7 +33,7 @@ export const PL = {
   // Doki
   'dock.right': 'Prawy dok',
   'dock.bottom': 'Dolny dok',
-  'dock.split': 'Podziel: wydziel aktywną kartę do panelu obok',
+  'dock.split': 'Podziel przestrzeń: aktywna karta lub świeża sesja w panelu obok',
   'dock.newClaude': 'Nowa sesja Claude w tym panelu',
   'dock.newTerminal': 'Nowy terminal w tym panelu',
   'dock.statusDone': 'Claude skończył pracę',
@@ -44,6 +44,7 @@ export const PL = {
   'dock.closeMessage': 'Karta „{title}" ma działający proces — zostanie zakończony.',
 
   // Zakładki edytora i obszar edytora
+  'tabs.split': 'Podziel przestrzeń roboczą — nowa grupa edytora obok',
   'tabs.preview': 'Podgląd przeglądarki (localhost) z trybem wskazywania elementów',
   'tabs.graphTitle': 'Graf wiedzy',
   'tabs.previewTitle': 'Podgląd',
@@ -361,7 +362,7 @@ export const EN: Record<StringKey, string> = {
 
   'dock.right': 'Right dock',
   'dock.bottom': 'Bottom dock',
-  'dock.split': 'Split: move the active tab to a pane alongside',
+  'dock.split': 'Split the space: active tab or a fresh session in a pane alongside',
   'dock.newClaude': 'New Claude session in this pane',
   'dock.newTerminal': 'New terminal in this pane',
   'dock.statusDone': 'Claude finished working',
@@ -371,6 +372,7 @@ export const EN: Record<StringKey, string> = {
   'dock.closeTitle': 'Close this tab?',
   'dock.closeMessage': 'Tab “{title}” has a running process — it will be terminated.',
 
+  'tabs.split': 'Split the workspace — a new editor group alongside',
   'tabs.preview': 'Browser preview (localhost) with element picking mode',
   'tabs.graphTitle': 'Knowledge graph',
   'tabs.previewTitle': 'Preview',

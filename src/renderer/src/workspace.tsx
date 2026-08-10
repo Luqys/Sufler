@@ -9,14 +9,20 @@ import {
   type ReactNode,
 } from 'react';
 import {
-  activateTab as activateTabState,
-  closeTab as closeTabState,
-  emptyTabsState,
-  openTab as openTabState,
-  pinTab as pinTabState,
-  reorderTab as reorderTabState,
-  type EditorTabsState,
-} from '../../shared/editor-tabs';
+  activateTabInGroup,
+  activeGroup,
+  allOpenPaths,
+  closeTabInGroup,
+  groupsWithPath,
+  initialGroupsState,
+  openTabInActiveGroup,
+  pinTabEverywhere,
+  pinTabInGroup,
+  reorderTabInGroup,
+  setActiveGroup,
+  splitGroup as splitGroupState,
+  type EditorGroupsState,
+} from '../../shared/editor-groups';
 import type { ReadFileError, WatchEvent } from '../../shared/ipc';
 import { isImagePath } from '../../shared/media';
 import { baseName } from '../../shared/paths';
@@ -53,7 +59,8 @@ interface WorkspaceValue {
   root: string;
   /** Vault Obsidiana — drugi korzeń drzewa plików (warstwa 1 integracji). */
   vault: string | null;
-  tabsState: EditorTabsState;
+  /** Grupy edytora (M31) — podział przestrzeni roboczej na kolumny. */
+  groups: EditorGroupsState;
   buffers: ReadonlyMap<string, BufferInfo>;
   dirtyPaths: ReadonlySet<string>;
   revealTarget: RevealTarget | null;
@@ -63,11 +70,15 @@ interface WorkspaceValue {
   openKnowledgeGraph(): void;
   chooseVault(): void;
   clearVault(): void;
-  activateTab(path: string): void;
-  pinTab(path: string): void;
+  /** Uaktywnia grupę (kliknięcie gdziekolwiek w jej obrębie). */
+  focusGroup(groupId: string): void;
+  /** Dzieli grupę — nowa grupa obok, z klonem aktywnej zakładki. Bez limitu. */
+  splitEditorGroup(groupId: string): void;
+  activateTab(groupId: string, path: string): void;
+  pinTab(groupId: string, path: string): void;
   /** Przeciąganie zakładki w pasku — wstawia ją na pozycję zakładki docelowej. */
-  reorderTab(fromPath: string, toPath: string): void;
-  closeTab(path: string): void;
+  reorderTab(groupId: string, fromPath: string, toPath: string): void;
+  closeTab(groupId: string, path: string): void;
   saveActiveFile(): void;
   reloadActiveFromDisk(): void;
   keepMyVersion(): void;
@@ -95,13 +106,15 @@ function describeReadError(error: ReadFileError): string {
   }
 }
 
+let nextGroupNumber = 1;
+
 export function WorkspaceProvider({ children }: { children: ReactNode }): ReactElement | null {
   const { confirmDialog, notify } = useDialogs();
   const [root, setRoot] = useState<string | null>(null);
   const [rootResolved, setRootResolved] = useState(false);
 
-  const [tabsState, setTabsStateRaw] = useState<EditorTabsState>(emptyTabsState);
-  const tabsRef = useRef(tabsState);
+  const [groups, setGroupsRaw] = useState<EditorGroupsState>(() => initialGroupsState());
+  const groupsRef = useRef(groups);
 
   const buffersRef = useRef<Map<string, BufferInfo>>(new Map());
   const [buffers, setBuffersState] = useState<ReadonlyMap<string, BufferInfo>>(buffersRef.current);
@@ -126,13 +139,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     });
   }, []);
 
-  /** Zmiana zakładek + sprzątanie modeli/buforów po zakładkach, które zniknęły (np. zastąpiony podgląd). */
-  const applyTabs = useCallback(
-    (updater: (state: EditorTabsState) => EditorTabsState) => {
-      const before = tabsRef.current.tabs.map((tab) => tab.path);
-      tabsRef.current = updater(tabsRef.current);
-      setTabsStateRaw(tabsRef.current);
-      const after = new Set(tabsRef.current.tabs.map((tab) => tab.path));
+  /** Zmiana grup + sprzątanie modeli/buforów po ścieżkach, które zniknęły ze wszystkich grup. */
+  const applyGroups = useCallback(
+    (updater: (state: EditorGroupsState) => EditorGroupsState) => {
+      const before = allOpenPaths(groupsRef.current);
+      groupsRef.current = updater(groupsRef.current);
+      setGroupsRaw(groupsRef.current);
+      const after = new Set(allOpenPaths(groupsRef.current));
       for (const path of before) {
         if (!after.has(path)) {
           disposeModel(path);
@@ -179,11 +192,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
   }, []);
 
   // Brudny podgląd przypina się automatycznie — inaczej kolejny podgląd
-  // zastąpiłby zakładkę z niezapisanymi zmianami.
+  // zastąpiłby zakładkę z niezapisanymi zmianami (we wszystkich grupach).
   useEffect(() => {
     setDirtyListener((path, dirty) => {
       if (dirty) {
-        applyTabs((state) => pinTabState(state, path));
+        applyGroups((state) => pinTabEverywhere(state, path));
       }
       setDirtyPaths((prev) => {
         if (prev.has(path) === dirty) {
@@ -199,12 +212,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
       });
     });
     return () => setDirtyListener(null);
-  }, [applyTabs]);
+  }, [applyGroups]);
 
   const openFile = useCallback(
     (path: string, options?: { pinned?: boolean }) => {
       const pinned = options?.pinned ?? false;
-      const open = (): void => applyTabs((state) => openTabState(state, path, baseName(path), pinned));
+      const open = (): void =>
+        applyGroups((state) => openTabInActiveGroup(state, path, baseName(path), pinned));
       if (buffersRef.current.has(path)) {
         open();
         return;
@@ -234,7 +248,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         open();
       });
     },
-    [applyTabs, patchBuffers],
+    [applyGroups, patchBuffers],
   );
 
   const [revealTarget, setRevealTarget] = useState<RevealTarget | null>(null);
@@ -249,26 +263,41 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     [openFile],
   );
 
+  const focusGroup = useCallback(
+    (groupId: string) => applyGroups((state) => setActiveGroup(state, groupId)),
+    [applyGroups],
+  );
+
+  const splitEditorGroup = useCallback(
+    (groupId: string) =>
+      applyGroups((state) => splitGroupState(state, groupId, `group-${++nextGroupNumber}`)),
+    [applyGroups],
+  );
+
   const activateTab = useCallback(
-    (path: string) => applyTabs((state) => activateTabState(state, path)),
-    [applyTabs],
+    (groupId: string, path: string) =>
+      applyGroups((state) => activateTabInGroup(state, groupId, path)),
+    [applyGroups],
   );
 
   const pinTab = useCallback(
-    (path: string) => applyTabs((state) => pinTabState(state, path)),
-    [applyTabs],
+    (groupId: string, path: string) => applyGroups((state) => pinTabInGroup(state, groupId, path)),
+    [applyGroups],
   );
 
   const reorderTab = useCallback(
-    (fromPath: string, toPath: string) =>
-      applyTabs((state) => reorderTabState(state, fromPath, toPath)),
-    [applyTabs],
+    (groupId: string, fromPath: string, toPath: string) =>
+      applyGroups((state) => reorderTabInGroup(state, groupId, fromPath, toPath)),
+    [applyGroups],
   );
 
   const closeTab = useCallback(
-    (path: string) => {
-      if (!isDirty(path)) {
-        applyTabs((state) => closeTabState(state, path));
+    (groupId: string, path: string) => {
+      // Pytamy o niezapisane zmiany tylko przy ostatnim wystąpieniu ścieżki —
+      // dopóki plik żyje w innej grupie, model i zmiany zostają.
+      const lastOccurrence = groupsWithPath(groupsRef.current, path) <= 1;
+      if (!isDirty(path) || !lastOccurrence) {
+        applyGroups((state) => closeTabInGroup(state, groupId, path));
         return;
       }
       void confirmDialog({
@@ -278,15 +307,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         danger: true,
       }).then((accepted) => {
         if (accepted) {
-          applyTabs((state) => closeTabState(state, path));
+          applyGroups((state) => closeTabInGroup(state, groupId, path));
         }
       });
     },
-    [applyTabs, confirmDialog],
+    [applyGroups, confirmDialog],
   );
 
   const saveActiveFile = useCallback(() => {
-    const path = tabsRef.current.activePath;
+    const path = activeGroup(groupsRef.current).activePath;
     if (!path) {
       return;
     }
@@ -311,7 +340,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
   }, [notify, patchBuffers]);
 
   const reloadActiveFromDisk = useCallback(() => {
-    const path = tabsRef.current.activePath;
+    const path = activeGroup(groupsRef.current).activePath;
     if (!path) {
       return;
     }
@@ -332,7 +361,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
   }, [patchBuffers]);
 
   const keepMyVersion = useCallback(() => {
-    const path = tabsRef.current.activePath;
+    const path = activeGroup(groupsRef.current).activePath;
     if (!path) {
       return;
     }
@@ -347,18 +376,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
   const chooseProject = useCallback(() => {
     void window.api.openProjectDialog().then((picked) => {
       if (picked) {
-        applyTabs(() => emptyTabsState);
+        applyGroups(() => initialGroupsState());
         setRoot(picked);
       }
     });
-  }, [applyTabs]);
+  }, [applyGroups]);
 
   // Obserwacja plików otwartych w zakładkach (bez pseudo-zakładek vn3o://).
   useEffect(() => {
-    void window.api.watchFiles(
-      tabsState.tabs.map((tab) => tab.path).filter((path) => !path.startsWith('vn3o://')),
-    );
-  }, [tabsState.tabs]);
+    void window.api.watchFiles(allOpenPaths(groups).filter((path) => !path.startsWith('vn3o://')));
+  }, [groups]);
 
   const handleWatchEvent = useCallback(
     (event: WatchEvent) => {
@@ -403,12 +430,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
   }, [handleWatchEvent]);
 
   const openBrowserPreview = useCallback(() => {
-    applyTabs((state) => openTabState(state, BROWSER_PREVIEW_PATH, t('tabs.previewTitle'), true));
-  }, [applyTabs]);
+    applyGroups((state) =>
+      openTabInActiveGroup(state, BROWSER_PREVIEW_PATH, t('tabs.previewTitle'), true),
+    );
+  }, [applyGroups]);
 
   const openKnowledgeGraph = useCallback(() => {
-    applyTabs((state) => openTabState(state, KNOWLEDGE_GRAPH_PATH, t('tabs.graphTitle'), true));
-  }, [applyTabs]);
+    applyGroups((state) =>
+      openTabInActiveGroup(state, KNOWLEDGE_GRAPH_PATH, t('tabs.graphTitle'), true),
+    );
+  }, [applyGroups]);
 
   // Cmd+S zapisuje aktywną zakładkę niezależnie od tego, co ma fokus.
   useEffect(() => {
@@ -444,7 +475,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
       value={{
         root,
         vault,
-        tabsState,
+        groups,
         buffers,
         dirtyPaths,
         revealTarget,
@@ -452,6 +483,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         openFileAt,
         openBrowserPreview,
         openKnowledgeGraph,
+        focusGroup,
+        splitEditorGroup,
         activateTab,
         pinTab,
         reorderTab,

@@ -17,6 +17,7 @@ import {
   closeTab as closeTabState,
   emptyDocksState,
   findTab,
+  insertPaneAfter as insertPaneAfterState,
   moveTab as moveTabState,
   splitPane as splitPaneState,
   updateTab as updateTabState,
@@ -36,6 +37,8 @@ interface AddTabOptions {
   title?: string;
   /** Panel docelowy (domyślnie ostatni panel doku). */
   paneId?: string;
+  /** Podział przestrzeni: nowa sesja ląduje w świeżym panelu tuż za wskazanym. */
+  splitAfterPaneId?: string;
 }
 
 interface DocksValue {
@@ -99,9 +102,16 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
               }).push
             : undefined;
         createTerminalInstance(id, result.ptyId, onOutput);
-        applyDocks((state) =>
-          addTabState(
-            state,
+        applyDocks((state) => {
+          let next = state;
+          let targetPaneId = options?.paneId;
+          if (options?.splitAfterPaneId) {
+            const newPaneId = `pane-${++nextPaneNumber}`;
+            next = insertPaneAfterState(next, dock, options.splitAfterPaneId, newPaneId);
+            targetPaneId = newPaneId;
+          }
+          return addTabState(
+            next,
             dock,
             {
               id,
@@ -111,9 +121,9 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
               ptyId: result.ptyId,
               status: 'running',
             },
-            options?.paneId,
-          ),
-        );
+            targetPaneId,
+          );
+        });
       });
     },
     [applyDocks, notify, root],

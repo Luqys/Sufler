@@ -146,17 +146,25 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
           ))}
         </div>
         <div className="dock-add-wrap">
-          {pane.tabs.length >= 2 && activeTab && (
-            <button
-              type="button"
-              className="dock-add"
-              data-testid={first ? `${dockId}-pane-split` : undefined}
-              title={t('dock.split')}
-              onClick={() => splitTab(activeTab.id)}
-            >
-              {ICON_SPLIT}
-            </button>
-          )}
+          <button
+            type="button"
+            className="dock-add"
+            data-testid={first ? `${dockId}-pane-split` : undefined}
+            title={t('dock.split')}
+            onClick={() => {
+              // ≥2 karty: aktywna wyjeżdża do panelu obok. Inaczej panel obok
+              // dostaje świeżą sesję — podział działa więc bez ograniczeń.
+              if (activeTab && pane.tabs.length >= 2) {
+                splitTab(activeTab.id);
+              } else {
+                addTab(dockId, activeTab?.kind ?? (dockId === 'right' ? 'claude' : 'terminal'), {
+                  splitAfterPaneId: pane.id,
+                });
+              }
+            }}
+          >
+            {ICON_SPLIT}
+          </button>
           <button
             type="button"
             className="dock-add"

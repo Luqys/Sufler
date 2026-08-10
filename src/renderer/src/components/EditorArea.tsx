@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import { useT } from '../i18n';
+import type { EditorGroup } from '../../../shared/editor-groups';
 import { isImagePath } from '../../../shared/media';
 import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../../shared/preview';
 import { useWorkspace } from '../workspace';
@@ -9,59 +10,40 @@ import { GraphView } from './GraphView';
 import { ImageViewer } from './ImageViewer';
 import { MonacoEditor } from './MonacoEditor';
 
-export function EditorArea(): ReactElement {
-  const { tabsState, buffers, revealTarget, reloadActiveFromDisk, keepMyVersion, closeTab } =
-    useWorkspace();
+/** Zawartość grupy pod paskiem zakładek — zależna od aktywnej zakładki grupy. */
+function GroupContent({ group, focused }: { group: EditorGroup; focused: boolean }): ReactElement {
+  const { buffers, revealTarget, reloadActiveFromDisk, keepMyVersion, closeTab } = useWorkspace();
   const t = useT();
-  const activePath = tabsState.activePath;
+  const activePath = group.activePath;
 
   if (!activePath) {
     return (
-      <main className="editor-area" data-testid="editor">
-        <EditorTabs />
-        <div className="editor-empty-wrap">
-          <div className="editor-empty">
-            <div className="editor-empty-title">Sufler</div>
-            <p className="placeholder">{t('editor.empty')}</p>
-          </div>
+      <div className="editor-empty-wrap">
+        <div className="editor-empty">
+          <div className="editor-empty-title">Sufler</div>
+          <p className="placeholder">{t('editor.empty')}</p>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (activePath === BROWSER_PREVIEW_PATH) {
-    return (
-      <main className="editor-area" data-testid="editor">
-        <EditorTabs />
-        <BrowserPreview />
-      </main>
-    );
+    return <BrowserPreview />;
   }
 
   if (activePath === KNOWLEDGE_GRAPH_PATH) {
-    return (
-      <main className="editor-area" data-testid="editor">
-        <EditorTabs />
-        <GraphView />
-      </main>
-    );
+    return <GraphView />;
   }
 
   if (isImagePath(activePath)) {
-    return (
-      <main className="editor-area" data-testid="editor">
-        <EditorTabs />
-        <ImageViewer path={activePath} />
-      </main>
-    );
+    return <ImageViewer path={activePath} />;
   }
 
   const buffer = buffers.get(activePath);
   const external = buffer?.external ?? null;
 
   return (
-    <main className="editor-area" data-testid="editor">
-      <EditorTabs />
+    <>
       {external !== null && (
         <div className="external-bar" data-testid="external-bar">
           <span className="external-msg">
@@ -86,7 +68,11 @@ export function EditorArea(): ReactElement {
             {t('editor.keepMine')}
           </button>
           {external === 'deleted' && (
-            <button type="button" className="bar-btn" onClick={() => closeTab(activePath)}>
+            <button
+              type="button"
+              className="bar-btn"
+              onClick={() => closeTab(group.id, activePath)}
+            >
               {t('common.closeTab')}
             </button>
           )}
@@ -99,9 +85,41 @@ export function EditorArea(): ReactElement {
       ) : (
         <MonacoEditor
           path={activePath}
-          reveal={revealTarget?.path === activePath ? revealTarget : undefined}
+          reveal={
+            focused && revealTarget?.path === activePath ? revealTarget : undefined
+          }
         />
       )}
+    </>
+  );
+}
+
+/**
+ * Przestrzeń robocza edytora (M31): kolumny grup, każda z własnym paskiem
+ * zakładek i przyciskiem podziału — dzielić można bez ograniczeń.
+ */
+export function EditorArea(): ReactElement {
+  const { groups, focusGroup } = useWorkspace();
+  const multi = groups.groups.length > 1;
+
+  return (
+    <main className="editor-area" data-testid="editor">
+      <div className={`editor-groups${multi ? ' multi' : ''}`}>
+        {groups.groups.map((group, index) => {
+          const focused = group.id === groups.activeGroupId;
+          return (
+            <section
+              key={group.id}
+              className={`editor-group${focused ? ' focused' : ''}`}
+              data-testid={`editor-group-${index}`}
+              onMouseDownCapture={() => focusGroup(group.id)}
+            >
+              <EditorTabs group={group} />
+              <GroupContent group={group} focused={focused} />
+            </section>
+          );
+        })}
+      </div>
     </main>
   );
 }

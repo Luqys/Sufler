@@ -181,6 +181,26 @@ export function splitPane(state: DocksState, tabId: string, newPaneId: string): 
   return replacePanes(without, found.dock, panes);
 }
 
+/**
+ * Wstawia nowy, pusty panel tuż za wskazanym — podział przestrzeni doku
+ * pod świeżą sesję. Bez limitu: każdy panel można dzielić dalej.
+ */
+export function insertPaneAfter(
+  state: DocksState,
+  dock: DockId,
+  afterPaneId: string,
+  newPaneId: string,
+): DocksState {
+  const panes = state[dock].panes;
+  if (panes.some((pane) => pane.id === newPaneId)) {
+    return state;
+  }
+  const index = panes.findIndex((pane) => pane.id === afterPaneId);
+  const next = [...panes];
+  next.splice(index === -1 ? next.length : index + 1, 0, emptyPane(newPaneId));
+  return replacePanes(state, dock, next);
+}
+
 export function updateTab(state: DocksState, id: string, patch: Partial<DockTab>): DocksState {
   const found = findTab(state, id);
   if (!found) {

@@ -7,6 +7,7 @@ import {
   type CSSProperties,
   type ReactElement,
 } from 'react';
+import { activeGroup } from '../../../shared/editor-groups';
 import type { DirEntry, TreeChangedEvent } from '../../../shared/ipc';
 import { baseName } from '../../../shared/paths';
 import { useT } from '../i18n';
@@ -61,8 +62,9 @@ const VAULT_HIDDEN = new Set(['.obsidian', '.trash']);
 
 export function FileTree(): ReactElement {
   const t = useT();
-  const { root, vault, tabsState, openFile, chooseProject, chooseVault, clearVault } =
+  const { root, vault, groups, openFile, chooseProject, chooseVault, clearVault } =
     useWorkspace();
+  const activePath = activeGroup(groups).activePath;
   const [listings, setListings] = useState<ReadonlyMap<string, Listing>>(new Map());
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [showIgnored, setShowIgnored] = useState(false);
@@ -229,7 +231,7 @@ export function FileTree(): ReactElement {
       if (entry.ignored) {
         classes.push('ignored');
       }
-      if (tabsState.activePath === entry.path) {
+      if (activePath === entry.path) {
         classes.push('selected');
       }
       if (gitState) {
