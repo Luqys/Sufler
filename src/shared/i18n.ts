@@ -198,6 +198,18 @@ export const PL = {
   'graph.related': 'Powiązane ({count})',
   'graph.noRelated': 'Brak powiązań z innymi notatkami',
   'graph.hint': 'Klik = powiązania · podwójny klik = otwórz · przeciągnij węzeł/tło · kółko = zoom',
+  'graph.modeTags': 'Tagi',
+  'graph.modeFresh': 'Świeżość',
+  'graph.titleTags': 'Tagi notatek',
+  'graph.titleFresh': 'Ostatnia aktywność',
+  'graph.noTags': '(bez tagów)',
+  'graph.freshToday': 'Dziś',
+  'graph.freshWeek': 'Ostatni tydzień',
+  'graph.freshMonth': 'Ostatni miesiąc',
+  'graph.freshOlder': 'Starsze',
+  'graph.searchPh': 'Szukaj w grafie…',
+  'graph.hideOrphans': 'Ukryj osierocone',
+  'graph.orphansTitle': 'Schowaj notatki bez żadnych połączeń',
 
   // Panel wiedzy
   'knowledge.hint':
@@ -591,6 +603,18 @@ export const EN: Record<StringKey, string> = {
   'graph.related': 'Related ({count})',
   'graph.noRelated': 'No links to other notes',
   'graph.hint': 'Click = links · double-click = open · drag a node/background · wheel = zoom',
+  'graph.modeTags': 'Tags',
+  'graph.modeFresh': 'Freshness',
+  'graph.titleTags': 'Note tags',
+  'graph.titleFresh': 'Recent activity',
+  'graph.noTags': '(no tags)',
+  'graph.freshToday': 'Today',
+  'graph.freshWeek': 'Past week',
+  'graph.freshMonth': 'Past month',
+  'graph.freshOlder': 'Older',
+  'graph.searchPh': 'Search the graph…',
+  'graph.hideOrphans': 'Hide orphans',
+  'graph.orphansTitle': 'Hide notes without any connections',
 
   'knowledge.hint':
     'All the project’s markdown notes in one place. The knowledge outline (`konspekt-wiedzy.md`) updates itself on every note change, and Claude fetches it with the MCP `konspekt` tool — it always knows what lives where.',

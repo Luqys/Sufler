@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { resolveGraphEdges, type GraphGroup, type GraphNode, type KnowledgeGraph } from '../shared/graph';
-import { classifyNote } from '../shared/knowledge-categories';
+import { classifyNote, extractTags, TAGS_FALLBACK } from '../shared/knowledge-categories';
 import { listMarkdownFiles } from './knowledge';
 
 const execFileAsync = promisify(execFile);
@@ -54,9 +54,11 @@ export async function buildKnowledgeGraph(root: string): Promise<KnowledgeGraph>
   const authorCounts = new Map<string, number>();
   const categoryCounts = new Map<string, number>();
   const layerCounts = new Map<string, number>();
+  const tagCounts = new Map<string, number>();
   for (const file of withContent) {
     const { author, updatedAt } = await lastAuthor(root, file.path);
     const { category, layer } = classifyNote(file.path, file.content);
+    const tags = extractTags(file.content);
     nodes.push({
       id: file.path,
       title: (file.path.split('/').pop() ?? file.path).replace(/\.md$/, ''),
@@ -65,10 +67,14 @@ export async function buildKnowledgeGraph(root: string): Promise<KnowledgeGraph>
       updatedAt,
       category,
       layer,
+      tags,
     });
     count(authorCounts, author ?? '(niezacommitowane)');
     count(categoryCounts, category);
     count(layerCounts, layer);
+    for (const tag of tags.length > 0 ? tags : [TAGS_FALLBACK]) {
+      count(tagCounts, tag);
+    }
   }
 
   return {
@@ -77,5 +83,6 @@ export async function buildKnowledgeGraph(root: string): Promise<KnowledgeGraph>
     authors: toGroups(authorCounts),
     categories: toGroups(categoryCounts),
     layers: toGroups(layerCounts),
+    tags: toGroups(tagCounts),
   };
 }

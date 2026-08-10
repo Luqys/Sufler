@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CATEGORY_FALLBACK,
   classifyNote,
+  extractTags,
   LAYER_BACKEND,
   LAYER_BOTH,
   LAYER_FRONTEND,
@@ -81,5 +82,30 @@ describe('normalizeLayer', () => {
 
   it('nieznaną wartość zostawia jako własną etykietę', () => {
     expect(normalizeLayer('infrastruktura')).toBe('Infrastruktura');
+  });
+});
+
+describe('extractTags', () => {
+  it('czyta listę YAML z `tagi:`, normalizuje # i wielkość liter, deduplikuje', () => {
+    const note = '---\ntagi: [Projekt, "#Backend", projekt]\n---\n\n# N\n';
+    expect(extractTags(note)).toEqual(['projekt', 'backend']);
+  });
+
+  it('akceptuje zapis po przecinkach oraz klucz `tags:`', () => {
+    // Wartość w cudzysłowie — goły „ #…" YAML ściąłby jako komentarz.
+    expect(extractTags('---\ntags: "alfa, Beta,, #gamma"\n---\n')).toEqual([
+      'alfa',
+      'beta',
+      'gamma',
+    ]);
+  });
+
+  it('bez frontmattera lub bez klucza zwraca pustą listę', () => {
+    expect(extractTags('# Notatka bez tagów\n')).toEqual([]);
+    expect(extractTags('---\nkategoria: X\n---\n')).toEqual([]);
+  });
+
+  it('wartość liczbową traktuje jak pojedynczy tag', () => {
+    expect(extractTags('---\ntagi: 2026\n---\n')).toEqual(['2026']);
   });
 });

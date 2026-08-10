@@ -193,3 +193,28 @@ export function classifyNote(path: string, content: string): NoteClassification 
     layer: fmLayer ? normalizeLayer(fmLayer) : heuristicLayer(haystack),
   };
 }
+
+/**
+ * Wartownik grupy notatek bez tagów — wartość techniczna wspólna dla main
+ * i renderera (w legendzie wyświetlana przez i18n `graph.noTags`).
+ */
+export const TAGS_FALLBACK = '(bez tagów)';
+
+/** Tagi z frontmattera (`tagi:` lub `tags:`; lista YAML albo po przecinkach). */
+export function extractTags(content: string): string[] {
+  const { data } = parseFrontmatter(content);
+  const raw = data['tagi'] ?? data['tags'];
+  const values = Array.isArray(raw)
+    ? raw.map(String)
+    : typeof raw === 'string' || typeof raw === 'number'
+      ? String(raw).split(',')
+      : [];
+  const tags: string[] = [];
+  for (const value of values) {
+    const tag = value.trim().replace(/^#/, '').toLowerCase();
+    if (tag !== '' && !tags.includes(tag)) {
+      tags.push(tag);
+    }
+  }
+  return tags;
+}

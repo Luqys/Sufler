@@ -1321,6 +1321,40 @@ body.dragging-horizontal .splitter.horizontal::after {
   background: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
+/* --- M39: szukajka grafu i ukrywanie osieroconych --- */
+
+.graph-search {
+  width: 132px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--bg) 65%, transparent);
+  color: var(--text);
+  font-size: 11px;
+  outline: none;
+}
+
+.graph-search:focus {
+  border-color: var(--accent);
+}
+
+.graph-search::placeholder {
+  color: var(--muted);
+}
+
+.graph-overlay .bar-btn.graph-orphans-btn::before {
+  content: '◌';
+}
+
+.graph-overlay .bar-btn.graph-orphans-on {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.graph-details-hashtags {
+  color: var(--accent);
+}
+
 .graph-legend {
   position: absolute;
   top: 10px;
