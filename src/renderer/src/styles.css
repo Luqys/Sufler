@@ -15,6 +15,7 @@
   --accent: #c15f3c;
   --git-modified: #a1690b;
   --git-untracked: #388a34;
+  --card-highlight: rgb(255 255 255 / 0.65);
 }
 
 /* Kolory przewodnie (tryb motywu załatwia nativeTheme → prefers-color-scheme). */
@@ -42,6 +43,7 @@
     --accent: #d97757;
     --git-modified: #e2c08d;
     --git-untracked: #73c991;
+    --card-highlight: rgb(255 255 255 / 0.07);
   }
   :root[data-accent='blue'] {
     --accent: #60a5fa;
@@ -599,29 +601,100 @@ body.dragging-horizontal .splitter.horizontal::after {
 /* --- Ekran startowy --- */
 
 .welcome {
+  position: relative;
+  overflow: hidden;
   display: grid;
   place-items: center;
   min-height: 0;
-  /* Delikatna poświata akcentu nad kartą — zamiast płaskiej pustki. */
+  background: var(--bg);
+}
+
+/* Dryfujące poświaty: ciepły akcent + chłodne echa neonu z logo. */
+.welcome::before {
+  content: '';
+  position: absolute;
+  inset: -12%;
+  pointer-events: none;
   background:
     radial-gradient(
-      640px 420px at 50% 30%,
-      color-mix(in srgb, var(--accent) 12%, transparent),
+      36% 32% at 40% 28%,
+      color-mix(in srgb, var(--accent) 15%, transparent),
       transparent 70%
     ),
-    var(--bg);
+    radial-gradient(32% 30% at 66% 70%, rgb(56 189 248 / 0.1), transparent 70%),
+    radial-gradient(26% 24% at 60% 14%, rgb(232 121 249 / 0.08), transparent 70%);
+  animation: welcome-drift 22s ease-in-out infinite alternate;
+}
+
+/* Subtelna siatka kropek, wygaszana ku brzegom. */
+.welcome::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--text) 20%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+  -webkit-mask-image: radial-gradient(720px 520px at 50% 42%, rgb(0 0 0 / 0.45), transparent 78%);
+  mask-image: radial-gradient(720px 520px at 50% 42%, rgb(0 0 0 / 0.45), transparent 78%);
+}
+
+@keyframes welcome-drift {
+  from {
+    transform: translate3d(-2%, -1.5%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(2%, 1.5%, 0) scale(1.06);
+  }
 }
 
 .welcome-card {
+  position: relative;
+  z-index: 1;
   width: min(480px, calc(100vw - 80px));
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 34px 30px 26px;
+  padding: 36px 30px 26px;
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 18px;
   background: color-mix(in srgb, var(--panel) 88%, transparent);
-  box-shadow: 0 18px 50px color-mix(in srgb, var(--text) 14%, transparent);
+  backdrop-filter: blur(22px);
+  box-shadow:
+    0 22px 60px color-mix(in srgb, var(--text) 16%, transparent),
+    inset 0 1px 0 var(--card-highlight);
+  animation: welcome-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes welcome-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.welcome-hero,
+.welcome-open,
+.welcome-recents {
+  animation: welcome-rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.welcome-hero {
+  animation-delay: 0.06s;
+}
+
+.welcome-open {
+  animation-delay: 0.14s;
+}
+
+.welcome-recents {
+  animation-delay: 0.22s;
 }
 
 .welcome-hero {
@@ -632,20 +705,45 @@ body.dragging-horizontal .splitter.horizontal::after {
   text-align: center;
 }
 
-.welcome-mark {
-  width: 46px;
-  height: 46px;
+/* Neonowa poświata pod logo — nawiązuje do kolorów znaku. */
+.welcome-mark-halo {
+  position: relative;
   display: grid;
   place-items: center;
-  border-radius: 13px;
-  font-size: 24px;
-  line-height: 1;
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  margin-bottom: 2px;
+}
+
+.welcome-mark-halo::before {
+  content: '';
+  position: absolute;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 210deg,
+    rgb(34 211 238 / 0.75),
+    rgb(168 85 247 / 0.7),
+    rgb(236 72 153 / 0.7),
+    rgb(34 211 238 / 0.75)
+  );
+  filter: blur(28px);
+  opacity: 0.5;
+  animation: welcome-halo 5s ease-in-out infinite alternate;
+}
+
+@keyframes welcome-halo {
+  from {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
 }
 
 .welcome-mark-logo {
+  position: relative;
   width: 76px;
   height: 76px;
   border-radius: 18px;
@@ -653,10 +751,30 @@ body.dragging-horizontal .splitter.horizontal::after {
 }
 
 .welcome-logo {
-  font-size: 25px;
+  font-size: 26px;
   font-weight: 800;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.4px;
   color: var(--text);
+}
+
+.welcome-tagline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: color-mix(in srgb, var(--accent) 80%, var(--text));
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.welcome-tagline-spark {
+  font-size: 10px;
+  line-height: 1;
+  color: var(--accent);
 }
 
 .welcome-sub {
@@ -664,6 +782,7 @@ body.dragging-horizontal .splitter.horizontal::after {
   color: var(--muted);
   line-height: 1.55;
   max-width: 340px;
+  margin-top: 2px;
 }
 
 .welcome-open {
@@ -673,17 +792,36 @@ body.dragging-horizontal .splitter.horizontal::after {
   gap: 7px;
   padding: 10px 16px;
   border: none;
-  border-radius: 9px;
-  background: var(--accent);
+  border-radius: 10px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 86%, #fff),
+    var(--accent)
+  );
   color: #fff;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow:
+    0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.25);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .welcome-open:hover {
-  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 22px color-mix(in srgb, var(--accent) 45%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+
+.welcome-open:active {
+  transform: translateY(0);
+  box-shadow:
+    0 3px 10px color-mix(in srgb, var(--accent) 35%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.18);
 }
 
 .welcome-recents {
@@ -722,6 +860,7 @@ body.dragging-horizontal .splitter.horizontal::after {
   color: var(--text);
   font-family: inherit;
   min-width: 0;
+  transition: background 0.12s ease;
 }
 
 .welcome-recent + .welcome-recent {
@@ -741,6 +880,14 @@ body.dragging-horizontal .splitter.horizontal::after {
   border-radius: 8px;
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
+  transition:
+    background 0.12s ease,
+    transform 0.12s ease;
+}
+
+.welcome-recent:hover .welcome-recent-icon {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  transform: scale(1.05);
 }
 
 .welcome-recent-text {
@@ -769,12 +916,28 @@ body.dragging-horizontal .splitter.horizontal::after {
   font-size: 16px;
   color: var(--muted);
   opacity: 0;
-  transition: opacity 0.12s ease;
+  transform: translateX(-4px);
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
 }
 
 .welcome-recent:hover .welcome-recent-go {
   opacity: 1;
+  transform: translateX(0);
   color: var(--accent);
+}
+
+/* Mniej ruchu dla osób, które go nie chcą. */
+@media (prefers-reduced-motion: reduce) {
+  .welcome::before,
+  .welcome-card,
+  .welcome-hero,
+  .welcome-open,
+  .welcome-recents,
+  .welcome-mark-halo::before {
+    animation: none;
+  }
 }
 
 /* --- Podgląd przeglądarki --- */
