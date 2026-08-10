@@ -84,6 +84,23 @@ export const PL = {
   'settings.vaultClear': 'Odepnij',
   'settings.config': 'Konfiguracja',
   'settings.configPath': 'Układ i stan aplikacji: ~/.config/sufler/ (layout.json, state.json)',
+  'settings.obsidianTitle': 'Obsidian — notatka dzienna',
+  'settings.obsidianApiKey': 'Klucz API (plugin Local REST API)',
+  'settings.obsidianUrl': 'Adres serwera',
+  'settings.obsidianDailyFile': 'Plik notatki — {date} to dzisiejsza data',
+  'settings.obsidianDailyHeading': 'Nagłówek docelowy',
+  'settings.obsidianHint':
+    'Zaznacz tekst w edytorze i użyj Cmd+Shift+L (albo menu kontekstowego), aby dopisać go pod wskazany nagłówek.',
+
+  // Warstwa 3 Obsidiana (M36)
+  'obsidian.sendAction': 'Wyślij zaznaczenie do notatki dziennej',
+  'obsidian.sendOk': 'Dopisano do notatki dziennej.',
+  'obsidian.sendEmpty': 'Zaznacz najpierw tekst do wysłania.',
+  'obsidian.sendNotConfigured':
+    'Uzupełnij konfigurację Obsidiana w Ustawieniach (klucz API, plik, nagłówek).',
+  'obsidian.sendUnreachable':
+    'Brak połączenia z Obsidianem — uruchom Obsidiana z włączonym pluginem Local REST API.',
+  'obsidian.sendRejected': 'Obsidian odrzucił zapis — sprawdź klucz API i nagłówek.',
 
   // Motywy i akcenty
   'theme.system': 'Systemowy',
@@ -434,6 +451,22 @@ export const EN: Record<StringKey, string> = {
   'settings.vaultClear': 'Unlink',
   'settings.config': 'Configuration',
   'settings.configPath': 'Layout and app state: ~/.config/sufler/ (layout.json, state.json)',
+  'settings.obsidianTitle': 'Obsidian — daily note',
+  'settings.obsidianApiKey': 'API key (Local REST API plugin)',
+  'settings.obsidianUrl': 'Server address',
+  'settings.obsidianDailyFile': 'Note file — {date} is today’s date',
+  'settings.obsidianDailyHeading': 'Target heading',
+  'settings.obsidianHint':
+    'Select text in the editor and use Cmd+Shift+L (or the context menu) to append it under the chosen heading.',
+
+  'obsidian.sendAction': 'Send selection to the daily note',
+  'obsidian.sendOk': 'Appended to the daily note.',
+  'obsidian.sendEmpty': 'Select some text to send first.',
+  'obsidian.sendNotConfigured':
+    'Complete the Obsidian configuration in Settings (API key, file, heading).',
+  'obsidian.sendUnreachable':
+    'Cannot reach Obsidian — launch Obsidian with the Local REST API plugin enabled.',
+  'obsidian.sendRejected': 'Obsidian rejected the write — check the API key and heading.',
 
   'theme.system': 'System',
   'theme.light': 'Light',

@@ -7,6 +7,7 @@ import type { KnowledgeGraph } from './graph';
 import type { LayoutState, LayoutVisibilityKey } from './layout';
 import type { UsageLimitsResult } from './limits';
 import type { McpConfigServer, McpDetail, McpListEntry } from './mcp';
+import type { ObsidianRestConfig } from './obsidian-rest';
 import type { SkillOverrideState } from './skills';
 
 export const IPC = {
@@ -70,7 +71,16 @@ export const IPC = {
   GitShowFile: 'git:show-file',
   ClaudeSessionsList: 'claude-sessions:list',
   ClaudeHookEvent: 'claude-hooks:event',
+  ObsidianResolveLinks: 'obsidian:resolve-links',
+  ObsidianOpenNote: 'obsidian:open-note',
+  ObsidianSendDaily: 'obsidian:send-daily',
+  ObsidianConfigGet: 'obsidian:config-get',
+  ObsidianConfigSet: 'obsidian:config-set',
 } as const;
+
+export type SendToNoteResult =
+  | { ok: true }
+  | { ok: false; error: 'not-configured' | 'unreachable' | 'rejected' };
 
 /** Żądanie serwera „ide" do renderera (openDiff, openFile, getOpenEditors…). */
 export interface IdeBridgeRequestPayload {
@@ -292,6 +302,14 @@ export interface WindowApi {
   listClaudeSessions(root: string): Promise<ClaudeSessionEntry[]>;
   /** Hooki Notification/Stop sesji Claude → deterministyczny status karty. */
   onClaudeHookEvent(listener: (event: ClaudeHookEvent) => void): void;
+  /** Wikilinki: nazwy notatek → ścieżki absolutne w vaultcie (null = brak). */
+  resolveNoteLinks(names: string[]): Promise<Record<string, string | null>>;
+  /** Deep link obsidian://open — Cmd+klik na notatce vaulta w drzewie. */
+  openNoteInObsidian(path: string): Promise<boolean>;
+  /** Zaznaczenie → dopisanie pod nagłówek notatki dziennej (Local REST API). */
+  sendToDailyNote(content: string): Promise<SendToNoteResult>;
+  getObsidianConfig(): Promise<ObsidianRestConfig>;
+  setObsidianConfig(config: ObsidianRestConfig): Promise<ObsidianRestConfig>;
 }
 
 export type McpStatusResult =

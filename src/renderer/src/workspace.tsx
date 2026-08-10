@@ -50,6 +50,7 @@ import {
   removePendingDiff,
   resolvePendingDiff,
 } from './ide/pending-diffs';
+import { initWikilinks } from './editor/wikilinks';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { t, tf } from './i18n';
 import { useDialogs } from './ui-dialogs';
@@ -622,6 +623,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
   useEffect(() => {
     window.api.onIdeBridgeRequest((request) => ideRequestRef.current(request));
   }, []);
+
+  // Wikilinki [[nazwa]] w Monaco — klik otwiera notatkę vaulta w edytorze.
+  useEffect(() => {
+    initWikilinks((path) => openFile(path));
+  }, [openFile]);
 
   const openKnowledgeGraph = useCallback(() => {
     applyGroups((state) =>

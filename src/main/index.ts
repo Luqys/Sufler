@@ -19,6 +19,14 @@ import { runGitLog, runGitShowCommit } from './git-log';
 import { runGitShowFile } from './git-show';
 import { runGitStatus } from './git-status';
 import { startIdeServer, stopIdeServer, updateIdeWorkspaceFolders } from './ide-server';
+import {
+  getObsidianConfig,
+  openNoteInObsidian,
+  resolveNoteLinks,
+  sendToDailyNote,
+  setObsidianConfig,
+} from './obsidian';
+import type { ObsidianRestConfig } from '../shared/obsidian-rest';
 import { installAppMenu } from './menu';
 import { readMcpConfig, runMcpGet, runMcpList } from './mcp/index';
 import { closeMcpWatcher, watchMcpConfig } from './mcp/watcher';
@@ -235,6 +243,15 @@ void app.whenReady().then(() => {
     runGitShowFile(root, rev, path),
   );
   ipcMain.handle(IPC.ClaudeSessionsList, (_event, root: string) => listClaudeSessions(root));
+  ipcMain.handle(IPC.ObsidianResolveLinks, (_event, names: string[]) =>
+    resolveNoteLinks(names),
+  );
+  ipcMain.handle(IPC.ObsidianOpenNote, (_event, path: string) => openNoteInObsidian(path));
+  ipcMain.handle(IPC.ObsidianSendDaily, (_event, content: string) => sendToDailyNote(content));
+  ipcMain.handle(IPC.ObsidianConfigGet, () => getObsidianConfig());
+  ipcMain.handle(IPC.ObsidianConfigSet, (_event, config: ObsidianRestConfig) =>
+    setObsidianConfig(config),
+  );
   ipcMain.handle(IPC.TreeWatchDirs, (event, dirs: string[]) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (win) {

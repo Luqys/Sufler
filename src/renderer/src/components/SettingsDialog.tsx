@@ -6,6 +6,7 @@ import {
   THEME_MODES,
   type Appearance,
 } from '../../../shared/appearance';
+import type { ObsidianRestConfig } from '../../../shared/obsidian-rest';
 import { applyAppearance } from '../appearance-client';
 import { useT } from '../i18n';
 import { useWorkspace } from '../workspace';
@@ -18,10 +19,19 @@ export function SettingsDialog({ onClose }: SettingsDialogProps): ReactElement {
   const { root, vault, chooseProject, chooseVault, clearVault } = useWorkspace();
   const t = useT();
   const [appearance, setAppearanceState] = useState<Appearance>(DEFAULT_APPEARANCE);
+  const [obsidian, setObsidian] = useState<ObsidianRestConfig>({});
 
   useEffect(() => {
     void window.api.getAppearance().then(setAppearanceState);
+    void window.api.getObsidianConfig().then(setObsidian);
   }, []);
+
+  const updateObsidian = (patch: Partial<ObsidianRestConfig>): void => {
+    setObsidian((current) => ({ ...current, ...patch }));
+  };
+  const saveObsidian = (): void => {
+    void window.api.setObsidianConfig(obsidian);
+  };
 
   const updateAppearance = (patch: Partial<Appearance>): void => {
     const next = { ...appearance, ...patch };
@@ -128,6 +138,54 @@ export function SettingsDialog({ onClose }: SettingsDialogProps): ReactElement {
               </button>
             )}
           </div>
+        </section>
+        <section className="settings-section">
+          <h3 className="view-title">{t('settings.obsidianTitle')}</h3>
+          <div className="settings-fields">
+            <label className="settings-field">
+              <span>{t('settings.obsidianApiKey')}</span>
+              <input
+                type="password"
+                data-testid="obsidian-api-key"
+                value={obsidian.apiKey ?? ''}
+                onChange={(event) => updateObsidian({ apiKey: event.target.value })}
+                onBlur={saveObsidian}
+              />
+            </label>
+            <label className="settings-field">
+              <span>{t('settings.obsidianUrl')}</span>
+              <input
+                type="text"
+                data-testid="obsidian-url"
+                placeholder="http://127.0.0.1:27123"
+                value={obsidian.url ?? ''}
+                onChange={(event) => updateObsidian({ url: event.target.value })}
+                onBlur={saveObsidian}
+              />
+            </label>
+            <label className="settings-field">
+              <span>{t('settings.obsidianDailyFile')}</span>
+              <input
+                type="text"
+                data-testid="obsidian-daily-file"
+                placeholder="Dziennik/{date}.md"
+                value={obsidian.dailyFile ?? ''}
+                onChange={(event) => updateObsidian({ dailyFile: event.target.value })}
+                onBlur={saveObsidian}
+              />
+            </label>
+            <label className="settings-field">
+              <span>{t('settings.obsidianDailyHeading')}</span>
+              <input
+                type="text"
+                data-testid="obsidian-daily-heading"
+                value={obsidian.dailyHeading ?? ''}
+                onChange={(event) => updateObsidian({ dailyHeading: event.target.value })}
+                onBlur={saveObsidian}
+              />
+            </label>
+          </div>
+          <p className="settings-path">{t('settings.obsidianHint')}</p>
         </section>
         <section className="settings-section">
           <h3 className="view-title">{t('settings.config')}</h3>

@@ -244,7 +244,23 @@ export function FileTree(): ReactElement {
             className={classes.join(' ')}
             style={indent}
             title={entry.path}
-            onClick={() => (entry.kind === 'dir' ? toggleDir(entry.path) : openFile(entry.path))}
+            onClick={(event) => {
+              if (entry.kind === 'dir') {
+                toggleDir(entry.path);
+                return;
+              }
+              // Cmd+klik na notatce vaulta → prawdziwy Obsidian (deep link).
+              if (
+                event.metaKey &&
+                entry.path.endsWith('.md') &&
+                vault !== null &&
+                entry.path.startsWith(`${vault}/`)
+              ) {
+                void window.api.openNoteInObsidian(entry.path);
+                return;
+              }
+              openFile(entry.path);
+            }}
             onDoubleClick={() => {
               if (entry.kind === 'file') {
                 openFile(entry.path, { pinned: true });
