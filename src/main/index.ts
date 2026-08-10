@@ -9,6 +9,7 @@ import { getClaudeUsage } from './usage';
 import { closeWatcher, setWatchedFiles } from './file-watcher';
 import { readDirListing, readFileForEditor, writeTextFile } from './fs-tree';
 import { readLayout, writeLayout } from './layout-store';
+import { runGitLog, runGitShowCommit } from './git-log';
 import { runGitStatus } from './git-status';
 import { installAppMenu } from './menu';
 import { readMcpConfig, runMcpGet, runMcpList } from './mcp/index';
@@ -71,6 +72,10 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.KnowledgeList, (_event, root: string) => listMarkdownFiles(root));
   ipcMain.handle(IPC.KnowledgeGenerate, (_event, root: string, paths: string[]) =>
     generateKnowledgeContext(root, paths),
+  );
+  ipcMain.handle(IPC.GitLog, (_event, root: string) => runGitLog(root));
+  ipcMain.handle(IPC.GitShowCommit, (_event, root: string, hash: string) =>
+    runGitShowCommit(root, hash),
   );
   ipcMain.handle(IPC.LayoutSet, (_event, raw: unknown) => {
     writeLayout(raw);

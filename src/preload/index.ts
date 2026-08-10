@@ -5,6 +5,8 @@ import type { LayoutVisibilityKey } from '../shared/layout';
 import type { UsageSummary } from '../shared/usage';
 import {
   IPC,
+  type GitCommitFile,
+  type GitLogResult,
   type GitStatusFile,
   type KnowledgeFile,
   type KnowledgeGenerateResult,
@@ -99,6 +101,9 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.KnowledgeList, root),
   generateKnowledge: (root: string, paths: string[]): Promise<KnowledgeGenerateResult> =>
     ipcRenderer.invoke(IPC.KnowledgeGenerate, root, paths),
+  gitLog: (root: string): Promise<GitLogResult> => ipcRenderer.invoke(IPC.GitLog, root),
+  gitShowCommit: (root: string, hash: string): Promise<GitCommitFile[]> =>
+    ipcRenderer.invoke(IPC.GitShowCommit, root, hash),
 };
 
 contextBridge.exposeInMainWorld('api', api);

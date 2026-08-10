@@ -112,6 +112,15 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
       if (!found) {
         return;
       }
+      // Zamknięcie karty ubija proces — pytamy, dopóki żyje.
+      if (
+        found.tab.status !== 'exited' &&
+        !window.confirm(
+          `Zamknąć kartę „${found.tab.title}"? Działający proces zostanie zakończony.`,
+        )
+      ) {
+        return;
+      }
       void window.api.ptyKill(found.tab.ptyId);
       disposeTerminalInstance(id);
       applyDocks((state) => closeTabState(state, id));

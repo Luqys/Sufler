@@ -1,12 +1,13 @@
 import { useState, type ReactElement } from 'react';
 import { useWorkspace } from '../workspace';
 import { FileTree } from './FileTree';
+import { GitPanel } from './GitPanel';
 import { KnowledgePanel } from './KnowledgePanel';
 import { McpPanel } from './McpPanel';
 import { SearchPanel } from './SearchPanel';
 import { SkillsPanel } from './SkillsPanel';
 
-type SidebarView = 'files' | 'search' | 'knowledge' | 'skills' | 'mcp';
+type SidebarView = 'files' | 'search' | 'git' | 'knowledge' | 'skills' | 'mcp';
 
 interface RailItem {
   id: SidebarView;
@@ -50,9 +51,19 @@ const ICON_KNOWLEDGE = (
   </svg>
 );
 
+const ICON_GIT = (
+  <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
+    <circle cx="4.5" cy="3.5" r="2" />
+    <circle cx="4.5" cy="12.5" r="2" />
+    <circle cx="11.5" cy="5.5" r="2" />
+    <path d="M4.5 5.5v5M11.5 7.5a5 5 0 0 1-5 3.3" />
+  </svg>
+);
+
 const RAIL_ITEMS: RailItem[] = [
   { id: 'files', label: 'Pliki', icon: ICON_FILES },
   { id: 'search', label: 'Szukaj w projekcie', icon: ICON_SEARCH },
+  { id: 'git', label: 'Historia git', icon: ICON_GIT },
   { id: 'knowledge', label: 'Wiedza (pliki MD)', icon: ICON_KNOWLEDGE },
   { id: 'skills', label: 'Skille i agenci', icon: ICON_SKILLS },
   { id: 'mcp', label: 'Serwery MCP', icon: ICON_MCP },
@@ -86,6 +97,10 @@ export function Sidebar(): ReactElement {
         <div className={`view-panel pad${view === 'search' ? '' : ' hidden'}`}>
           <h2 className="view-title">Szukaj</h2>
           <SearchPanel />
+        </div>
+        <div className={`view-panel pad scroll${view === 'git' ? '' : ' hidden'}`}>
+          <h2 className="view-title">Historia git</h2>
+          <GitPanel key={root} />
         </div>
         <div className={`view-panel pad scroll${view === 'knowledge' ? '' : ' hidden'}`}>
           <h2 className="view-title">Wiedza</h2>

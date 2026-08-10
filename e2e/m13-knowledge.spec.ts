@@ -71,12 +71,18 @@ test('pasek pokazuje % zużycia bieżącego okna 5h', async () => {
   const app = await launchApp(makeConfigHome(), makeFixtureProject(), { HOME: home });
   const page = await app.firstWindow();
 
-  // 1215 / 2430 = 50% szacowanego limitu.
-  await expect(page.getByTestId('usage-percent')).toHaveText('50%', { timeout: 15_000 });
+  // Pigułka sesji: tokeny bieżącego okna 5h (1215 → „1,2 tys.") + godzina resetu.
+  await expect(page.getByTestId('usage-window-tokens')).toContainText('1,2 tys.', {
+    timeout: 15_000,
+  });
+  await expect(page.getByTestId('usage-window-tokens')).toContainText('do ');
 
   await page.getByTestId('usage-button').click();
-  await expect(page.getByTestId('usage-panel')).toContainText('Okno 5h');
-  await expect(page.getByTestId('usage-panel')).toContainText('50%');
+  const panel = page.getByTestId('usage-panel');
+  await expect(panel).toContainText('Okno 5h');
+  await expect(panel).toContainText('reset o');
+  // 1215 / 2430 = 50% rekordu z 30 dni.
+  await expect(panel).toContainText('50% rekordu');
 
   await page.screenshot({ path: 'e2e-artifacts/m13-procent-zuzycia.png' });
   await app.close();

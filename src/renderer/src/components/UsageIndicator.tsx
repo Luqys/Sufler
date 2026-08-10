@@ -1,22 +1,20 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { formatTokens, type UsageSummary } from '../../../shared/usage';
 
-const ICON_GAUGE = (
-  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
-    <path d="M2 11.5a6 6 0 1 1 12 0" />
-    <path d="M8 11.5L11 7" />
-    <circle cx="8" cy="11.5" r="1" fill="currentColor" stroke="none" />
-  </svg>
-);
+function clockTime(timestamp: number): string {
+  return new Date(timestamp).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+}
 
 /**
- * Zużycie Claude Code liczone lokalnie z transkryptów ~/.claude/projects
- * (tokeny i liczba odpowiedzi; bez wyceny — ta zależy od planu).
+ * Pigułka sesji na pasku tytułu: postęp czasowy bieżącego okna 5h, godzina
+ * resetu i tokeny tego okna. Liczone lokalnie z transkryptów; pasek tyka
+ * co minutę, skan odświeża się co 5 minut.
  */
 export function UsageIndicator(): ReactElement {
   const [open, setOpen] = useState(false);
   const [summary, setSummary] = useState<UsageSummary | null>(null);
   const [loading, setLoading] = useState(false);
+  const [, setTick] = useState(0);
 
   const refresh = (force: boolean): void => {
     setLoading(true);
@@ -26,9 +24,15 @@ export function UsageIndicator(): ReactElement {
     });
   };
 
-  // Procent na pasku od razu po starcie (skan w tle, cache 5 min w main).
   useEffect(() => {
     refresh(false);
+    // Tykanie paska czasu + okresowe odświeżenie skanu (cache 5 min po stronie main).
+    const minute = window.setInterval(() => setTick((value) => value + 1), 60_000);
+    const rescan = window.setInterval(() => refresh(false), 5 * 60_000);
+    return () => {
+      window.clearInterval(minute);
+      window.clearInterval(rescan);
+    };
   }, []);
 
   const toggle = (): void => {
@@ -39,26 +43,38 @@ export function UsageIndicator(): ReactElement {
     }
   };
 
-  const percent = summary?.block.percent ?? null;
+  const block = summary?.block ?? null;
+  const now = Date.now();
+  const timePercent = block
+    ? Math.min(
+        100,
+        Math.max(0, Math.round(((now - block.windowStart) / (block.windowEnd - block.windowStart)) * 100)),
+      )
+    : 0;
 
   return (
     <div className="usage-wrap">
       <button
         type="button"
-        className="titlebar-btn usage-button"
+        className="usage-pill"
         data-testid="usage-button"
         title={
-          percent !== null
-            ? `Bieżące okno 5h: ~${percent}% największego okna z 30 dni. Kliknij po szczegóły.`
+          block
+            ? `Okno 5h: ${clockTime(block.windowStart)}–${clockTime(block.windowEnd)} · ` +
+              `zużyte ${formatTokens(block.currentTokens)} tokenów · reset o ${clockTime(block.windowEnd)}`
             : 'Zużycie Claude Code (lokalnie z transkryptów)'
         }
         onClick={toggle}
       >
-        {ICON_GAUGE}
-        {percent !== null && (
-          <span className="usage-percent" data-testid="usage-percent">
-            {percent}%
+        <span className="usage-pill-bar" aria-hidden>
+          <i style={{ width: `${timePercent}%` }} />
+        </span>
+        {block ? (
+          <span className="usage-pill-text" data-testid="usage-window-tokens">
+            {formatTokens(block.currentTokens)} · do {clockTime(block.windowEnd)}
           </span>
+        ) : (
+          <span className="usage-pill-text">sesja…</span>
         )}
       </button>
       {open && (
@@ -79,6 +95,27 @@ export function UsageIndicator(): ReactElement {
             {!summary && loading && <p className="placeholder">Skanuję transkrypty…</p>}
             {summary && (
               <>
+                <div className="usage-session">
+                  <div className="usage-session-row">
+                    <span>
+                      Okno 5h: {clockTime(summary.block.windowStart)}–
+                      {clockTime(summary.block.windowEnd)}
+                    </span>
+                    <strong>{formatTokens(summary.block.currentTokens)} tok.</strong>
+                  </div>
+                  <div className="usage-session-bar">
+                    <i style={{ width: `${timePercent}%` }} />
+                  </div>
+                  <div className="usage-session-row usage-session-sub">
+                    <span>reset o {clockTime(summary.block.windowEnd)}</span>
+                    {summary.block.percent !== null && (
+                      <span>
+                        {summary.block.percent}% rekordu 30 dni (
+                        {formatTokens(summary.block.maxTokens)})
+                      </span>
+                    )}
+                  </div>
+                </div>
                 <table className="usage-table">
                   <thead>
                     <tr>
@@ -99,14 +136,6 @@ export function UsageIndicator(): ReactElement {
                     ))}
                   </tbody>
                 </table>
-                <div className="usage-block-row">
-                  <span>
-                    Okno 5h: <strong>{formatTokens(summary.block.currentTokens)}</strong>
-                    {' / '}
-                    {formatTokens(summary.block.maxTokens)} (największe z 30 dni)
-                  </span>
-                  {summary.block.percent !== null && <strong>{summary.block.percent}%</strong>}
-                </div>
                 {summary.topModels.length > 0 && (
                   <div className="usage-models">
                     {summary.topModels.map((model) => (
@@ -121,6 +150,7 @@ export function UsageIndicator(): ReactElement {
                 )}
                 <p className="usage-note placeholder">
                   Z {summary.scannedFiles} transkryptów (~/.claude/projects), ostatnie 30 dni.
+                  Tokeny okna: wejście+wyjście, bez cache.
                 </p>
               </>
             )}

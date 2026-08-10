@@ -14,6 +14,7 @@ import { LoginDialog } from './LoginDialog';
 import { SettingsDialog } from './SettingsDialog';
 import { Sidebar } from './Sidebar';
 import { Splitter } from './Splitter';
+import { ThemeToggle } from './ThemeToggle';
 import { UsageIndicator } from './UsageIndicator';
 
 const ICON_CLAUDE_SPARK = (
@@ -158,6 +159,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
           >
             {ICON_CLAUDE_SPARK}
           </button>
+          <ThemeToggle />
           <LayoutToggles layout={layout} onToggle={toggleVisibility} />
           <UsageIndicator />
         </div>
@@ -191,11 +193,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
                 onDrag={(_dx, dy) => resize('bottomDockHeight', origin().bottomDockHeight - dy)}
                 onDragEnd={endDrag}
               />
-              <Dock
-                id="bottom"
-                title="Dolny dok"
-                onHide={() => toggleVisibility('bottomDockVisible')}
-              />
+              <Dock id="bottom" title="Dolny dok" />
             </>
           )}
         </div>
@@ -208,11 +206,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
               onDrag={(dx) => resize('rightDockWidth', origin().rightDockWidth - dx)}
               onDragEnd={endDrag}
             />
-            <Dock
-              id="right"
-              title="Prawy dok"
-              onHide={() => toggleVisibility('rightDockVisible')}
-            />
+            <Dock id="right" title="Prawy dok" />
           </>
         )}
       </div>

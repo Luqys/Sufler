@@ -30,6 +30,9 @@ export interface UsageBlockInfo {
   maxTokens: number;
   /** null, gdy brak historii do kalibracji. */
   percent: number | null;
+  /** Granice bieżącego okna 5h (ms epoch) — do paska czasu i godziny resetu. */
+  windowStart: number;
+  windowEnd: number;
 }
 
 export interface UsageSummary {
@@ -131,12 +134,15 @@ export function summarizeUsage(
     .sort((a, b) => b.output - a.output)
     .slice(0, 4);
 
-  const currentTokens = blocks.get(Math.floor(now / blockMs)) ?? 0;
+  const currentIndex = Math.floor(now / blockMs);
+  const currentTokens = blocks.get(currentIndex) ?? 0;
   const maxTokens = blocks.size > 0 ? Math.max(...blocks.values()) : 0;
   const block: UsageBlockInfo = {
     currentTokens,
     maxTokens,
     percent: maxTokens > 0 ? Math.min(100, Math.round((currentTokens / maxTokens) * 100)) : null,
+    windowStart: currentIndex * blockMs,
+    windowEnd: (currentIndex + 1) * blockMs,
   };
 
   return { periods: [today, week, month], topModels, scannedFiles, block };

@@ -1,7 +1,6 @@
 import { useState, type DragEvent, type ReactElement } from 'react';
 import type { DockId } from '../../../shared/dock-tabs';
 import { useDocks } from '../docks';
-import { PanelGlyph } from './LayoutToggles';
 import { TerminalView } from './TerminalView';
 
 const DND_MIME = 'application/x-visualn3o-tab';
@@ -9,15 +8,13 @@ const DND_MIME = 'application/x-visualn3o-tab';
 interface DockProps {
   id: DockId;
   title: string;
-  /** Chowa dok (menu Widok albo skrót przywraca). */
-  onHide(): void;
 }
 
 /**
  * Wspólny komponent obu doków (prawego i dolnego) — patrz SPEC.md.
  * Zakładki `terminal` i `claude` różnią się wyłącznie komendą startową pty.
  */
-export function Dock({ id, title, onHide }: DockProps): ReactElement {
+export function Dock({ id, title }: DockProps): ReactElement {
   const { docks, addTab, activateTab, closeTab, moveTab } = useDocks();
   const dock = docks[id];
   const [menuOpen, setMenuOpen] = useState(false);
@@ -104,19 +101,6 @@ export function Dock({ id, title, onHide }: DockProps): ReactElement {
             onClick={() => setMenuOpen((value) => !value)}
           >
             +
-          </button>
-          <button
-            type="button"
-            className="dock-add dock-hide"
-            data-testid={`${id}-dock-hide`}
-            title={
-              id === 'bottom'
-                ? 'Zwiń dolny dok (przywrócisz ikonką na pasku tytułu albo Ctrl+`)'
-                : 'Zwiń prawy dok (przywrócisz ikonką na pasku tytułu albo Cmd+Shift+C)'
-            }
-            onClick={onHide}
-          >
-            <PanelGlyph side={id === 'bottom' ? 'bottom' : 'right'} on />
           </button>
           {menuOpen && (
             <>

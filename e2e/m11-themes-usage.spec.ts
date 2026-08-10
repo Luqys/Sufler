@@ -44,24 +44,6 @@ test('motyw ciemny i akcent przeżywają restart (nativeTheme + data-accent)', a
   await app.close();
 });
 
-test('przyciski w nagłówkach chowają doki', async () => {
-  const app = await launchApp(makeConfigHome(), makeFixtureProject());
-  const page = await app.firstWindow();
-
-  await expect(page.getByTestId('bottom-dock')).toBeVisible();
-  await page.getByTestId('bottom-dock-hide').click();
-  await expect(page.getByTestId('bottom-dock')).toHaveCount(0);
-  await page.keyboard.press('Control+`');
-  await expect(page.getByTestId('bottom-dock')).toBeVisible();
-
-  await page.getByTestId('right-dock-hide').click();
-  await expect(page.getByTestId('right-dock')).toHaveCount(0);
-  await page.keyboard.press('Meta+Shift+c');
-  await expect(page.getByTestId('right-dock')).toBeVisible();
-
-  await app.close();
-});
-
 test('panel MCP pokazuje ikony znanych serwerów (obsidian, supabase)', async () => {
   const project = makeFixtureProject();
   writeFileSync(

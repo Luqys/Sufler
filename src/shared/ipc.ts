@@ -45,6 +45,8 @@ export const IPC = {
   UsageGet: 'usage:get',
   KnowledgeList: 'knowledge:list',
   KnowledgeGenerate: 'knowledge:generate',
+  GitLog: 'git:log',
+  GitShowCommit: 'git:show-commit',
 } as const;
 
 export interface DirEntry {
@@ -173,6 +175,8 @@ export interface WindowApi {
   getUsage(force?: boolean): Promise<UsageSummary>;
   listKnowledge(root: string): Promise<KnowledgeFile[]>;
   generateKnowledge(root: string, paths: string[]): Promise<KnowledgeGenerateResult>;
+  gitLog(root: string): Promise<GitLogResult>;
+  gitShowCommit(root: string, hash: string): Promise<GitCommitFile[]>;
 }
 
 export type McpStatusResult =
@@ -213,3 +217,22 @@ export interface KnowledgeFile {
 export type KnowledgeGenerateResult =
   | { ok: true; path: string; files: number; bytes: number }
   | { ok: false; error: string };
+
+export interface GitCommit {
+  hash: string;
+  shortHash: string;
+  author: string;
+  /** ISO 8601 (%aI). */
+  date: string;
+  subject: string;
+}
+
+export interface GitCommitFile {
+  /** Pierwsza litera statusu: A/M/D/R/C/T. */
+  status: string;
+  path: string;
+}
+
+export type GitLogResult =
+  | { ok: true; branch: string; commits: GitCommit[] }
+  | { ok: false };

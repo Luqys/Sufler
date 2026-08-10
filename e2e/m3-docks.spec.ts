@@ -38,6 +38,8 @@ test('terminal w dolnym doku wykonuje polecenie echo', async () => {
 test('zamknięcie zakładki i zamknięcie aplikacji ubijają procesy pty', async () => {
   const app = await launchApp(makeConfigHome(), makeFixtureProject());
   const page = await app.firstWindow();
+  // Zamknięcie karty z żywym procesem pyta o potwierdzenie.
+  page.on('dialog', (dialog) => void dialog.accept());
 
   await page.getByTestId('bottom-dock-add').click();
   await page.getByTestId('bottom-menu-new-terminal').click();

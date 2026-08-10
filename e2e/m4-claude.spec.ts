@@ -22,6 +22,7 @@ test('sesja Claude startuje z menu +, a zamknięcie zakładki ubija proces', asy
     VISUALN3O_PATH_PREPEND: makeFakeClaudeBin(),
   });
   const page = await app.firstWindow();
+  page.on('dialog', (dialog) => void dialog.accept());
 
   await page.getByTestId('right-dock-add').click();
   await page.getByTestId('right-menu-new-claude').click();
