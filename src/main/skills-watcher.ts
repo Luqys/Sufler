@@ -1,7 +1,7 @@
 import { watch, type FSWatcher } from 'chokidar';
 import type { BrowserWindow } from 'electron';
 import { IPC } from '../shared/ipc';
-import { claudeMdCandidates, skillsSourceDirs } from './skills';
+import { claudeMdCandidates, skillsSettingsPaths, skillsSourceDirs } from './skills';
 
 let watcher: FSWatcher | null = null;
 let watchedRoot: string | null = null;
@@ -17,7 +17,12 @@ export function watchSkillsSources(win: BrowserWindow, root: string): void {
   }
   watchedRoot = root;
   void watcher?.close();
-  const targets = [...skillsSourceDirs(root), ...claudeMdCandidates(root).map((c) => c.path)];
+  const targets = [
+    ...skillsSourceDirs(root),
+    // settings z skillOverrides — przełącznik z zewnątrz też odświeża panel
+    ...skillsSettingsPaths(root),
+    ...claudeMdCandidates(root).map((c) => c.path),
+  ];
   watcher = watch(targets, { ignoreInitial: true, depth: 2 });
   const notify = (): void => {
     if (debounceTimer) {

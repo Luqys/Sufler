@@ -39,7 +39,8 @@ import {
   setProjectRoot,
 } from './project';
 import { resolveShellEnv } from './shell-env';
-import { readSkillsSnapshot } from './skills';
+import { createSkill, readSkillsSnapshot, setSkillEnabled } from './skills';
+import type { SkillCreateInput } from '../shared/ipc';
 import { closeSkillsWatcher, watchSkillsSources } from './skills-watcher';
 
 function createWindow(): void {
@@ -192,6 +193,12 @@ void app.whenReady().then(() => {
     killPty(ptyId);
   });
   ipcMain.handle(IPC.SkillsGet, (_event, root: string) => readSkillsSnapshot(root));
+  ipcMain.handle(IPC.SkillsCreate, (_event, root: string, input: SkillCreateInput) =>
+    createSkill(root, input),
+  );
+  ipcMain.handle(IPC.SkillsToggle, (_event, root: string, name: string, enabled: boolean) =>
+    setSkillEnabled(root, name, enabled),
+  );
   ipcMain.handle(IPC.SkillsWatch, (event, root: string) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (win) {

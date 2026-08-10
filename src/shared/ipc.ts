@@ -4,6 +4,7 @@ import type { KnowledgeGraph } from './graph';
 import type { LayoutState, LayoutVisibilityKey } from './layout';
 import type { UsageLimitsResult } from './limits';
 import type { McpConfigServer, McpDetail, McpListEntry } from './mcp';
+import type { SkillOverrideState } from './skills';
 
 export const IPC = {
   LayoutGet: 'layout:get',
@@ -28,6 +29,8 @@ export const IPC = {
   SkillsGet: 'skills:get',
   SkillsWatch: 'skills:watch',
   SkillsChanged: 'skills:changed',
+  SkillsCreate: 'skills:create',
+  SkillsToggle: 'skills:toggle',
   McpReadConfig: 'mcp:read-config',
   McpListStatus: 'mcp:list-status',
   McpGetDetails: 'mcp:get-details',
@@ -121,7 +124,31 @@ export interface SkillEntry {
   /** disable-model-invocation: true — skill wywoływany tylko ręcznie. */
   manual: boolean;
   disallowedTools?: string;
+  /** Efektywny stan skillOverrides (settings.local > projekt > użytkownik). */
+  override: SkillOverrideState;
+  /** false ⇔ override "off" — Claude w ogóle nie widzi skilla. */
+  enabled: boolean;
 }
+
+export type SkillScope = 'project' | 'personal';
+
+export interface SkillCreateInput {
+  scope: SkillScope;
+  name: string;
+  description: string;
+  /** true → frontmatter `disable-model-invocation`. */
+  manual: boolean;
+  disallowedTools?: string;
+  body: string;
+}
+
+export type SkillCreateResult =
+  | { ok: true; path: string }
+  | { ok: false; error: 'invalid-name' | 'exists' | 'write-failed' };
+
+export type SkillToggleResult =
+  | { ok: true; enabled: boolean }
+  | { ok: false; error: 'settings-unreadable' | 'write-failed' };
 
 export interface AgentEntry {
   name: string;
@@ -181,6 +208,10 @@ export interface WindowApi {
   getSkills(root: string): Promise<SkillsSnapshot>;
   watchSkills(root: string): Promise<void>;
   onSkillsChanged(listener: () => void): void;
+  /** Kreator: nowy katalog skilla z plikiem SKILL.md. */
+  createSkill(root: string, input: SkillCreateInput): Promise<SkillCreateResult>;
+  /** Przełącznik skillOverrides w <root>/.claude/settings.local.json. */
+  setSkillEnabled(root: string, name: string, enabled: boolean): Promise<SkillToggleResult>;
   readMcpConfig(root: string): Promise<McpConfigServer[]>;
   listMcpStatus(root: string): Promise<McpStatusResult>;
   getMcpDetails(root: string, name: string): Promise<McpDetail[]>;

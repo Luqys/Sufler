@@ -18,6 +18,9 @@ import {
   type ReadImageResult,
   type SaveClipboardImageResult,
   type SearchResult,
+  type SkillCreateInput,
+  type SkillCreateResult,
+  type SkillToggleResult,
   type SkillsSnapshot,
   type TreeChangedEvent,
   type WatchEvent,
@@ -68,6 +71,10 @@ const api: WindowApi = {
   },
   getSkills: (root: string): Promise<SkillsSnapshot> => ipcRenderer.invoke(IPC.SkillsGet, root),
   watchSkills: (root: string): Promise<void> => ipcRenderer.invoke(IPC.SkillsWatch, root),
+  createSkill: (root: string, input: SkillCreateInput): Promise<SkillCreateResult> =>
+    ipcRenderer.invoke(IPC.SkillsCreate, root, input),
+  setSkillEnabled: (root: string, name: string, enabled: boolean): Promise<SkillToggleResult> =>
+    ipcRenderer.invoke(IPC.SkillsToggle, root, name, enabled),
   onSkillsChanged: (listener: () => void): void => {
     ipcRenderer.on(IPC.SkillsChanged, () => listener());
   },

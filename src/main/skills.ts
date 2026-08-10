@@ -1,12 +1,23 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { frontmatterBool, frontmatterString, parseFrontmatter } from '../shared/frontmatter';
+import {
+  buildSkillFile,
+  effectiveOverride,
+  overridesOf,
+  toggledOverrides,
+  validateSkillName,
+} from '../shared/skills';
 import type {
   AgentEntry,
   ClaudeMdEntry,
   RuleEntry,
+  SkillCreateInput,
+  SkillCreateResult,
   SkillEntry,
+  SkillScope,
+  SkillToggleResult,
   SkillsSnapshot,
 } from '../shared/ipc';
 
@@ -43,6 +54,18 @@ export function skillsSourceDirs(root: string): string[] {
   ];
 }
 
+/**
+ * Pliki settings z `skillOverrides`, od najwyższego priorytetu.
+ * Aplikacja zapisuje wyłącznie pierwszy z nich (settings.local.json).
+ */
+export function skillsSettingsPaths(root: string): string[] {
+  return [
+    join(root, '.claude', 'settings.local.json'),
+    join(root, '.claude', 'settings.json'),
+    join(homedir(), '.claude', 'settings.json'),
+  ];
+}
+
 export function claudeMdCandidates(root: string): Array<{ label: string; path: string }> {
   return [
     { label: 'CLAUDE.md (projekt)', path: join(root, 'CLAUDE.md') },
@@ -51,7 +74,28 @@ export function claudeMdCandidates(root: string): Array<{ label: string; path: s
   ];
 }
 
-async function readSkillsFrom(dir: string): Promise<SkillEntry[]> {
+/** Mapy skillOverrides z łańcucha settings; uszkodzony JSON = pusta mapa. */
+async function readOverridesChain(root: string): Promise<Array<Record<string, unknown>>> {
+  const chain: Array<Record<string, unknown>> = [];
+  for (const path of skillsSettingsPaths(root)) {
+    const content = await readTextIfExists(path);
+    if (content === null) {
+      chain.push({});
+      continue;
+    }
+    try {
+      chain.push(overridesOf(JSON.parse(content)));
+    } catch {
+      chain.push({});
+    }
+  }
+  return chain;
+}
+
+async function readSkillsFrom(
+  dir: string,
+  chain: ReadonlyArray<Record<string, unknown>>,
+): Promise<SkillEntry[]> {
   const entries: SkillEntry[] = [];
   for (const child of await listDir(dir)) {
     const path = join(dir, child, 'SKILL.md');
@@ -60,12 +104,16 @@ async function readSkillsFrom(dir: string): Promise<SkillEntry[]> {
       continue;
     }
     const { data } = parseFrontmatter(content);
+    const name = frontmatterString(data, 'name') ?? child;
+    const override = effectiveOverride(chain, name);
     entries.push({
-      name: frontmatterString(data, 'name') ?? child,
+      name,
       description: frontmatterString(data, 'description') ?? '',
       path,
       manual: frontmatterBool(data, 'disable-model-invocation'),
       disallowedTools: frontmatterString(data, 'disallowed-tools'),
+      override,
+      enabled: override !== 'off',
     });
   }
   return entries.sort((a, b) => a.name.localeCompare(b.name));
@@ -129,12 +177,70 @@ async function readClaudeMd(root: string): Promise<ClaudeMdEntry[]> {
 }
 
 export async function readSkillsSnapshot(root: string): Promise<SkillsSnapshot> {
+  const chain = await readOverridesChain(root);
   const [projectSkills, personalSkills, agents, rules, claudeMd] = await Promise.all([
-    readSkillsFrom(join(root, '.claude', 'skills')),
-    readSkillsFrom(join(homedir(), '.claude', 'skills')),
+    readSkillsFrom(join(root, '.claude', 'skills'), chain),
+    readSkillsFrom(join(homedir(), '.claude', 'skills'), chain),
     readAgents(root),
     readRules(root),
     readClaudeMd(root),
   ]);
   return { projectSkills, personalSkills, agents, rules, claudeMd };
+}
+
+export function skillsDirForScope(root: string, scope: SkillScope): string {
+  return scope === 'personal'
+    ? join(homedir(), '.claude', 'skills')
+    : join(root, '.claude', 'skills');
+}
+
+/** Kreator: katalog skilla + SKILL.md; `wx` chroni przed nadpisaniem. */
+export async function createSkill(root: string, input: SkillCreateInput): Promise<SkillCreateResult> {
+  if (validateSkillName(input.name) !== null) {
+    return { ok: false, error: 'invalid-name' };
+  }
+  const dir = join(skillsDirForScope(root, input.scope), input.name);
+  const path = join(dir, 'SKILL.md');
+  try {
+    await mkdir(dir, { recursive: true });
+    await writeFile(path, buildSkillFile(input), { encoding: 'utf8', flag: 'wx' });
+    return { ok: true, path };
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    return { ok: false, error: code === 'EEXIST' ? 'exists' : 'write-failed' };
+  }
+}
+
+/**
+ * Przełącznik: aktualizuje `skillOverrides` w settings.local.json projektu.
+ * Nie dotyka pozostałych kluczy pliku; uszkodzony JSON nie jest nadpisywany.
+ */
+export async function setSkillEnabled(
+  root: string,
+  name: string,
+  enabled: boolean,
+): Promise<SkillToggleResult> {
+  const localPath = skillsSettingsPaths(root)[0] ?? join(root, '.claude', 'settings.local.json');
+  let settings: Record<string, unknown> = {};
+  const content = await readTextIfExists(localPath);
+  if (content !== null && content.trim() !== '') {
+    try {
+      const parsed: unknown = JSON.parse(content);
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        return { ok: false, error: 'settings-unreadable' };
+      }
+      settings = parsed as Record<string, unknown>;
+    } catch {
+      return { ok: false, error: 'settings-unreadable' };
+    }
+  }
+  const chain = await readOverridesChain(root);
+  settings['skillOverrides'] = toggledOverrides(chain[0] ?? {}, chain.slice(1), name, enabled);
+  try {
+    await mkdir(dirname(localPath), { recursive: true });
+    await writeFile(localPath, `${JSON.stringify(settings, null, 2)}\n`, 'utf8');
+    return { ok: true, enabled };
+  } catch {
+    return { ok: false, error: 'write-failed' };
+  }
 }
