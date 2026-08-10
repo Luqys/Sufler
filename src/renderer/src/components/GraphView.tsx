@@ -490,9 +490,13 @@ export function GraphView(): ReactElement {
               title={filter === group.name ? t('graph.filterOff') : t('graph.filterOnly')}
               onClick={() => setFilter(filter === group.name ? null : group.name)}
             >
+              {/* color = kolor grupy, bo halo kropki w CSS czerpie z currentColor */}
               <span
                 className="graph-legend-dot"
-                style={{ background: grouping.colors.get(group.name) ?? NEUTRAL_COLOR }}
+                style={{
+                  background: grouping.colors.get(group.name) ?? NEUTRAL_COLOR,
+                  color: grouping.colors.get(group.name) ?? NEUTRAL_COLOR,
+                }}
               />
               <span className="graph-legend-name">
                 {group.name === UNCOMMITTED ? t('graph.uncommitted') : group.name}
@@ -549,6 +553,7 @@ export function GraphView(): ReactElement {
                   className="graph-legend-dot"
                   style={{
                     background: grouping.colors.get(grouping.keyOf(node)) ?? NEUTRAL_COLOR,
+                    color: grouping.colors.get(grouping.keyOf(node)) ?? NEUTRAL_COLOR,
                   }}
                 />
                 <span className="graph-related-name">{node.title}</span>
