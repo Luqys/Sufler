@@ -1,30 +1,37 @@
 import { useState, type DragEvent, type ReactElement } from 'react';
-import type { DockId } from '../../../shared/dock-tabs';
+import type { DockId, DockPane } from '../../../shared/dock-tabs';
 import { useDocks } from '../docks';
 import { TerminalView } from './TerminalView';
 
 const DND_MIME = 'application/x-visualn3o-tab';
 
-interface DockProps {
-  id: DockId;
+const ICON_SPLIT = (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
+    <rect x="1.8" y="2.6" width="12.4" height="10.8" rx="1.6" />
+    <path d="M8 2.6v10.8" />
+  </svg>
+);
+
+interface PaneViewProps {
+  dockId: DockId;
+  pane: DockPane;
+  paneIndex: number;
   title: string;
 }
 
-/**
- * Wspólny komponent obu doków (prawego i dolnego) — patrz SPEC.md.
- * Zakładki `terminal` i `claude` różnią się wyłącznie komendą startową pty.
- */
-export function Dock({ id, title }: DockProps): ReactElement {
-  const { docks, addTab, activateTab, closeTab, moveTab } = useDocks();
-  const dock = docks[id];
+/** Jeden panel doku: własny pasek zakładek, [+], podział i terminal aktywnej karty. */
+function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactElement {
+  const { addTab, activateTab, closeTab, moveTab, splitTab } = useDocks();
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropHover, setDropHover] = useState(false);
 
-  const activeTab = dock.tabs.find((tab) => tab.id === dock.activeId) ?? null;
+  const activeTab = pane.tabs.find((tab) => tab.id === pane.activeId) ?? null;
+  const first = paneIndex === 0;
 
   const onDragOver = (event: DragEvent<HTMLElement>): void => {
     if (event.dataTransfer.types.includes(DND_MIME)) {
       event.preventDefault();
+      event.stopPropagation();
       event.dataTransfer.dropEffect = 'move';
       setDropHover(true);
     }
@@ -34,46 +41,45 @@ export function Dock({ id, title }: DockProps): ReactElement {
     const tabId = event.dataTransfer.getData(DND_MIME);
     if (tabId) {
       event.preventDefault();
-      moveTab(tabId, id);
+      event.stopPropagation();
+      moveTab(tabId, dockId, pane.id);
     }
     setDropHover(false);
   };
 
   return (
-    <section
-      className={`dock dock-${id}${dropHover ? ' drop-target' : ''}`}
-      data-testid={`${id}-dock`}
+    <div
+      className={`dock-pane${dropHover ? ' drop-target' : ''}`}
+      data-testid={`${dockId}-pane-${paneIndex}`}
       onDragOver={onDragOver}
       onDragLeave={() => setDropHover(false)}
       onDrop={onDrop}
     >
       <header className="dock-header">
         <div className="dock-tabs">
-          {dock.tabs.length === 0 && <span className="dock-title">{title}</span>}
-          {dock.tabs.map((tab) => (
+          {pane.tabs.length === 0 && <span className="dock-title">{title}</span>}
+          {pane.tabs.map((tab) => (
             <div
               key={tab.id}
-              className={`dock-tab${tab.id === dock.activeId ? ' active' : ''}${
+              className={`dock-tab${tab.id === pane.activeId ? ' active' : ''}${
                 tab.status === 'exited' ? ' exited' : ''
               }`}
               draggable
               data-status={tab.status}
               title={`${tab.title} — ${tab.cwd}`}
-              onClick={() => activateTab(id, tab.id)}
+              onClick={() => activateTab(dockId, pane.id, tab.id)}
               onDragStart={(event) => {
                 event.dataTransfer.setData(DND_MIME, tab.id);
                 event.dataTransfer.effectAllowed = 'move';
               }}
             >
               {tab.kind === 'claude' &&
-                tab.id !== dock.activeId &&
+                tab.id !== pane.activeId &&
                 (tab.status === 'idle' || tab.status === 'needs-input') && (
                   <span
                     className={`status-dot ${tab.status === 'idle' ? 'done' : 'attention'}`}
                     title={
-                      tab.status === 'idle'
-                        ? 'Claude skończył pracę'
-                        : 'Claude czeka na zgodę'
+                      tab.status === 'idle' ? 'Claude skończył pracę' : 'Claude czeka na zgodę'
                     }
                   />
                 )}
@@ -93,11 +99,22 @@ export function Dock({ id, title }: DockProps): ReactElement {
           ))}
         </div>
         <div className="dock-add-wrap">
+          {pane.tabs.length >= 2 && activeTab && (
+            <button
+              type="button"
+              className="dock-add"
+              data-testid={first ? `${dockId}-pane-split` : undefined}
+              title="Podziel: wydziel aktywną kartę do panelu obok"
+              onClick={() => splitTab(activeTab.id)}
+            >
+              {ICON_SPLIT}
+            </button>
+          )}
           <button
             type="button"
             className="dock-add"
-            data-testid={`${id}-dock-add`}
-            title="Nowa zakładka"
+            data-testid={first ? `${dockId}-dock-add` : undefined}
+            title="Nowa zakładka w tym panelu"
             onClick={() => setMenuOpen((value) => !value)}
           >
             +
@@ -109,10 +126,10 @@ export function Dock({ id, title }: DockProps): ReactElement {
                 <button
                   type="button"
                   role="menuitem"
-                  data-testid={`${id}-menu-new-claude`}
+                  data-testid={first ? `${dockId}-menu-new-claude` : undefined}
                   onClick={() => {
                     setMenuOpen(false);
-                    addTab(id, 'claude');
+                    addTab(dockId, 'claude', { paneId: pane.id });
                   }}
                 >
                   Sesja Claude
@@ -120,10 +137,10 @@ export function Dock({ id, title }: DockProps): ReactElement {
                 <button
                   type="button"
                   role="menuitem"
-                  data-testid={`${id}-menu-new-terminal`}
+                  data-testid={first ? `${dockId}-menu-new-terminal` : undefined}
                   onClick={() => {
                     setMenuOpen(false);
-                    addTab(id, 'terminal');
+                    addTab(dockId, 'terminal', { paneId: pane.id });
                   }}
                 >
                   Terminal
@@ -141,6 +158,50 @@ export function Dock({ id, title }: DockProps): ReactElement {
             <p className="placeholder">Kliknij +, aby otworzyć terminal lub sesję Claude.</p>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+interface DockProps {
+  id: DockId;
+  title: string;
+}
+
+/**
+ * Wspólny komponent obu doków (SPEC.md): dolny dzieli się na kolumny,
+ * prawy na wiersze. Zakładki `terminal` i `claude` różnią się wyłącznie
+ * komendą startową pty.
+ */
+export function Dock({ id, title }: DockProps): ReactElement {
+  const { docks, moveTab } = useDocks();
+  const dock = docks[id];
+
+  // Fallback: upuszczenie poza panelami (np. pusty margines) → ostatni panel.
+  const onDrop = (event: DragEvent<HTMLElement>): void => {
+    const tabId = event.dataTransfer.getData(DND_MIME);
+    if (tabId) {
+      event.preventDefault();
+      moveTab(tabId, id);
+    }
+  };
+
+  return (
+    <section
+      className={`dock dock-${id}`}
+      data-testid={`${id}-dock`}
+      onDragOver={(event) => {
+        if (event.dataTransfer.types.includes(DND_MIME)) {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'move';
+        }
+      }}
+      onDrop={onDrop}
+    >
+      <div className={`dock-panes ${id === 'bottom' ? 'panes-row' : 'panes-column'}`}>
+        {dock.panes.map((pane, index) => (
+          <PaneView key={pane.id} dockId={id} pane={pane} paneIndex={index} title={title} />
+        ))}
       </div>
     </section>
   );

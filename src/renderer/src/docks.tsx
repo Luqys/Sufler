@@ -11,11 +11,14 @@ import {
 import { createClaudeStatusTracker } from '../../shared/claude-status';
 import {
   activateTab as activateTabState,
+  activeTabs,
   addTab as addTabState,
+  allTabs,
   closeTab as closeTabState,
   emptyDocksState,
   findTab,
   moveTab as moveTabState,
+  splitPane as splitPaneState,
   updateTab as updateTabState,
   type DockId,
   type DocksState,
@@ -29,15 +32,19 @@ interface AddTabOptions {
   args?: string[];
   /** Tytuł zakładki zamiast domyślnego. */
   title?: string;
+  /** Panel docelowy (domyślnie ostatni panel doku). */
+  paneId?: string;
 }
 
 interface DocksValue {
   docks: DocksState;
   addTab(dock: DockId, kind: TabKind, options?: AddTabOptions): void;
-  activateTab(dock: DockId, id: string): void;
+  activateTab(dock: DockId, paneId: string, id: string): void;
   closeTab(id: string): void;
-  moveTab(id: string, targetDock: DockId): void;
-  /** Wpisuje tekst do pty aktywnej sesji Claude (preferuje aktywne zakładki). */
+  moveTab(id: string, targetDock: DockId, targetPaneId?: string): void;
+  /** Wydziela zakładkę do nowego panelu obok (podział ekranu doku). */
+  splitTab(id: string): void;
+  /** Wpisuje tekst do pty aktywnej sesji Claude (preferuje aktywne zakładki paneli). */
   insertToActiveClaude(text: string): boolean;
 }
 
@@ -52,6 +59,7 @@ export function useDocks(): DocksValue {
 }
 
 let nextTabNumber = 1;
+let nextPaneNumber = 1;
 
 export function DocksProvider({ children }: { children: ReactNode }): ReactElement {
   const { root } = useWorkspace();
@@ -87,14 +95,19 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
             : undefined;
         createTerminalInstance(id, result.ptyId, onOutput);
         applyDocks((state) =>
-          addTabState(state, dock, {
-            id,
-            kind,
-            title: options?.title ?? result.title,
-            cwd: root,
-            ptyId: result.ptyId,
-            status: 'running',
-          }),
+          addTabState(
+            state,
+            dock,
+            {
+              id,
+              kind,
+              title: options?.title ?? result.title,
+              cwd: root,
+              ptyId: result.ptyId,
+              status: 'running',
+            },
+            options?.paneId,
+          ),
         );
       });
     },
@@ -102,7 +115,8 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
   );
 
   const activateTab = useCallback(
-    (dock: DockId, id: string) => applyDocks((state) => activateTabState(state, dock, id)),
+    (dock: DockId, paneId: string, id: string) =>
+      applyDocks((state) => activateTabState(state, dock, paneId, id)),
     [applyDocks],
   );
 
@@ -129,20 +143,23 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
   );
 
   const moveTab = useCallback(
-    (id: string, targetDock: DockId) => applyDocks((state) => moveTabState(state, id, targetDock)),
+    (id: string, targetDock: DockId, targetPaneId?: string) =>
+      applyDocks((state) => moveTabState(state, id, targetDock, targetPaneId)),
+    [applyDocks],
+  );
+
+  const splitTab = useCallback(
+    (id: string) => applyDocks((state) => splitPaneState(state, id, `pane-${++nextPaneNumber}`)),
     [applyDocks],
   );
 
   const insertToActiveClaude = useCallback((text: string): boolean => {
     const state = docksRef.current;
-    const activeTabs = (['right', 'bottom'] as const).map((dock) =>
-      state[dock].tabs.find((tab) => tab.id === state[dock].activeId),
-    );
-    const anyClaude = [...state.right.tabs, ...state.bottom.tabs].filter(
-      (tab) => tab.kind === 'claude' && tab.status !== 'exited',
-    );
-    const target =
-      activeTabs.find((tab) => tab?.kind === 'claude' && tab.status !== 'exited') ?? anyClaude[0];
+    const candidates = [
+      ...activeTabs(state).filter((tab) => tab.kind === 'claude' && tab.status !== 'exited'),
+      ...allTabs(state).filter((tab) => tab.kind === 'claude' && tab.status !== 'exited'),
+    ];
+    const target = candidates[0];
     if (!target) {
       return false;
     }
@@ -153,9 +170,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
   // Wyjście procesu → status 'exited' na zakładce (proces ubijamy dopiero przy zamknięciu).
   useEffect(() => {
     window.api.onPtyExit(({ ptyId }) => {
-      const exited = [...docksRef.current.right.tabs, ...docksRef.current.bottom.tabs].find(
-        (tab) => tab.ptyId === ptyId,
-      );
+      const exited = allTabs(docksRef.current).find((tab) => tab.ptyId === ptyId);
       if (exited) {
         applyDocks((state) => updateTabState(state, exited.id, { status: 'exited' }));
       }
@@ -164,7 +179,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
 
   return (
     <DocksContext.Provider
-      value={{ docks, addTab, activateTab, closeTab, moveTab, insertToActiveClaude }}
+      value={{ docks, addTab, activateTab, closeTab, moveTab, splitTab, insertToActiveClaude }}
     >
       {children}
     </DocksContext.Provider>
