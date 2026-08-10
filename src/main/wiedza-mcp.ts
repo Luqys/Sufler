@@ -6,7 +6,17 @@ import { join, resolve } from 'node:path';
 import { z } from 'zod';
 import { buildKnowledgeGraph } from './knowledge-graph';
 import { OUTLINE_OUTPUT, rebuildOutline } from './knowledge';
+import { createSkill, readSkillsSnapshot } from './skills';
 import { getProjectRoot } from './project';
+
+/** Wspólny wycinek pól skilla do listy MCP. */
+function pick(skill: { name: string; description: string; enabled: boolean }): {
+  nazwa: string;
+  opis: string;
+  wlaczony: boolean;
+} {
+  return { nazwa: skill.name, opis: skill.description, wlaczony: skill.enabled };
+}
 
 /**
  * Serwer MCP grafu wiedzy: Claude Code dostaje schemat połączeń notatek .md
@@ -74,6 +84,63 @@ function buildMcp(): McpServer {
         return textResult('Brak otwartego projektu w Sufler.', true);
       }
       return textResult(JSON.stringify(await buildKnowledgeGraph(root), null, 1));
+    },
+  );
+
+  mcp.tool(
+    'skille_lista',
+    'Spis skilli widocznych w panelu Sufler (projektowe i osobiste) z opisem i stanem ' +
+      'włączenia (skillOverrides). Sprawdź przed utworzeniem nowego skilla.',
+    {},
+    async () => {
+      const root = getProjectRoot();
+      if (!root) {
+        return textResult('Brak otwartego projektu w Sufler.', true);
+      }
+      const snapshot = await readSkillsSnapshot(root);
+      const entries = [
+        ...snapshot.projectSkills.map((skill) => ({ zakres: 'projekt', ...pick(skill) })),
+        ...snapshot.personalSkills.map((skill) => ({ zakres: 'osobisty', ...pick(skill) })),
+      ];
+      return textResult(JSON.stringify(entries, null, 1));
+    },
+  );
+
+  mcp.tool(
+    'skill_nowy',
+    'Tworzy skill (katalog z SKILL.md) widoczny od razu w panelu Sufler. Nazwa kebab-case, ' +
+      'opis mówi Claude, kiedy po niego sięgać, treść to instrukcje markdown.',
+    {
+      nazwa: z.string().describe('Nazwa skilla (kebab-case), np. generator-changelog'),
+      opis: z.string().describe('Opis — kiedy używać skilla'),
+      tresc: z.string().optional().describe('Instrukcje markdown (opcjonalne)'),
+      zakres: z
+        .enum(['projekt', 'osobisty'])
+        .optional()
+        .describe('Domyślnie projekt (.claude/skills); osobisty = ~/.claude/skills'),
+    },
+    async ({ nazwa, opis, tresc, zakres }) => {
+      const root = getProjectRoot();
+      if (!root) {
+        return textResult('Brak otwartego projektu w Sufler.', true);
+      }
+      const result = await createSkill(root, {
+        scope: zakres === 'osobisty' ? 'personal' : 'project',
+        name: nazwa,
+        description: opis,
+        manual: false,
+        body: tresc ?? '',
+      });
+      if (!result.ok) {
+        const message =
+          result.error === 'invalid-name'
+            ? 'Niepoprawna nazwa — kebab-case: małe litery, cyfry, pojedyncze myślniki.'
+            : result.error === 'exists'
+              ? 'Skill o tej nazwie już istnieje w tym zakresie.'
+              : 'Nie udało się zapisać SKILL.md.';
+        return textResult(message, true);
+      }
+      return textResult(`Utworzono skill: ${result.path}`);
     },
   );
 
