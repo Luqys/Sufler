@@ -1,4 +1,4 @@
-import { useState, type ReactElement } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 import { formatTokens, type UsageSummary } from '../../../shared/usage';
 
 const ICON_GAUGE = (
@@ -26,6 +26,11 @@ export function UsageIndicator(): ReactElement {
     });
   };
 
+  // Procent na pasku od razu po starcie (skan w tle, cache 5 min w main).
+  useEffect(() => {
+    refresh(false);
+  }, []);
+
   const toggle = (): void => {
     const next = !open;
     setOpen(next);
@@ -34,16 +39,27 @@ export function UsageIndicator(): ReactElement {
     }
   };
 
+  const percent = summary?.block.percent ?? null;
+
   return (
     <div className="usage-wrap">
       <button
         type="button"
-        className="titlebar-btn"
+        className="titlebar-btn usage-button"
         data-testid="usage-button"
-        title="Zużycie Claude Code (lokalnie z transkryptów)"
+        title={
+          percent !== null
+            ? `Bieżące okno 5h: ~${percent}% największego okna z 30 dni. Kliknij po szczegóły.`
+            : 'Zużycie Claude Code (lokalnie z transkryptów)'
+        }
         onClick={toggle}
       >
         {ICON_GAUGE}
+        {percent !== null && (
+          <span className="usage-percent" data-testid="usage-percent">
+            {percent}%
+          </span>
+        )}
       </button>
       {open && (
         <>
@@ -83,6 +99,14 @@ export function UsageIndicator(): ReactElement {
                     ))}
                   </tbody>
                 </table>
+                <div className="usage-block-row">
+                  <span>
+                    Okno 5h: <strong>{formatTokens(summary.block.currentTokens)}</strong>
+                    {' / '}
+                    {formatTokens(summary.block.maxTokens)} (największe z 30 dni)
+                  </span>
+                  {summary.block.percent !== null && <strong>{summary.block.percent}%</strong>}
+                </div>
                 {summary.topModels.length > 0 && (
                   <div className="usage-models">
                     {summary.topModels.map((model) => (

@@ -6,6 +6,8 @@ import type { UsageSummary } from '../shared/usage';
 import {
   IPC,
   type GitStatusFile,
+  type KnowledgeFile,
+  type KnowledgeGenerateResult,
   type McpStatusResult,
   type PtyCreateResult,
   type PtyDataEvent,
@@ -93,6 +95,10 @@ const api: WindowApi = {
   setAppearance: (appearance: Appearance): Promise<Appearance> =>
     ipcRenderer.invoke(IPC.AppearanceSet, appearance),
   getUsage: (force?: boolean): Promise<UsageSummary> => ipcRenderer.invoke(IPC.UsageGet, force),
+  listKnowledge: (root: string): Promise<KnowledgeFile[]> =>
+    ipcRenderer.invoke(IPC.KnowledgeList, root),
+  generateKnowledge: (root: string, paths: string[]): Promise<KnowledgeGenerateResult> =>
+    ipcRenderer.invoke(IPC.KnowledgeGenerate, root, paths),
 };
 
 contextBridge.exposeInMainWorld('api', api);

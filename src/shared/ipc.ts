@@ -43,6 +43,8 @@ export const IPC = {
   AppearanceGet: 'appearance:get',
   AppearanceSet: 'appearance:set',
   UsageGet: 'usage:get',
+  KnowledgeList: 'knowledge:list',
+  KnowledgeGenerate: 'knowledge:generate',
 } as const;
 
 export interface DirEntry {
@@ -169,6 +171,8 @@ export interface WindowApi {
   getAppearance(): Promise<Appearance>;
   setAppearance(appearance: Appearance): Promise<Appearance>;
   getUsage(force?: boolean): Promise<UsageSummary>;
+  listKnowledge(root: string): Promise<KnowledgeFile[]>;
+  generateKnowledge(root: string, paths: string[]): Promise<KnowledgeGenerateResult>;
 }
 
 export type McpStatusResult =
@@ -196,4 +200,14 @@ export interface SearchMatch {
 
 export type SearchResult =
   | { ok: true; matches: SearchMatch[]; truncated: boolean }
+  | { ok: false; error: string };
+
+export interface KnowledgeFile {
+  /** Ścieżka względem korzenia projektu. */
+  path: string;
+  lines: number;
+}
+
+export type KnowledgeGenerateResult =
+  | { ok: true; path: string; files: number; bytes: number }
   | { ok: false; error: string };

@@ -1,6 +1,7 @@
 import { useState, type DragEvent, type ReactElement } from 'react';
 import type { DockId } from '../../../shared/dock-tabs';
 import { useDocks } from '../docks';
+import { PanelGlyph } from './LayoutToggles';
 import { TerminalView } from './TerminalView';
 
 const DND_MIME = 'application/x-visualn3o-tab';
@@ -98,24 +99,24 @@ export function Dock({ id, title, onHide }: DockProps): ReactElement {
           <button
             type="button"
             className="dock-add"
-            data-testid={`${id}-dock-hide`}
-            title={
-              id === 'bottom'
-                ? 'Ukryj dolny dok (Ctrl+` przywraca)'
-                : 'Ukryj prawy dok (Cmd+Shift+C przywraca)'
-            }
-            onClick={onHide}
-          >
-            {id === 'bottom' ? '⌄' : '›'}
-          </button>
-          <button
-            type="button"
-            className="dock-add"
             data-testid={`${id}-dock-add`}
             title="Nowa zakładka"
             onClick={() => setMenuOpen((value) => !value)}
           >
             +
+          </button>
+          <button
+            type="button"
+            className="dock-add dock-hide"
+            data-testid={`${id}-dock-hide`}
+            title={
+              id === 'bottom'
+                ? 'Zwiń dolny dok (przywrócisz ikonką na pasku tytułu albo Ctrl+`)'
+                : 'Zwiń prawy dok (przywrócisz ikonką na pasku tytułu albo Cmd+Shift+C)'
+            }
+            onClick={onHide}
+          >
+            <PanelGlyph side={id === 'bottom' ? 'bottom' : 'right'} on />
           </button>
           {menuOpen && (
             <>

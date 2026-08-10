@@ -63,6 +63,26 @@ describe('summarizeUsage', () => {
     expect(summary.scannedFiles).toBe(7);
   });
 
+  it('liczy okno 5h: bieżące względem największego z 30 dni', () => {
+    const blockMs = 5 * 60 * 60 * 1000;
+    const inCurrentBlock = Math.floor(NOW / blockMs) * blockMs + 1000;
+    const summary = summarizeUsage(
+      [
+        { ...entry(0, 0), timestamp: inCurrentBlock, input: 15, output: 1200 },
+        { ...entry(10, 0), input: 30, output: 2400 },
+      ],
+      NOW,
+      1,
+    );
+    expect(summary.block.currentTokens).toBe(1215);
+    expect(summary.block.maxTokens).toBe(2430);
+    expect(summary.block.percent).toBe(50);
+  });
+
+  it('bez historii percent = null', () => {
+    expect(summarizeUsage([], NOW, 0).block.percent).toBeNull();
+  });
+
   it('ranking modeli po tokenach wyjściowych', () => {
     const summary = summarizeUsage(
       [entry(1, 100, 'haiku'), entry(2, 900, 'fable'), entry(3, 50, 'haiku')],

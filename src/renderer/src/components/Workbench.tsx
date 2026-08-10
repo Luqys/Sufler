@@ -6,11 +6,11 @@ import {
   type LayoutVisibilityKey,
 } from '../../../shared/layout';
 import { baseName } from '../../../shared/paths';
-import { useDocks } from '../docks';
 import { useWorkspace } from '../workspace';
 import { Dock } from './Dock';
 import { EditorArea } from './EditorArea';
 import { LayoutToggles } from './LayoutToggles';
+import { LoginDialog } from './LoginDialog';
 import { SettingsDialog } from './SettingsDialog';
 import { Sidebar } from './Sidebar';
 import { Splitter } from './Splitter';
@@ -38,9 +38,9 @@ const MIN_EDITOR_HEIGHT = 160;
 
 export function Workbench({ initialLayout }: { initialLayout: LayoutState }): ReactElement {
   const { root } = useWorkspace();
-  const { addTab } = useDocks();
   const [layout, setLayout] = useState(initialLayout);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
   // Lustro stanu aktualizowane synchronicznie — handlery wskaźnika nie mogą
   // czekać na cykl renderowania Reacta.
   const layoutRef = useRef(initialLayout);
@@ -119,13 +119,10 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
   const toggleVisibilityRef = useRef(toggleVisibility);
   toggleVisibilityRef.current = toggleVisibility;
 
-  /** Ikonka Claude na pasku: logowanie do konta przez `claude /login` w prawym doku. */
+  /** Ikonka Claude na pasku: widżet logowania (modal z `claude /login`). */
   const openClaudeLogin = useCallback(() => {
-    if (!layoutRef.current.rightDockVisible) {
-      toggleVisibility('rightDockVisible');
-    }
-    addTab('right', 'claude', { args: ['/login'], title: 'Logowanie' });
-  }, [addTab, toggleVisibility]);
+    setLoginOpen(true);
+  }, []);
 
   // Menu aplikacji → Ustawienia (Cmd+,) i przełączniki paneli z menu Widok.
   useEffect(() => {
@@ -220,6 +217,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
         )}
       </div>
       {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}
+      {loginOpen && <LoginDialog onClose={() => setLoginOpen(false)} />}
     </div>
   );
 }

@@ -6,7 +6,13 @@ import type { LayoutState, LayoutVisibilityKey } from '../../../shared/layout';
  * panel widoczny, sama kreska = schowany. Klik przełącza.
  */
 
-function LayoutGlyph({ side, on }: { side: 'left' | 'bottom' | 'right'; on: boolean }): ReactElement {
+export function PanelGlyph({
+  side,
+  on,
+}: {
+  side: 'left' | 'bottom' | 'right';
+  on: boolean;
+}): ReactElement {
   let segment: ReactElement;
   let divider: ReactElement;
   if (side === 'left') {
@@ -90,7 +96,7 @@ export function LayoutToggles({ layout, onToggle }: LayoutTogglesProps): ReactEl
             aria-pressed={visible}
             onClick={() => onToggle(toggle.key)}
           >
-            <LayoutGlyph side={toggle.side} on={visible} />
+            <PanelGlyph side={toggle.side} on={visible} />
           </button>
         );
       })}

@@ -21,10 +21,22 @@ export interface UsagePeriod {
   cacheCreate: number;
 }
 
+/**
+ * Szacunek okna 5h (jak okna limitów Claude): tokeny wejścia+wyjścia (bez cache)
+ * bieżącego okna względem największego okna z ostatnich 30 dni.
+ */
+export interface UsageBlockInfo {
+  currentTokens: number;
+  maxTokens: number;
+  /** null, gdy brak historii do kalibracji. */
+  percent: number | null;
+}
+
 export interface UsageSummary {
   periods: UsagePeriod[];
   topModels: Array<{ model: string; requests: number; output: number }>;
   scannedFiles: number;
+  block: UsageBlockInfo;
 }
 
 /** Parsuje jedną linię JSONL; null gdy to nie jest wpis assistant z usage. */
@@ -90,7 +102,9 @@ export function summarizeUsage(
   const week = emptyPeriod('7 dni');
   const month = emptyPeriod('30 dni');
   const dayMs = 24 * 60 * 60 * 1000;
+  const blockMs = 5 * 60 * 60 * 1000;
   const models = new Map<string, { requests: number; output: number }>();
+  const blocks = new Map<number, number>();
 
   for (const entry of entries) {
     if (entry.timestamp > now || entry.timestamp < now - 30 * dayMs) {
@@ -107,6 +121,9 @@ export function summarizeUsage(
     model.requests += 1;
     model.output += entry.output;
     models.set(entry.model, model);
+
+    const blockIndex = Math.floor(entry.timestamp / blockMs);
+    blocks.set(blockIndex, (blocks.get(blockIndex) ?? 0) + entry.input + entry.output);
   }
 
   const topModels = [...models.entries()]
@@ -114,7 +131,15 @@ export function summarizeUsage(
     .sort((a, b) => b.output - a.output)
     .slice(0, 4);
 
-  return { periods: [today, week, month], topModels, scannedFiles };
+  const currentTokens = blocks.get(Math.floor(now / blockMs)) ?? 0;
+  const maxTokens = blocks.size > 0 ? Math.max(...blocks.values()) : 0;
+  const block: UsageBlockInfo = {
+    currentTokens,
+    maxTokens,
+    percent: maxTokens > 0 ? Math.min(100, Math.round((currentTokens / maxTokens) * 100)) : null,
+  };
+
+  return { periods: [today, week, month], topModels, scannedFiles, block };
 }
 
 /** 1234 → „1,2 tys.", 5 600 000 → „5,6 mln"; poniżej tysiąca — pełna liczba. */

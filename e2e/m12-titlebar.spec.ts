@@ -30,24 +30,37 @@ test('przełączniki na pasku tytułu zwijają i rozwijają wszystkie panele', a
   await app.close();
 });
 
-test('ikonka Claude na pasku otwiera logowanie w prawym doku (nawet schowanym)', async () => {
+test('ikonka Claude na pasku otwiera widżet logowania, a zamknięcie ubija proces', async () => {
   const app = await launchApp(makeConfigHome(), makeFixtureProject(), {
     VISUALN3O_PATH_PREPEND: makeFakeClaudeBin(),
   });
   const page = await app.firstWindow();
   await expect(page.getByTestId('workbench')).toBeVisible();
 
-  // Chowamy prawy dok — przycisk logowania ma go sam rozwinąć.
-  await page.getByTestId('right-dock-hide').click();
-  await expect(page.getByTestId('right-dock')).toHaveCount(0);
-
   await page.getByTestId('claude-login-button').click();
-  await expect(page.getByTestId('right-dock')).toBeVisible();
-  await expect(page.locator('[data-testid=right-dock] .dock-tab')).toContainText('Logowanie');
-  await expect(page.locator('[data-testid=right-dock] .xterm')).toContainText('TRYB-LOGOWANIA', {
-    timeout: 15_000,
+  const dialog = page.getByTestId('login-dialog');
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText('Zaloguj się do Claude');
+  await expect(dialog.locator('.xterm')).toContainText('TRYB-LOGOWANIA', { timeout: 15_000 });
+
+  const pids = await app.evaluate(() => {
+    const list = (globalThis as Record<string, unknown>)['vn3oListPtyPids'];
+    return typeof list === 'function' ? (list as () => number[])() : [];
   });
+  expect(pids).toHaveLength(1);
 
   await page.screenshot({ path: 'e2e-artifacts/m12-logowanie-claude.png' });
+
+  await page.getByTestId('login-close').click();
+  await expect(dialog).toHaveCount(0);
+  await expect
+    .poll(() =>
+      app.evaluate(() => {
+        const list = (globalThis as Record<string, unknown>)['vn3oListPtyPids'];
+        return typeof list === 'function' ? (list as () => number[])() : [];
+      }),
+    )
+    .toEqual([]);
+
   await app.close();
 });
