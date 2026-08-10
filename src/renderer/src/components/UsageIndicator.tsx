@@ -1,8 +1,34 @@
 import { useEffect, useState, type ReactElement } from 'react';
+import type { UsageLimitEntry, UsageLimitsResult } from '../../../shared/limits';
 import { formatTokens, type UsageSummary } from '../../../shared/usage';
 
 function clockTime(timestamp: number): string {
   return new Date(timestamp).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+}
+
+/** Reset dziś → sama godzina; dalej → dzień tygodnia + godzina. */
+function resetLabel(iso: string | null): string {
+  if (!iso) {
+    return '';
+  }
+  const when = new Date(iso);
+  if (Number.isNaN(when.getTime())) {
+    return '';
+  }
+  const sameDay = when.toDateString() === new Date().toDateString();
+  const time = when.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+  if (sameDay) {
+    return time;
+  }
+  return `${when.toLocaleDateString('pl-PL', { weekday: 'short', day: 'numeric', month: 'numeric' })}, ${time}`;
+}
+
+function LimitBar({ entry }: { entry: UsageLimitEntry }): ReactElement {
+  return (
+    <div className={`usage-session-bar limit-${entry.severity}`}>
+      <i style={{ width: `${entry.percent}%` }} />
+    </div>
+  );
 }
 
 /**
@@ -13,6 +39,7 @@ function clockTime(timestamp: number): string {
 export function UsageIndicator(): ReactElement {
   const [open, setOpen] = useState(false);
   const [summary, setSummary] = useState<UsageSummary | null>(null);
+  const [limits, setLimits] = useState<UsageLimitsResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [, setTick] = useState(0);
 
@@ -22,12 +49,16 @@ export function UsageIndicator(): ReactElement {
       setSummary(data);
       setLoading(false);
     });
+    void window.api.getUsageLimits(force).then(setLimits);
   };
 
   useEffect(() => {
     refresh(false);
-    // Tykanie paska czasu + okresowe odświeżenie skanu (cache 5 min po stronie main).
-    const minute = window.setInterval(() => setTick((value) => value + 1), 60_000);
+    // Tykanie paska czasu + limity co minutę (cache 60 s w main), skan co 5 min.
+    const minute = window.setInterval(() => {
+      setTick((value) => value + 1);
+      void window.api.getUsageLimits(false).then(setLimits);
+    }, 60_000);
     const rescan = window.setInterval(() => refresh(false), 5 * 60_000);
     return () => {
       window.clearInterval(minute);
@@ -51,6 +82,9 @@ export function UsageIndicator(): ReactElement {
         Math.max(0, Math.round(((now - block.windowStart) / (block.windowEnd - block.windowStart)) * 100)),
       )
     : 0;
+  const planLimits = limits?.ok ? limits.limits : null;
+  const session = planLimits?.session ?? null;
+  const weekly = planLimits?.weekly ?? null;
 
   return (
     <div className="usage-wrap">
@@ -59,20 +93,34 @@ export function UsageIndicator(): ReactElement {
         className="usage-pill"
         data-testid="usage-button"
         title={
-          block
-            ? `Okno 5h: ${clockTime(block.windowStart)}–${clockTime(block.windowEnd)} · ` +
-              `zużyte ${formatTokens(block.currentTokens)} tokenów · reset o ${clockTime(block.windowEnd)}`
-            : 'Zużycie Claude Code (lokalnie z transkryptów)'
+          session
+            ? `Sesja 5h: ${session.percent}% limitu (reset ${resetLabel(session.resetsAt)})` +
+              (weekly ? ` · Tydzień: ${weekly.percent}% (reset ${resetLabel(weekly.resetsAt)})` : '')
+            : block
+              ? `Okno 5h: ${clockTime(block.windowStart)}–${clockTime(block.windowEnd)} · ` +
+                `zużyte ${formatTokens(block.currentTokens)} tokenów`
+              : 'Zużycie Claude Code'
         }
         onClick={toggle}
       >
-        <span className="usage-pill-bar" aria-hidden>
-          <i style={{ width: `${timePercent}%` }} />
-        </span>
-        {block ? (
-          <span className="usage-pill-text" data-testid="usage-window-tokens">
-            {formatTokens(block.currentTokens)} · do {clockTime(block.windowEnd)}
-          </span>
+        {session ? (
+          <>
+            <span className={`usage-pill-bar limit-${session.severity}`} aria-hidden>
+              <i style={{ width: `${session.percent}%` }} />
+            </span>
+            <span className="usage-pill-text" data-testid="usage-limits-text">
+              {session.percent}%{weekly && ` · tydz. ${weekly.percent}%`}
+            </span>
+          </>
+        ) : block ? (
+          <>
+            <span className="usage-pill-bar" aria-hidden>
+              <i style={{ width: `${timePercent}%` }} />
+            </span>
+            <span className="usage-pill-text" data-testid="usage-window-tokens">
+              {formatTokens(block.currentTokens)} · do {clockTime(block.windowEnd)}
+            </span>
+          </>
         ) : (
           <span className="usage-pill-text">sesja…</span>
         )}
@@ -93,6 +141,40 @@ export function UsageIndicator(): ReactElement {
               </button>
             </div>
             {!summary && loading && <p className="placeholder">Skanuję transkrypty…</p>}
+            {planLimits && (session || weekly) && (
+              <div className="usage-session" data-testid="usage-limits-section">
+                <div className="usage-session-row">
+                  <span>Limity planu (jak w Claude Code)</span>
+                </div>
+                {session && (
+                  <>
+                    <div className="usage-session-row" data-testid="limit-session">
+                      <span>Sesja 5h</span>
+                      <strong>{session.percent}%</strong>
+                    </div>
+                    <LimitBar entry={session} />
+                    <div className="usage-session-row usage-session-sub">
+                      <span>reset {resetLabel(session.resetsAt)}</span>
+                    </div>
+                  </>
+                )}
+                {weekly && (
+                  <>
+                    <div className="usage-session-row" data-testid="limit-weekly">
+                      <span>Tydzień (wszystkie modele)</span>
+                      <strong>{weekly.percent}%</strong>
+                    </div>
+                    <LimitBar entry={weekly} />
+                    <div className="usage-session-row usage-session-sub">
+                      <span>reset {resetLabel(weekly.resetsAt)}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+            {limits && !limits.ok && (
+              <p className="usage-note placeholder">Limity planu: {limits.error}</p>
+            )}
             {summary && (
               <>
                 <div className="usage-session">

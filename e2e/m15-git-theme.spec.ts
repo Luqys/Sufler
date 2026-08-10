@@ -57,3 +57,36 @@ test('szybki przełącznik motywu na pasku odwraca jasny/ciemny', async () => {
 
   await app.close();
 });
+
+test('przytrzymanie przycisku motywu otwiera wybór koloru przewodniego', async () => {
+  const app = await launchApp(makeConfigHome(), makeFixtureProject());
+  const page = await app.firstWindow();
+  await page.emulateMedia({ colorScheme: null });
+  await expect(page.getByTestId('workbench')).toBeVisible();
+
+  const isDark = (): Promise<boolean> =>
+    page.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches);
+  const initialDark = await isDark();
+
+  const button = await page.getByTestId('theme-quick-toggle').boundingBox();
+  if (!button) {
+    throw new Error('Brak przycisku motywu');
+  }
+  await page.mouse.move(button.x + button.width / 2, button.y + button.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(750);
+  await page.mouse.up();
+
+  const popover = page.getByTestId('accent-popover');
+  await expect(popover).toBeVisible();
+  // Długie przytrzymanie NIE przełącza motywu.
+  expect(await isDark()).toBe(initialDark);
+
+  await page.getByTestId('accent-pick-green').click();
+  await expect(popover).toHaveCount(0);
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.dataset['accent']))
+    .toBe('green');
+
+  await app.close();
+});

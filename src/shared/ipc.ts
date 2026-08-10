@@ -1,6 +1,7 @@
 import type { Appearance } from './appearance';
 import type { TabKind } from './dock-tabs';
 import type { LayoutState, LayoutVisibilityKey } from './layout';
+import type { UsageLimitsResult } from './limits';
 import type { McpConfigServer, McpDetail, McpListEntry } from './mcp';
 import type { UsageSummary } from './usage';
 
@@ -47,6 +48,7 @@ export const IPC = {
   KnowledgeGenerate: 'knowledge:generate',
   GitLog: 'git:log',
   GitShowCommit: 'git:show-commit',
+  UsageLimitsGet: 'usage:limits',
 } as const;
 
 export interface DirEntry {
@@ -177,6 +179,7 @@ export interface WindowApi {
   generateKnowledge(root: string, paths: string[]): Promise<KnowledgeGenerateResult>;
   gitLog(root: string): Promise<GitLogResult>;
   gitShowCommit(root: string, hash: string): Promise<GitCommitFile[]>;
+  getUsageLimits(force?: boolean): Promise<UsageLimitsResult>;
 }
 
 export type McpStatusResult =

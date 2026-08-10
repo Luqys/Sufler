@@ -6,6 +6,7 @@ import { IPC } from '../shared/ipc';
 import { applyAppearanceAtBoot, getAppearance, setAppearance } from './appearance';
 import { generateKnowledgeContext, listMarkdownFiles } from './knowledge';
 import { getClaudeUsage } from './usage';
+import { getUsageLimits } from './usage-limits';
 import { closeWatcher, setWatchedFiles } from './file-watcher';
 import { readDirListing, readFileForEditor, writeTextFile } from './fs-tree';
 import { readLayout, writeLayout } from './layout-store';
@@ -69,6 +70,7 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.AppearanceGet, () => getAppearance());
   ipcMain.handle(IPC.AppearanceSet, (_event, raw: unknown) => setAppearance(raw));
   ipcMain.handle(IPC.UsageGet, (_event, force?: boolean) => getClaudeUsage(force));
+  ipcMain.handle(IPC.UsageLimitsGet, (_event, force?: boolean) => getUsageLimits(force));
   ipcMain.handle(IPC.KnowledgeList, (_event, root: string) => listMarkdownFiles(root));
   ipcMain.handle(IPC.KnowledgeGenerate, (_event, root: string, paths: string[]) =>
     generateKnowledgeContext(root, paths),

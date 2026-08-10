@@ -24,6 +24,7 @@ import {
   type WriteFileResult,
 } from '../shared/ipc';
 import type { LayoutState } from '../shared/layout';
+import type { UsageLimitsResult } from '../shared/limits';
 import type { McpConfigServer, McpDetail } from '../shared/mcp';
 
 const api: WindowApi = {
@@ -104,6 +105,8 @@ const api: WindowApi = {
   gitLog: (root: string): Promise<GitLogResult> => ipcRenderer.invoke(IPC.GitLog, root),
   gitShowCommit: (root: string, hash: string): Promise<GitCommitFile[]> =>
     ipcRenderer.invoke(IPC.GitShowCommit, root, hash),
+  getUsageLimits: (force?: boolean): Promise<UsageLimitsResult> =>
+    ipcRenderer.invoke(IPC.UsageLimitsGet, force),
 };
 
 contextBridge.exposeInMainWorld('api', api);

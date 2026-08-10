@@ -87,3 +87,38 @@ test('pasek pokazuje % zużycia bieżącego okna 5h', async () => {
   await page.screenshot({ path: 'e2e-artifacts/m13-procent-zuzycia.png' });
   await app.close();
 });
+
+test('pigułka pokazuje prawdziwe limity planu jak w Claude Code', async () => {
+  const limitsJson = JSON.stringify({
+    five_hour: {
+      utilization: 37,
+      resets_at: new Date(Date.now() + 3 * 3600 * 1000).toISOString(),
+    },
+    seven_day: {
+      utilization: 12,
+      resets_at: new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString(),
+    },
+    limits: [
+      { kind: 'session', percent: 37, severity: 'warning', is_active: true },
+      { kind: 'weekly_all', percent: 12, severity: 'normal', is_active: false },
+    ],
+  });
+  const app = await launchApp(makeConfigHome(), makeFixtureProject(), {
+    VISUALN3O_LIMITS_JSON: limitsJson,
+  });
+  const page = await app.firstWindow();
+
+  const pill = page.getByTestId('usage-limits-text');
+  await expect(pill).toContainText('37%', { timeout: 15_000 });
+  await expect(pill).toContainText('tydz. 12%');
+
+  await page.getByTestId('usage-button').click();
+  const section = page.getByTestId('usage-limits-section');
+  await expect(section).toContainText('Limity planu');
+  await expect(page.getByTestId('limit-session')).toContainText('37%');
+  await expect(page.getByTestId('limit-weekly')).toContainText('12%');
+  await expect(section).toContainText('reset');
+
+  await page.screenshot({ path: 'e2e-artifacts/m16-limity-planu.png' });
+  await app.close();
+});

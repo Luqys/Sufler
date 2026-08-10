@@ -989,6 +989,48 @@ body.dragging-horizontal .splitter.horizontal::after {
   border-radius: 3px;
 }
 
+.usage-session-bar.limit-warning i,
+.usage-pill-bar.limit-warning i {
+  background: #f59e0b;
+}
+
+.usage-session-bar.limit-critical i,
+.usage-pill-bar.limit-critical i {
+  background: #ef4444;
+}
+
+/* --- Wybór akcentu (long-press na przełączniku motywu) --- */
+
+.theme-toggle-wrap {
+  position: relative;
+}
+
+.accent-popover {
+  position: absolute;
+  top: 30px;
+  right: 0;
+  z-index: 60;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-alt);
+  box-shadow: 0 14px 40px rgb(0 0 0 / 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+
+.accent-popover-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
 /* --- Panel historii git --- */
 
 .git-panel {

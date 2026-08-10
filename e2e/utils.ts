@@ -46,6 +46,8 @@ export function launchApp(
     delete env['VISUALN3O_ROOT'];
   }
   delete env['ELECTRON_RENDERER_URL'];
+  // Bez realnych zapytań o limity planu w testach (nadpisywalne przez extraEnv).
+  env['VISUALN3O_LIMITS_JSON'] = 'off';
   Object.assign(env, extraEnv);
   return electron.launch({ args: ['.'], env });
 }
