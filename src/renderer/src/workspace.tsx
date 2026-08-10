@@ -16,6 +16,7 @@ import {
   pinTab as pinTabState,
   type EditorTabsState,
 } from '../../shared/editor-tabs';
+import { CHAT_PATH } from '../../shared/chat';
 import type { ReadFileError, WatchEvent } from '../../shared/ipc';
 import { isImagePath } from '../../shared/media';
 import { baseName } from '../../shared/paths';
@@ -59,6 +60,7 @@ interface WorkspaceValue {
   openFileAt(path: string, line: number, column: number): void;
   openBrowserPreview(): void;
   openKnowledgeGraph(): void;
+  openChat(): void;
   chooseVault(): void;
   clearVault(): void;
   activateTab(path: string): void;
@@ -400,6 +402,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     applyTabs((state) => openTabState(state, KNOWLEDGE_GRAPH_PATH, 'Graf wiedzy', true));
   }, [applyTabs]);
 
+  const openChat = useCallback(() => {
+    applyTabs((state) => openTabState(state, CHAT_PATH, 'Czat', true));
+  }, [applyTabs]);
+
   // Cmd+S zapisuje aktywną zakładkę niezależnie od tego, co ma fokus.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -442,6 +448,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         openFileAt,
         openBrowserPreview,
         openKnowledgeGraph,
+        openChat,
         activateTab,
         pinTab,
         closeTab,

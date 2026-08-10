@@ -1,8 +1,10 @@
 import type { ReactElement } from 'react';
+import { CHAT_PATH } from '../../../shared/chat';
 import { isImagePath } from '../../../shared/media';
 import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../../shared/preview';
 import { useWorkspace } from '../workspace';
 import { BrowserPreview } from './BrowserPreview';
+import { ChatView } from './ChatView';
 import { EditorTabs } from './EditorTabs';
 import { GraphView } from './GraphView';
 import { ImageViewer } from './ImageViewer';
@@ -41,6 +43,15 @@ export function EditorArea(): ReactElement {
       <main className="editor-area" data-testid="editor">
         <EditorTabs />
         <GraphView />
+      </main>
+    );
+  }
+
+  if (activePath === CHAT_PATH) {
+    return (
+      <main className="editor-area" data-testid="editor">
+        <EditorTabs />
+        <ChatView />
       </main>
     );
   }

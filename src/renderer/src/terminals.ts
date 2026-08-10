@@ -1,6 +1,6 @@
 import { FitAddon } from '@xterm/addon-fit';
 import { SerializeAddon } from '@xterm/addon-serialize';
-import { Terminal } from '@xterm/xterm';
+import { Terminal, type ITheme } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 
 /**
@@ -26,10 +26,52 @@ const pendingOutput = new Map<number, string[]>();
 
 const darkMedia = window.matchMedia('(prefers-color-scheme: dark)');
 
-function themeFor(dark: boolean): { background: string; foreground: string; cursor: string } {
+function themeFor(dark: boolean): ITheme {
   return dark
-    ? { background: '#1b1c21', foreground: '#e8e8ea', cursor: '#d97757' }
-    : { background: '#ffffff', foreground: '#1d1d1f', cursor: '#c15f3c' };
+    ? {
+        background: '#1b1c21',
+        foreground: '#e8e8ea',
+        cursor: '#d97757',
+        selectionBackground: '#3a3f4b',
+        black: '#2e2e33',
+        red: '#e5484d',
+        green: '#46a758',
+        yellow: '#d5a021',
+        blue: '#4f8ff7',
+        magenta: '#b78af5',
+        cyan: '#3fb8c9',
+        white: '#b8b8bd',
+        brightBlack: '#6e6e76',
+        brightRed: '#f2555a',
+        brightGreen: '#55b467',
+        brightYellow: '#e2b03a',
+        brightBlue: '#6ba2f9',
+        brightMagenta: '#c79bf7',
+        brightCyan: '#58c6d6',
+        brightWhite: '#e8e8ea',
+      }
+    : {
+        background: '#ffffff',
+        foreground: '#1d1d1f',
+        cursor: '#c15f3c',
+        selectionBackground: '#d6dcf5',
+        black: '#3a3a3e',
+        red: '#c0392b',
+        green: '#227d4a',
+        yellow: '#96650a',
+        blue: '#1f5fbf',
+        magenta: '#8e44ad',
+        cyan: '#0e7490',
+        white: '#8e8e93',
+        brightBlack: '#6e6e73',
+        brightRed: '#d54c3c',
+        brightGreen: '#2e9e5b',
+        brightYellow: '#a8790f',
+        brightBlue: '#3b76d6',
+        brightMagenta: '#9d5bbf',
+        brightCyan: '#0d84a3',
+        brightWhite: '#1d1d1f',
+      };
 }
 
 darkMedia.addEventListener('change', () => {
@@ -74,6 +116,9 @@ export function createTerminalInstance(
     cursorBlink: true,
     scrollback: 10_000,
     theme: themeFor(darkMedia.matches),
+    // Programy zakładające ciemne tło (np. Claude Code) wypisują jasnoszare
+    // kolory 256/truecolor, nieczytelne na białym — xterm dociąga je do kontrastu.
+    minimumContrastRatio: 4.5,
   });
   const fit = new FitAddon();
   term.loadAddon(fit);

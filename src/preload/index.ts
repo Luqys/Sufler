@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { Appearance } from '../shared/appearance';
+import type { ChatEventPayload } from '../shared/chat';
 import type { TabKind } from '../shared/dock-tabs';
 import type { LayoutVisibilityKey } from '../shared/layout';
 import {
@@ -116,6 +117,13 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.TerminalDetachOpen, info),
   getDetachedInfo: (ptyId: number): Promise<DetachedTerminalInfo | null> =>
     ipcRenderer.invoke(IPC.TerminalDetachInfo, ptyId),
+  chatSend: (root: string, text: string): Promise<{ ok: boolean; error?: string }> =>
+    ipcRenderer.invoke(IPC.ChatSend, root, text),
+  chatInterrupt: (): Promise<void> => ipcRenderer.invoke(IPC.ChatInterrupt),
+  chatReset: (): Promise<void> => ipcRenderer.invoke(IPC.ChatReset),
+  onChatEvent: (listener: (payload: ChatEventPayload) => void): void => {
+    ipcRenderer.on(IPC.ChatEvent, (_event, payload: ChatEventPayload) => listener(payload));
+  },
   getWiedzaMcpStatus: (): Promise<{ running: boolean; url: string; error: string | null }> =>
     ipcRenderer.invoke(IPC.WiedzaMcpStatus),
   registerWiedzaMcp: (): Promise<{ ok: boolean; message: string }> =>

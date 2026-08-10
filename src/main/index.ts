@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 import type { TabKind } from '../shared/dock-tabs';
 import { IPC } from '../shared/ipc';
 import { applyAppearanceAtBoot, getAppearance, setAppearance } from './appearance';
+import { interruptChat, resetChat, sendChatMessage } from './chat';
 import { generateKnowledgeContext, listMarkdownFiles } from './knowledge';
 import { buildKnowledgeGraph } from './knowledge-graph';
 import { getUsageLimits } from './usage-limits';
@@ -73,6 +74,15 @@ function createWindow(): void {
 void app.whenReady().then(() => {
   applyAppearanceAtBoot();
 
+  // W dev ikona docka z build/icon.png (w pakiecie robi to icon.icns).
+  if (!app.isPackaged) {
+    try {
+      app.dock?.setIcon(join(app.getAppPath(), 'build', 'icon.png'));
+    } catch {
+      // brak pliku — zostaje domyślna ikona Electrona
+    }
+  }
+
   ipcMain.handle(IPC.LayoutGet, () => readLayout());
   ipcMain.handle(IPC.AppearanceGet, () => getAppearance());
   ipcMain.handle(IPC.AppearanceSet, (_event, raw: unknown) => setAppearance(raw));
@@ -119,6 +129,16 @@ void app.whenReady().then(() => {
     openTerminalWindow(info);
   });
   ipcMain.handle(IPC.TerminalDetachInfo, (_event, ptyId: number) => getDetachedInfo(ptyId));
+  ipcMain.handle(IPC.ChatSend, (event, root: string, text: string) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    return win ? sendChatMessage(win, root, text) : { ok: false, error: 'brak okna' };
+  });
+  ipcMain.handle(IPC.ChatInterrupt, () => {
+    interruptChat();
+  });
+  ipcMain.handle(IPC.ChatReset, () => {
+    resetChat();
+  });
   ipcMain.handle(IPC.WiedzaMcpStatus, () => getWiedzaMcpStatus());
   ipcMain.handle(IPC.WiedzaMcpRegister, async () => {
     try {

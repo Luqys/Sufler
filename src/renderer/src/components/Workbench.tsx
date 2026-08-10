@@ -33,12 +33,18 @@ const ICON_CLAUDE_SPARK = (
   </svg>
 );
 
+const ICON_CHAT = (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round">
+    <path d="M2 4A1.8 1.8 0 0 1 3.8 2.2h8.4A1.8 1.8 0 0 1 14 4v5.6a1.8 1.8 0 0 1-1.8 1.8H8.4l-3.1 2.6v-2.6H3.8A1.8 1.8 0 0 1 2 9.6V4Z" />
+  </svg>
+);
+
 const SPLITTER_SIZE = 5;
 const MIN_CENTER_WIDTH = 320;
 const MIN_EDITOR_HEIGHT = 160;
 
 export function Workbench({ initialLayout }: { initialLayout: LayoutState }): ReactElement {
-  const { root } = useWorkspace();
+  const { root, openChat } = useWorkspace();
   const [layout, setLayout] = useState(initialLayout);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
@@ -150,6 +156,15 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
       <header className="titlebar">
         <span className="titlebar-title">VisualN3O — {baseName(root)}</span>
         <div className="titlebar-actions">
+          <button
+            type="button"
+            className="titlebar-btn"
+            data-testid="open-chat"
+            title="Czat z Claude (silnik Claude Code)"
+            onClick={openChat}
+          >
+            {ICON_CHAT}
+          </button>
           <button
             type="button"
             className="titlebar-btn"

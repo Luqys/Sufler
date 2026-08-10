@@ -1,4 +1,5 @@
 import type { Appearance } from './appearance';
+import type { ChatEventPayload } from './chat';
 import type { TabKind } from './dock-tabs';
 import type { KnowledgeGraph } from './graph';
 import type { LayoutState, LayoutVisibilityKey } from './layout';
@@ -52,6 +53,10 @@ export const IPC = {
   KnowledgeGraphGet: 'knowledge:graph',
   TerminalDetachOpen: 'terminal:detach-open',
   TerminalDetachInfo: 'terminal:detach-info',
+  ChatSend: 'chat:send',
+  ChatEvent: 'chat:event',
+  ChatInterrupt: 'chat:interrupt',
+  ChatReset: 'chat:reset',
   WiedzaMcpStatus: 'wiedza-mcp:status',
   WiedzaMcpRegister: 'wiedza-mcp:register',
 } as const;
@@ -202,6 +207,12 @@ export interface WindowApi {
   getKnowledgeGraph(root: string): Promise<KnowledgeGraph>;
   openTerminalWindow(info: DetachedTerminalInfo): Promise<void>;
   getDetachedInfo(ptyId: number): Promise<DetachedTerminalInfo | null>;
+  /** Tryb czatu (Claude Agent SDK): wysyłka wiadomości i strumień zdarzeń. */
+  chatSend(root: string, text: string): Promise<{ ok: boolean; error?: string }>;
+  chatInterrupt(): Promise<void>;
+  chatReset(): Promise<void>;
+  /** Subskrypcja na całe życie okna (patrz chat-store w rendererze). */
+  onChatEvent(listener: (payload: ChatEventPayload) => void): void;
   getWiedzaMcpStatus(): Promise<{ running: boolean; url: string; error: string | null }>;
   registerWiedzaMcp(): Promise<{ ok: boolean; message: string }>;
 }

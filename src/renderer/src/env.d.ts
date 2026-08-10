@@ -6,6 +6,11 @@ declare global {
   }
 }
 
+declare module '*.png' {
+  const url: string;
+  export default url;
+}
+
 declare module 'react' {
   namespace JSX {
     interface IntrinsicElements {

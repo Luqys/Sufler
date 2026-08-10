@@ -11,6 +11,7 @@ npmRebuild: false
 asarUnpack:
   - "**/node_modules/node-pty/**"
 mac:
+  icon: build/icon.icns
   category: public.app-category.developer-tools
   darkModeSupport: true
   # Świadomie bez App Sandbox i bez podpisu Developer ID (SPEC.md, sekcja M9);

@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { baseName } from '../../../shared/paths';
+import logoUrl from '../assets/logo.png';
 
 interface WelcomeScreenProps {
   onPicked(root: string): void;
@@ -52,9 +53,7 @@ export function WelcomeScreen({ onPicked }: WelcomeScreenProps): ReactElement {
       <div className="welcome" data-testid="welcome">
         <div className="welcome-card">
           <div className="welcome-hero">
-            <div className="welcome-mark" aria-hidden>
-              ✳
-            </div>
+            <img src={logoUrl} alt="" className="welcome-mark-logo" aria-hidden />
             <div className="welcome-logo">VisualN3O</div>
             <p className="welcome-sub">
               Wybierz folder, w którym chcesz pracować — terminale i sesje Claude
