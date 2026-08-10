@@ -34,6 +34,34 @@ async function dragSplitter(page: Page, testId: string, dx: number, dy: number):
   await page.mouse.up();
 }
 
+/**
+ * Przeciąga aż do celu z korektą (syntetyczne drag potrafi zgubić końcówkę
+ * ruchu przy równoległych renderach) — jak człowiek poprawiający chwyt.
+ * sign: znak przesunięcia zwiększającego wymiar (sidebar +1, prawy/dolny -1).
+ */
+async function dragUntil(
+  page: Page,
+  splitterId: string,
+  panelId: string,
+  dim: 'width' | 'height',
+  target: number,
+  sign: 1 | -1,
+): Promise<void> {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const size = (await panelSize(page, panelId))[dim];
+    const delta = target - size;
+    if (Math.abs(delta) <= 1) {
+      return;
+    }
+    await dragSplitter(
+      page,
+      splitterId,
+      dim === 'width' ? delta * sign : 0,
+      dim === 'height' ? delta * sign : 0,
+    );
+  }
+}
+
 function readLayoutFile(path: string): unknown {
   try {
     return JSON.parse(readFileSync(path, 'utf8'));
@@ -69,9 +97,9 @@ test('rozmiary paneli po przeciągnięciu splitterów przeżywają restart aplik
   // renderowania (git status) za nami.
   await expect(page.getByTestId('file-tree').getByText('README.md')).toBeVisible();
 
-  await dragSplitter(page, 'splitter-sidebar', 80, 0); // 240 -> 320
-  await dragSplitter(page, 'splitter-right', -70, 0); // 360 -> 430
-  await dragSplitter(page, 'splitter-bottom', 0, -60); // 220 -> 280
+  await dragUntil(page, 'splitter-sidebar', 'sidebar', 'width', 320, 1); // 240 -> 320
+  await dragUntil(page, 'splitter-right', 'right-dock', 'width', 430, -1); // 360 -> 430
+  await dragUntil(page, 'splitter-bottom', 'bottom-dock', 'height', 280, -1); // 220 -> 280
 
   expect((await panelSize(page, 'sidebar')).width).toBe(320);
   expect((await panelSize(page, 'right-dock')).width).toBe(430);

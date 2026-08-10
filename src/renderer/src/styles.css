@@ -131,6 +131,10 @@ body.dragging-horizontal {
   background: color-mix(in srgb, var(--text) 8%, transparent);
 }
 
+.titlebar-btn.on {
+  color: var(--accent);
+}
+
 .workbench {
   display: grid;
   min-height: 0;

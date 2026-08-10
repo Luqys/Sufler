@@ -57,6 +57,12 @@ export function launchApp(
 export function makeFakeClaudeBin(): string {
   const dir = mkdtempSync(join(tmpdir(), 'vn3o-bin-'));
   const script = `#!/bin/zsh
+if [[ "$1" == "/login" ]]; then
+  echo "TRYB-LOGOWANIA: claude /login (atrapa)"
+  echo "Otworz przegladarke i wklej kod…"
+  while IFS= read -r line; do :; done
+  exit 0
+fi
 echo "── Claude Code (atrapa) ──"
 echo "? for shortcuts"
 while IFS= read -r line; do

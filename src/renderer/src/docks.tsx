@@ -24,9 +24,16 @@ import {
 import { createTerminalInstance, disposeTerminalInstance } from './terminals';
 import { useWorkspace } from './workspace';
 
+interface AddTabOptions {
+  /** Argumenty komendy startowej (np. ['/login'] dla logowania Claude). */
+  args?: string[];
+  /** Tytuł zakładki zamiast domyślnego. */
+  title?: string;
+}
+
 interface DocksValue {
   docks: DocksState;
-  addTab(dock: DockId, kind: TabKind): void;
+  addTab(dock: DockId, kind: TabKind, options?: AddTabOptions): void;
   activateTab(dock: DockId, id: string): void;
   closeTab(id: string): void;
   moveTab(id: string, targetDock: DockId): void;
@@ -57,8 +64,8 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
   }, []);
 
   const addTab = useCallback(
-    (dock: DockId, kind: TabKind) => {
-      void window.api.ptyCreate({ kind, cwd: root }).then((result) => {
+    (dock: DockId, kind: TabKind, options?: AddTabOptions) => {
+      void window.api.ptyCreate({ kind, cwd: root, args: options?.args }).then((result) => {
         if (!result.ok) {
           window.alert(`Nie udało się uruchomić procesu: ${result.error}`);
           return;
@@ -83,7 +90,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
           addTabState(state, dock, {
             id,
             kind,
-            title: result.title,
+            title: options?.title ?? result.title,
             cwd: root,
             ptyId: result.ptyId,
             status: 'running',

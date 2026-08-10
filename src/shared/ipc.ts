@@ -140,7 +140,7 @@ export interface WindowApi {
   watchFiles(paths: string[]): Promise<void>;
   /** Subskrypcja na całe życie okna — bez wypisu (patrz workspace). */
   onWatchEvent(listener: (event: WatchEvent) => void): void;
-  ptyCreate(options: { kind: TabKind; cwd: string }): Promise<PtyCreateResult>;
+  ptyCreate(options: { kind: TabKind; cwd: string; args?: string[] }): Promise<PtyCreateResult>;
   ptyWrite(ptyId: number, data: string): void;
   ptyResize(ptyId: number, cols: number, rows: number): void;
   ptyKill(ptyId: number): Promise<void>;

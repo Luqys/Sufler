@@ -91,10 +91,13 @@ void app.whenReady().then(() => {
       setWatchedFiles(win, paths);
     }
   });
-  ipcMain.handle(IPC.PtyCreate, (event, options: { kind: TabKind; cwd: string }) => {
-    const win = BrowserWindow.fromWebContents(event.sender);
-    return win ? createPty(win, options) : { ok: false as const, error: 'Brak okna' };
-  });
+  ipcMain.handle(
+    IPC.PtyCreate,
+    (event, options: { kind: TabKind; cwd: string; args?: string[] }) => {
+      const win = BrowserWindow.fromWebContents(event.sender);
+      return win ? createPty(win, options) : { ok: false as const, error: 'Brak okna' };
+    },
+  );
   ipcMain.on(IPC.PtyWrite, (_event, ptyId: number, data: string) => {
     writePty(ptyId, data);
   });

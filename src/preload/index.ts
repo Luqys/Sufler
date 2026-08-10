@@ -39,8 +39,11 @@ const api: WindowApi = {
   onWatchEvent: (listener: (event: WatchEvent) => void): void => {
     ipcRenderer.on(IPC.WatchEvent, (_event, payload: WatchEvent) => listener(payload));
   },
-  ptyCreate: (options: { kind: TabKind; cwd: string }): Promise<PtyCreateResult> =>
-    ipcRenderer.invoke(IPC.PtyCreate, options),
+  ptyCreate: (options: {
+    kind: TabKind;
+    cwd: string;
+    args?: string[];
+  }): Promise<PtyCreateResult> => ipcRenderer.invoke(IPC.PtyCreate, options),
   ptyWrite: (ptyId: number, data: string): void => {
     ipcRenderer.send(IPC.PtyWrite, ptyId, data);
   },

@@ -6,13 +6,31 @@ import {
   type LayoutVisibilityKey,
 } from '../../../shared/layout';
 import { baseName } from '../../../shared/paths';
+import { useDocks } from '../docks';
 import { useWorkspace } from '../workspace';
 import { Dock } from './Dock';
 import { EditorArea } from './EditorArea';
+import { LayoutToggles } from './LayoutToggles';
 import { SettingsDialog } from './SettingsDialog';
 import { Sidebar } from './Sidebar';
 import { Splitter } from './Splitter';
 import { UsageIndicator } from './UsageIndicator';
+
+const ICON_CLAUDE_SPARK = (
+  <svg width="15" height="15" viewBox="0 0 16 16">
+    <text
+      x="8"
+      y="12.6"
+      textAnchor="middle"
+      fontSize="13"
+      fontWeight={700}
+      fill="#d97757"
+      fontFamily="-apple-system, sans-serif"
+    >
+      ✳
+    </text>
+  </svg>
+);
 
 const SPLITTER_SIZE = 5;
 const MIN_CENTER_WIDTH = 320;
@@ -20,6 +38,7 @@ const MIN_EDITOR_HEIGHT = 160;
 
 export function Workbench({ initialLayout }: { initialLayout: LayoutState }): ReactElement {
   const { root } = useWorkspace();
+  const { addTab } = useDocks();
   const [layout, setLayout] = useState(initialLayout);
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Lustro stanu aktualizowane synchronicznie — handlery wskaźnika nie mogą
@@ -100,6 +119,14 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
   const toggleVisibilityRef = useRef(toggleVisibility);
   toggleVisibilityRef.current = toggleVisibility;
 
+  /** Ikonka Claude na pasku: logowanie do konta przez `claude /login` w prawym doku. */
+  const openClaudeLogin = useCallback(() => {
+    if (!layoutRef.current.rightDockVisible) {
+      toggleVisibility('rightDockVisible');
+    }
+    addTab('right', 'claude', { args: ['/login'], title: 'Logowanie' });
+  }, [addTab, toggleVisibility]);
+
   // Menu aplikacji → Ustawienia (Cmd+,) i przełączniki paneli z menu Widok.
   useEffect(() => {
     window.api.onOpenSettings(() => setSettingsOpen(true));
@@ -125,6 +152,16 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
       <header className="titlebar">
         <span className="titlebar-title">VisualN3O — {baseName(root)}</span>
         <div className="titlebar-actions">
+          <button
+            type="button"
+            className="titlebar-btn"
+            data-testid="claude-login-button"
+            title="Zaloguj się do konta Claude (otwiera `claude /login`)"
+            onClick={openClaudeLogin}
+          >
+            {ICON_CLAUDE_SPARK}
+          </button>
+          <LayoutToggles layout={layout} onToggle={toggleVisibility} />
           <UsageIndicator />
         </div>
       </header>

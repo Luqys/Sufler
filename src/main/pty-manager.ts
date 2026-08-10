@@ -13,13 +13,13 @@ const sessions = new Map<number, IPty>();
  */
 export async function createPty(
   win: BrowserWindow,
-  options: { kind: TabKind; cwd: string },
+  options: { kind: TabKind; cwd: string; args?: string[] },
 ): Promise<PtyCreateResult> {
   const env = await resolveShellEnv();
   const shell = env['SHELL'] || '/bin/zsh';
   const command = options.kind === 'claude' ? 'claude' : shell;
   try {
-    const session = spawn(command, [], {
+    const session = spawn(command, options.args ?? [], {
       name: 'xterm-256color',
       cols: 80,
       rows: 24,
