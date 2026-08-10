@@ -1,3 +1,5 @@
+import { stringify } from 'yaml';
+
 /**
  * Logika wyłączania subagentów współdzielona między procesami.
  *
@@ -9,6 +11,34 @@
  * - regułę z settings.json projektu lub użytkownika pokazuje jako blokadę
  *   przełącznika, zamiast udawać, że umie ją cofnąć.
  */
+
+export interface AgentDraft {
+  name: string;
+  description: string;
+  /** Narzędzia po przecinku; puste = agent dziedziczy wszystkie. */
+  tools?: string;
+  /** Alias modelu (sonnet/opus/haiku); puste = dziedziczy z sesji. */
+  model?: string;
+  body: string;
+}
+
+/** Treść nowego pliku `.claude/agents/<nazwa>.md`: frontmatter + prompt. */
+export function buildAgentFile(draft: AgentDraft): string {
+  const frontmatter: Record<string, unknown> = {
+    name: draft.name,
+    description: draft.description.trim(),
+  };
+  const tools = draft.tools?.trim();
+  if (tools) {
+    frontmatter['tools'] = tools;
+  }
+  const model = draft.model?.trim();
+  if (model) {
+    frontmatter['model'] = model;
+  }
+  const body = draft.body.trim();
+  return `---\n${stringify(frontmatter)}---\n${body === '' ? '' : `\n${body}\n`}`;
+}
 
 export function agentDenyRule(name: string): string {
   return `Agent(${name})`;

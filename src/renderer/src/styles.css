@@ -2865,6 +2865,8 @@ body.dragging-horizontal .splitter.horizontal::after {
 .skills-toolbar {
   display: flex;
   justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
   margin-bottom: 2px;
 }
 

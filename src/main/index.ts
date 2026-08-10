@@ -51,8 +51,15 @@ import {
   setProjectRoot,
 } from './project';
 import { resolveShellEnv } from './shell-env';
-import { createSkill, readSkillsSnapshot, setAgentEnabled, setSkillEnabled } from './skills';
-import type { SkillCreateInput } from '../shared/ipc';
+import {
+  createAgent,
+  createRule,
+  createSkill,
+  readSkillsSnapshot,
+  setAgentEnabled,
+  setSkillEnabled,
+} from './skills';
+import type { AgentCreateInput, RuleCreateInput, SkillCreateInput } from '../shared/ipc';
 import { closeSkillsWatcher, watchSkillsSources } from './skills-watcher';
 
 function createWindow(): void {
@@ -221,6 +228,12 @@ void app.whenReady().then(() => {
   );
   ipcMain.handle(IPC.AgentsToggle, (_event, root: string, name: string, enabled: boolean) =>
     setAgentEnabled(root, name, enabled),
+  );
+  ipcMain.handle(IPC.AgentsCreate, (_event, root: string, input: AgentCreateInput) =>
+    createAgent(root, input),
+  );
+  ipcMain.handle(IPC.RulesCreate, (_event, root: string, input: RuleCreateInput) =>
+    createRule(root, input),
   );
   ipcMain.handle(IPC.SkillsWatch, (event, root: string) => {
     const win = BrowserWindow.fromWebContents(event.sender);

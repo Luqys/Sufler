@@ -1,8 +1,9 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { agentAvailability, denyRulesOf, withAgentDeny } from '../shared/agents';
+import { agentAvailability, buildAgentFile, denyRulesOf, withAgentDeny } from '../shared/agents';
 import { frontmatterBool, frontmatterString, parseFrontmatter } from '../shared/frontmatter';
+import { buildRuleFile } from '../shared/rules';
 import {
   buildSkillFile,
   effectiveOverride,
@@ -11,8 +12,10 @@ import {
   validateSkillName,
 } from '../shared/skills';
 import type {
+  AgentCreateInput,
   AgentEntry,
   ClaudeMdEntry,
+  RuleCreateInput,
   RuleEntry,
   SkillCreateInput,
   SkillCreateResult,
@@ -201,21 +204,41 @@ export function skillsDirForScope(root: string, scope: SkillScope): string {
     : join(root, '.claude', 'skills');
 }
 
-/** Kreator: katalog skilla + SKILL.md; `wx` chroni przed nadpisaniem. */
-export async function createSkill(root: string, input: SkillCreateInput): Promise<SkillCreateResult> {
-  if (validateSkillName(input.name) !== null) {
-    return { ok: false, error: 'invalid-name' };
-  }
-  const dir = join(skillsDirForScope(root, input.scope), input.name);
-  const path = join(dir, 'SKILL.md');
+/** Wspólny zapis kreatorów; `wx` chroni przed nadpisaniem istniejącego pliku. */
+async function writeNewFile(dir: string, file: string, content: string): Promise<SkillCreateResult> {
+  const path = join(dir, file);
   try {
     await mkdir(dir, { recursive: true });
-    await writeFile(path, buildSkillFile(input), { encoding: 'utf8', flag: 'wx' });
+    await writeFile(path, content, { encoding: 'utf8', flag: 'wx' });
     return { ok: true, path };
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
     return { ok: false, error: code === 'EEXIST' ? 'exists' : 'write-failed' };
   }
+}
+
+/** Kreator: katalog skilla + SKILL.md. */
+export async function createSkill(root: string, input: SkillCreateInput): Promise<SkillCreateResult> {
+  if (validateSkillName(input.name) !== null) {
+    return { ok: false, error: 'invalid-name' };
+  }
+  return writeNewFile(join(skillsDirForScope(root, input.scope), input.name), 'SKILL.md', buildSkillFile(input));
+}
+
+/** Kreator subagenta: <root>/.claude/agents/<nazwa>.md. */
+export async function createAgent(root: string, input: AgentCreateInput): Promise<SkillCreateResult> {
+  if (validateSkillName(input.name) !== null) {
+    return { ok: false, error: 'invalid-name' };
+  }
+  return writeNewFile(join(root, '.claude', 'agents'), `${input.name}.md`, buildAgentFile(input));
+}
+
+/** Kreator reguły: <root>/.claude/rules/<nazwa>.md. */
+export async function createRule(root: string, input: RuleCreateInput): Promise<SkillCreateResult> {
+  if (validateSkillName(input.name) !== null) {
+    return { ok: false, error: 'invalid-name' };
+  }
+  return writeNewFile(join(root, '.claude', 'rules'), `${input.name}.md`, buildRuleFile(input));
 }
 
 /** settings.local.json do zapisu; uszkodzony JSON → null (nie nadpisujemy go). */

@@ -4,6 +4,7 @@ import type { TabKind } from '../shared/dock-tabs';
 import type { LayoutVisibilityKey } from '../shared/layout';
 import {
   IPC,
+  type AgentCreateInput,
   type DetachedTerminalInfo,
   type GitCommitFile,
   type GitLogResult,
@@ -20,6 +21,7 @@ import {
   type ReadDirResult,
   type ReadFileResult,
   type ReadImageResult,
+  type RuleCreateInput,
   type SaveClipboardImageResult,
   type SearchResult,
   type SkillCreateInput,
@@ -86,6 +88,10 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.SkillsToggle, root, name, enabled),
   setAgentEnabled: (root: string, name: string, enabled: boolean): Promise<SkillToggleResult> =>
     ipcRenderer.invoke(IPC.AgentsToggle, root, name, enabled),
+  createAgent: (root: string, input: AgentCreateInput): Promise<SkillCreateResult> =>
+    ipcRenderer.invoke(IPC.AgentsCreate, root, input),
+  createRule: (root: string, input: RuleCreateInput): Promise<SkillCreateResult> =>
+    ipcRenderer.invoke(IPC.RulesCreate, root, input),
   onSkillsChanged: (listener: () => void): void => {
     ipcRenderer.on(IPC.SkillsChanged, () => listener());
   },

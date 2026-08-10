@@ -1,9 +1,18 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactElement } from 'react';
-import type { AgentEntry, SkillCreateInput, SkillEntry, SkillsSnapshot } from '../../../shared/ipc';
+import type {
+  AgentCreateInput,
+  AgentEntry,
+  RuleCreateInput,
+  SkillCreateInput,
+  SkillEntry,
+  SkillsSnapshot,
+} from '../../../shared/ipc';
 import { useDocks } from '../docks';
 import { tf, tp, useT } from '../i18n';
 import { useDialogs } from '../ui-dialogs';
 import { useWorkspace } from '../workspace';
+import { AgentCreateDialog } from './AgentCreateDialog';
+import { RuleCreateDialog } from './RuleCreateDialog';
 import { SkillCreateDialog } from './SkillCreateDialog';
 
 interface RowToggle {
@@ -99,7 +108,7 @@ export function SkillsPanel(): ReactElement {
   const { insertToActiveClaude } = useDocks();
   const { notify } = useDialogs();
   const [snapshot, setSnapshot] = useState<SkillsSnapshot | null>(null);
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState<'skill' | 'agent' | 'rule' | null>(null);
   const rootRef = useRef(root);
   rootRef.current = root;
   const subscribed = useRef(false);
@@ -152,19 +161,44 @@ export function SkillsPanel(): ReactElement {
     });
   };
 
-  const createSkill = async (
-    input: SkillCreateInput,
-  ): Promise<'invalid-name' | 'exists' | 'write-failed' | null> => {
-    const result = await window.api.createSkill(rootRef.current, input);
+  /** Wspólne domknięcie kreatorów: toast, otwarcie pliku, odświeżenie listy. */
+  const finishCreate = (
+    result: Awaited<ReturnType<typeof window.api.createSkill>>,
+    createdMessage: string,
+  ): 'invalid-name' | 'exists' | 'write-failed' | null => {
     if (!result.ok) {
       return result.error;
     }
-    setCreating(false);
-    notify(tf('skills.create.created', { name: input.name }), 'success');
+    setCreating(null);
+    notify(createdMessage, 'success');
     openFile(result.path);
     refresh();
     return null;
   };
+
+  const createSkill = async (
+    input: SkillCreateInput,
+  ): Promise<'invalid-name' | 'exists' | 'write-failed' | null> =>
+    finishCreate(
+      await window.api.createSkill(rootRef.current, input),
+      tf('skills.create.created', { name: input.name }),
+    );
+
+  const createAgent = async (
+    input: AgentCreateInput,
+  ): Promise<'invalid-name' | 'exists' | 'write-failed' | null> =>
+    finishCreate(
+      await window.api.createAgent(rootRef.current, input),
+      tf('agents.create.created', { name: input.name }),
+    );
+
+  const createRule = async (
+    input: RuleCreateInput,
+  ): Promise<'invalid-name' | 'exists' | 'write-failed' | null> =>
+    finishCreate(
+      await window.api.createRule(rootRef.current, input),
+      tf('rules.create.created', { name: input.name }),
+    );
 
   if (!snapshot) {
     return <p className="placeholder">{t('common.loading')}</p>;
@@ -205,9 +239,27 @@ export function SkillsPanel(): ReactElement {
           className="bar-btn"
           data-testid="skills-new"
           title={t('skills.create.hint')}
-          onClick={() => setCreating(true)}
+          onClick={() => setCreating('skill')}
         >
           {t('skills.new')}
+        </button>
+        <button
+          type="button"
+          className="bar-btn"
+          data-testid="agents-new"
+          title={t('agents.create.hint')}
+          onClick={() => setCreating('agent')}
+        >
+          {t('skills.newAgent')}
+        </button>
+        <button
+          type="button"
+          className="bar-btn"
+          data-testid="rules-new"
+          title={t('rules.create.hint')}
+          onClick={() => setCreating('rule')}
+        >
+          {t('skills.newRule')}
         </button>
       </div>
       <Group title={t('skills.project')} count={snapshot.projectSkills.length}>
@@ -277,7 +329,15 @@ export function SkillsPanel(): ReactElement {
           </button>
         ))}
       </div>
-      {creating && <SkillCreateDialog onClose={() => setCreating(false)} onSubmit={createSkill} />}
+      {creating === 'skill' && (
+        <SkillCreateDialog onClose={() => setCreating(null)} onSubmit={createSkill} />
+      )}
+      {creating === 'agent' && (
+        <AgentCreateDialog onClose={() => setCreating(null)} onSubmit={createAgent} />
+      )}
+      {creating === 'rule' && (
+        <RuleCreateDialog onClose={() => setCreating(null)} onSubmit={createRule} />
+      )}
     </div>
   );
 }

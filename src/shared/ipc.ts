@@ -36,6 +36,8 @@ export const IPC = {
   SkillsCreate: 'skills:create',
   SkillsToggle: 'skills:toggle',
   AgentsToggle: 'skills:agent-toggle',
+  AgentsCreate: 'skills:agent-create',
+  RulesCreate: 'skills:rule-create',
   McpReadConfig: 'mcp:read-config',
   McpListStatus: 'mcp:list-status',
   McpGetDetails: 'mcp:get-details',
@@ -194,6 +196,23 @@ export type SkillToggleResult =
   | { ok: true; enabled: boolean }
   | { ok: false; error: 'settings-unreadable' | 'write-failed' };
 
+export interface AgentCreateInput {
+  name: string;
+  description: string;
+  /** Narzędzia po przecinku; puste = wszystkie. */
+  tools?: string;
+  /** Alias modelu (sonnet/opus/haiku/…); puste = dziedziczy z sesji. */
+  model?: string;
+  body: string;
+}
+
+export interface RuleCreateInput {
+  name: string;
+  /** Globy po przecinku; puste = reguła ładowana zawsze. */
+  paths?: string;
+  body: string;
+}
+
 export interface AgentEntry {
   name: string;
   description: string;
@@ -262,6 +281,10 @@ export interface WindowApi {
   setSkillEnabled(root: string, name: string, enabled: boolean): Promise<SkillToggleResult>;
   /** Przełącznik subagenta: reguła Agent(nazwa) w permissions.deny settings.local.json. */
   setAgentEnabled(root: string, name: string, enabled: boolean): Promise<SkillToggleResult>;
+  /** Kreator: nowy plik subagenta w <root>/.claude/agents. */
+  createAgent(root: string, input: AgentCreateInput): Promise<SkillCreateResult>;
+  /** Kreator: nowy plik reguły w <root>/.claude/rules. */
+  createRule(root: string, input: RuleCreateInput): Promise<SkillCreateResult>;
   readMcpConfig(root: string): Promise<McpConfigServer[]>;
   listMcpStatus(root: string): Promise<McpStatusResult>;
   getMcpDetails(root: string, name: string): Promise<McpDetail[]>;

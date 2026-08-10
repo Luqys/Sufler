@@ -6,11 +6,12 @@ import {
   agentAvailability,
   agentDenyRule,
   agentOfDenyRule,
+  buildAgentFile,
   denyHasAgent,
   denyRulesOf,
   withAgentDeny,
 } from '../src/shared/agents';
-import { readSkillsSnapshot, setAgentEnabled } from '../src/main/skills';
+import { createAgent, readSkillsSnapshot, setAgentEnabled } from '../src/main/skills';
 
 // Hermetyczny HOME: ~/.claude/settings.json nie czyta prawdziwego konta
 // użytkownika (os.homedir() honoruje $HOME).
@@ -211,5 +212,64 @@ describe('setAgentEnabled + readSkillsSnapshot', () => {
       error: 'settings-unreadable',
     });
     expect(readFileSync(localPath, 'utf8')).toBe('{ zepsute');
+  });
+});
+
+describe('buildAgentFile', () => {
+  it('buduje frontmatter z wymaganych pól i promptu', () => {
+    const content = buildAgentFile({
+      name: 'recenzent-api',
+      description: 'Recenzje endpointów',
+      body: 'Jesteś recenzentem API.',
+    });
+    expect(content).toBe(
+      '---\nname: recenzent-api\ndescription: Recenzje endpointów\n---\n\nJesteś recenzentem API.\n',
+    );
+  });
+
+  it('dokłada tools i model tylko, gdy są wypełnione', () => {
+    const content = buildAgentFile({
+      name: 'zwiadowca',
+      description: 'Szukanie po repo',
+      tools: 'Read, Grep',
+      model: 'haiku',
+      body: '',
+    });
+    expect(content).toContain('tools: Read, Grep\n');
+    expect(content).toContain('model: haiku\n');
+    expect(buildAgentFile({ name: 'a', description: 'b', tools: '  ', model: '', body: '' })).toBe(
+      '---\nname: a\ndescription: b\n---\n',
+    );
+  });
+});
+
+describe('createAgent', () => {
+  it('zapisuje plik agenta i odmawia nadpisania istniejącego', async () => {
+    const root = makeRoot();
+    const result = await createAgent(root, {
+      name: 'recenzent-api',
+      description: 'Recenzje endpointów',
+      body: 'Prompt.',
+    });
+    expect(result.ok).toBe(true);
+    const path = join(root, '.claude', 'agents', 'recenzent-api.md');
+    expect(readFileSync(path, 'utf8')).toContain('name: recenzent-api');
+
+    expect(
+      await createAgent(root, { name: 'recenzent-api', description: 'Inny', body: '' }),
+    ).toEqual({ ok: false, error: 'exists' });
+  });
+
+  it('odrzuca nazwę spoza kebab-case', async () => {
+    expect(
+      await createAgent(makeRoot(), { name: 'Złe Imię', description: 'x', body: '' }),
+    ).toEqual({ ok: false, error: 'invalid-name' });
+  });
+
+  it('utworzony agent pojawia się w snapszocie jako włączony', async () => {
+    const root = makeRoot();
+    await createAgent(root, { name: 'zwiadowca', description: 'Szukanie', body: '' });
+    const agent = (await readSkillsSnapshot(root)).agents.find((a) => a.name === 'zwiadowca');
+    expect(agent).toMatchObject({ enabled: true, deniedElsewhere: false });
   });
 });
