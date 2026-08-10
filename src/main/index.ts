@@ -20,6 +20,11 @@ import { closeTreeWatcher, setWatchedTreeDirs } from './tree-watcher';
 import { createPty, killAllPtys, killPty, listPtyPids, resizePty, writePty } from './pty-manager';
 import { getDetachedInfo, openTerminalWindow } from './terminal-windows';
 import type { DetachedTerminalInfo } from '../shared/ipc';
+import { getWiedzaMcpStatus, startWiedzaMcp, stopWiedzaMcp, wiedzaMcpUrl } from './wiedza-mcp';
+import { execFile as execFileCallback } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFileCallback);
 import {
   chooseProjectRoot,
   chooseVaultPath,
@@ -114,6 +119,29 @@ void app.whenReady().then(() => {
     openTerminalWindow(info);
   });
   ipcMain.handle(IPC.TerminalDetachInfo, (_event, ptyId: number) => getDetachedInfo(ptyId));
+  ipcMain.handle(IPC.WiedzaMcpStatus, () => getWiedzaMcpStatus());
+  ipcMain.handle(IPC.WiedzaMcpRegister, async () => {
+    try {
+      const env = await resolveShellEnv();
+      await execFileAsync(
+        'claude',
+        ['mcp', 'add', '--transport', 'http', 'wiedza-graf', wiedzaMcpUrl(), '-s', 'user'],
+        { env, timeout: 20_000, encoding: 'utf8' },
+      );
+      return {
+        ok: true,
+        message: 'Zarejestrowano serwer „wiedza-graf" w Claude (scope user).',
+      };
+    } catch (error) {
+      const message = String((error as Error).message ?? error);
+      return {
+        ok: message.includes('already exists'),
+        message: message.includes('already exists')
+          ? 'Serwer „wiedza-graf" był już zarejestrowany.'
+          : `Nie udało się zarejestrować: ${message.slice(0, 200)}`,
+      };
+    }
+  });
   ipcMain.on(IPC.PtyWrite, (_event, ptyId: number, data: string) => {
     writePty(ptyId, data);
   });
@@ -163,6 +191,9 @@ void app.whenReady().then(() => {
   // Rozgrzewamy cache środowiska shella, zanim powstanie pierwszy terminal.
   void resolveShellEnv();
 
+  // Serwer MCP grafu wiedzy (loopback) — Claude Code widzi strukturę notatek.
+  startWiedzaMcp();
+
   installAppMenu(
     () => {
       for (const win of BrowserWindow.getAllWindows()) {
@@ -197,5 +228,6 @@ app.on('will-quit', () => {
   closeSkillsWatcher();
   closeMcpWatcher();
   closeTreeWatcher();
+  stopWiedzaMcp();
   killAllPtys();
 });

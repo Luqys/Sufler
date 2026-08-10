@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
 import { formatElementReference, normalizeUrl, type PickedElement } from '../../../shared/preview';
 import { useDocks } from '../docks';
+import { useDialogs } from '../ui-dialogs';
 
 /** Minimalny interfejs elementu <webview> (bez typów electrona w rendererze). */
 interface WebviewElement extends HTMLElement {
@@ -19,6 +20,7 @@ let lastUrl = 'http://localhost:3000';
 
 export function BrowserPreview(): ReactElement {
   const { insertToActiveClaude } = useDocks();
+  const { notify } = useDialogs();
   const [address, setAddress] = useState(lastUrl);
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
   const [preloadPath, setPreloadPath] = useState<string | null>(null);
@@ -35,10 +37,10 @@ export function BrowserPreview(): ReactElement {
       const reference = formatElementReference(picked);
       if (!insertToActiveClaude(reference)) {
         void navigator.clipboard.writeText(reference);
-        window.alert('Brak działającej sesji Claude — odniesienie skopiowano do schowka.');
+        notify('Brak sesji Claude — odniesienie skopiowano do schowka.', 'info');
       }
     },
-    [insertToActiveClaude],
+    [insertToActiveClaude, notify],
   );
 
   const attachWebview = useCallback(

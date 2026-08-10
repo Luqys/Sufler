@@ -52,6 +52,8 @@ export const IPC = {
   KnowledgeGraphGet: 'knowledge:graph',
   TerminalDetachOpen: 'terminal:detach-open',
   TerminalDetachInfo: 'terminal:detach-info',
+  WiedzaMcpStatus: 'wiedza-mcp:status',
+  WiedzaMcpRegister: 'wiedza-mcp:register',
 } as const;
 
 export interface DirEntry {
@@ -200,6 +202,8 @@ export interface WindowApi {
   getKnowledgeGraph(root: string): Promise<KnowledgeGraph>;
   openTerminalWindow(info: DetachedTerminalInfo): Promise<void>;
   getDetachedInfo(ptyId: number): Promise<DetachedTerminalInfo | null>;
+  getWiedzaMcpStatus(): Promise<{ running: boolean; url: string; error: string | null }>;
+  registerWiedzaMcp(): Promise<{ ok: boolean; message: string }>;
 }
 
 export type McpStatusResult =

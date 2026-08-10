@@ -3,6 +3,7 @@ import type { LayoutState } from '../../shared/layout';
 import { applyAccent } from './appearance-client';
 import { Workbench } from './components/Workbench';
 import { DocksProvider } from './docks';
+import { DialogProvider } from './ui-dialogs';
 import { WorkspaceProvider } from './workspace';
 
 export function App(): ReactElement | null {
@@ -29,10 +30,12 @@ export function App(): ReactElement | null {
     return null;
   }
   return (
-    <WorkspaceProvider>
-      <DocksProvider>
-        <Workbench initialLayout={initialLayout} />
-      </DocksProvider>
-    </WorkspaceProvider>
+    <DialogProvider>
+      <WorkspaceProvider>
+        <DocksProvider>
+          <Workbench initialLayout={initialLayout} />
+        </DocksProvider>
+      </WorkspaceProvider>
+    </DialogProvider>
   );
 }

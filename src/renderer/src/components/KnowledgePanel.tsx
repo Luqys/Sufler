@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactElement } from 're
 import type { KnowledgeFile } from '../../../shared/ipc';
 import { formatTokens } from '../../../shared/usage';
 import { useDocks } from '../docks';
+import { useDialogs } from '../ui-dialogs';
 import { useWorkspace } from '../workspace';
 import { fileIconFor } from './file-icons';
 
@@ -43,6 +44,7 @@ const ICON_GRAPH = (
 export function KnowledgePanel(): ReactElement {
   const { root, openFile, openKnowledgeGraph } = useWorkspace();
   const { insertToActiveClaude } = useDocks();
+  const { notify } = useDialogs();
   const [files, setFiles] = useState<KnowledgeFile[] | null>(null);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [busy, setBusy] = useState(false);
@@ -84,7 +86,7 @@ export function KnowledgePanel(): ReactElement {
     void window.api.generateKnowledge(root, [...selected]).then((result) => {
       setBusy(false);
       if (!result.ok) {
-        window.alert(`Nie udało się wygenerować kontekstu: ${result.error}`);
+        notify(`Nie udało się wygenerować kontekstu: ${result.error}`, 'error');
         return;
       }
       setLastGenerated({ files: result.files });
@@ -94,8 +96,24 @@ export function KnowledgePanel(): ReactElement {
 
   const insertReference = (): void => {
     if (!insertToActiveClaude('@kontekst-agenta.md ')) {
-      window.alert('Brak działającej sesji Claude — otwórz ją przyciskiem + w doku.');
+      notify('Brak działającej sesji Claude — otwórz ją przyciskiem ✳ w doku.', 'error');
     }
+  };
+
+  const [mcpStatus, setMcpStatus] = useState<{
+    running: boolean;
+    url: string;
+    error: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    void window.api.getWiedzaMcpStatus().then(setMcpStatus);
+  }, []);
+
+  const registerMcp = (): void => {
+    void window.api.registerWiedzaMcp().then((result) => {
+      notify(result.message, result.ok ? 'success' : 'error');
+    });
   };
 
   const total = files?.length ?? 0;
@@ -197,6 +215,26 @@ export function KnowledgePanel(): ReactElement {
         >
           {busy ? 'Generuję…' : `Generuj kontekst (${selected.size})`}
         </button>
+        <div className="knowledge-mcp" data-testid="knowledge-mcp">
+          <span className="knowledge-mcp-status">
+            <span className={`mcp-dot ${mcpStatus?.running ? 'connected' : 'error'}`} />
+            MCP grafu wiedzy{' '}
+            {mcpStatus?.running ? 'działa' : (mcpStatus?.error ?? 'uruchamianie…')}
+          </span>
+          <button
+            type="button"
+            className="bar-btn"
+            data-testid="wiedza-mcp-register"
+            title={`claude mcp add --transport http wiedza-graf ${mcpStatus?.url ?? ''} -s user`}
+            onClick={registerMcp}
+          >
+            Podłącz do Claude
+          </button>
+        </div>
+        <p className="knowledge-note placeholder">
+          Po podłączeniu sesje Claude mają narzędzia: graf_wiedzy · notatka · powiazania —
+          agent sam sprawdza, co jest z czym powiązane.
+        </p>
         {lastGenerated && (
           <div className="knowledge-result" data-testid="knowledge-note">
             <span className="knowledge-result-text">

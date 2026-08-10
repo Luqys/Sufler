@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactElement } from 'react';
 import type { SkillsSnapshot } from '../../../shared/ipc';
 import { useDocks } from '../docks';
+import { useDialogs } from '../ui-dialogs';
 import { useWorkspace } from '../workspace';
 
 function polishLines(n: number): string {
@@ -69,6 +70,7 @@ function Group({
 export function SkillsPanel(): ReactElement {
   const { root, openFile } = useWorkspace();
   const { insertToActiveClaude } = useDocks();
+  const { notify } = useDialogs();
   const [snapshot, setSnapshot] = useState<SkillsSnapshot | null>(null);
   const rootRef = useRef(root);
   rootRef.current = root;
@@ -94,7 +96,7 @@ export function SkillsPanel(): ReactElement {
 
   const insertSlash = (name: string): void => {
     if (!insertToActiveClaude(`/${name}`)) {
-      window.alert('Brak działającej sesji Claude — otwórz ją przyciskiem + w doku.');
+      notify('Brak działającej sesji Claude — otwórz ją przyciskiem ✳ w doku.', 'error');
     }
   };
 

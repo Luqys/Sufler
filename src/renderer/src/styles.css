@@ -602,42 +602,77 @@ body.dragging-horizontal .splitter.horizontal::after {
   display: grid;
   place-items: center;
   min-height: 0;
-  background: var(--bg);
+  /* Delikatna poświata akcentu nad kartą — zamiast płaskiej pustki. */
+  background:
+    radial-gradient(
+      640px 420px at 50% 30%,
+      color-mix(in srgb, var(--accent) 12%, transparent),
+      transparent 70%
+    ),
+    var(--bg);
 }
 
 .welcome-card {
-  width: min(460px, calc(100vw - 80px));
+  width: min(480px, calc(100vw - 80px));
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 28px;
+  gap: 18px;
+  padding: 34px 30px 26px;
   border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--panel);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  box-shadow: 0 18px 50px color-mix(in srgb, var(--text) 14%, transparent);
+}
+
+.welcome-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.welcome-mark {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .welcome-logo {
-  font-size: 24px;
+  font-size: 25px;
   font-weight: 800;
-  color: var(--accent);
+  letter-spacing: -0.3px;
+  color: var(--text);
 }
 
 .welcome-sub {
   font-size: 12.5px;
   color: var(--muted);
-  line-height: 1.5;
+  line-height: 1.55;
+  max-width: 340px;
 }
 
 .welcome-open {
-  align-self: flex-start;
-  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 16px;
   border: none;
-  border-radius: 8px;
+  border-radius: 9px;
   background: var(--accent);
   color: #fff;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .welcome-open:hover {
@@ -647,27 +682,66 @@ body.dragging-horizontal .splitter.horizontal::after {
 .welcome-recents {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-top: 6px;
+  gap: 7px;
+}
+
+.welcome-recents-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-left: 2px;
+}
+
+.welcome-recent-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--panel-alt) 45%, transparent);
 }
 
 .welcome-recent {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 1px;
-  padding: 6px 8px;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 12px;
   border: none;
-  border-radius: 7px;
   background: transparent;
   text-align: left;
   cursor: pointer;
   color: var(--text);
   font-family: inherit;
+  min-width: 0;
+}
+
+.welcome-recent + .welcome-recent {
+  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
 }
 
 .welcome-recent:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.welcome-recent-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.welcome-recent-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .welcome-recent-name {
@@ -681,6 +755,19 @@ body.dragging-horizontal .splitter.horizontal::after {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.welcome-recent-go {
+  flex: none;
+  font-size: 16px;
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.welcome-recent:hover .welcome-recent-go {
+  opacity: 1;
+  color: var(--accent);
 }
 
 /* --- Podgląd przeglądarki --- */
@@ -876,6 +963,8 @@ body.dragging-horizontal .splitter.horizontal::after {
 .knowledge-generate {
   align-self: stretch;
   text-align: center;
+  /* W ciasnym sidebarze poświata przycisku powitalnego jest zbyt ciężka. */
+  box-shadow: none;
 }
 
 .knowledge-generate:disabled {
@@ -905,6 +994,105 @@ body.dragging-horizontal .splitter.horizontal::after {
 .knowledge-result-check {
   color: #16a34a;
   font-weight: 700;
+}
+
+.knowledge-mcp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel-alt) 60%, transparent);
+}
+
+.knowledge-mcp-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 11.5px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- Dialogi i toasty w stylu aplikacji --- */
+
+.confirm-overlay {
+  z-index: 200;
+}
+
+.confirm-dialog {
+  width: min(400px, calc(100vw - 80px));
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.35);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.confirm-title {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.confirm-message {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+  user-select: text;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.confirm-accept {
+  align-self: auto;
+  padding: 6px 14px;
+  font-size: 12.5px;
+}
+
+.confirm-accept.danger {
+  background: #dc2626;
+}
+
+.toast-stack {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 360px;
+}
+
+.toast {
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--panel-alt);
+  color: var(--text);
+  font-size: 12.5px;
+  line-height: 1.4;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+}
+
+.toast-success {
+  border-color: color-mix(in srgb, #22c55e 45%, transparent);
+}
+
+.toast-error {
+  border-color: color-mix(in srgb, #ef4444 50%, transparent);
 }
 
 /* --- Odczepione okno terminala --- */
@@ -2089,7 +2277,9 @@ body.dragging-horizontal .splitter.horizontal::after {
   min-width: 0;
   min-height: 0;
   background: var(--term-bg);
-  padding: 4px 2px 2px 8px;
+  padding: 6px 8px;
+  /* Scrollback z szerszego układu nie może wyjeżdżać poza kafelek. */
+  overflow: hidden;
 }
 
 .terminal-host {
@@ -2099,4 +2289,10 @@ body.dragging-horizontal .splitter.horizontal::after {
 
 .terminal-host .xterm {
   height: 100%;
+}
+
+/* xterm.css maluje viewport na czarno — pasek resztkowej wysokości pod
+   ostatnim wierszem ma przejmować tło motywu, nie #000. */
+.terminal-host .xterm-viewport {
+  background-color: var(--term-bg) !important;
 }

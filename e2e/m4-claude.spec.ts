@@ -22,7 +22,6 @@ test('sesja Claude startuje z menu +, a zamknięcie zakładki ubija proces', asy
     VISUALN3O_PATH_PREPEND: makeFakeClaudeBin(),
   });
   const page = await app.firstWindow();
-  page.on('dialog', (dialog) => void dialog.accept());
 
   await page.getByTestId('right-new-claude').click();
   const terminal = page.locator('[data-testid=right-dock] .xterm');
@@ -36,6 +35,7 @@ test('sesja Claude startuje z menu +, a zamknięcie zakładki ubija proces', asy
   expect(isProcessAlive(pid)).toBe(true);
 
   await page.locator('[data-testid=right-dock] .dock-tab .tab-close').click();
+  await page.getByTestId('confirm-accept').click();
   await expect.poll(() => listPtyPids(app)).toEqual([]);
   await expect.poll(() => isProcessAlive(pid), { timeout: 10_000 }).toBe(false);
 

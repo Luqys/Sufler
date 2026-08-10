@@ -37,8 +37,6 @@ test('terminal w dolnym doku wykonuje polecenie echo', async () => {
 test('zamknięcie zakładki i zamknięcie aplikacji ubijają procesy pty', async () => {
   const app = await launchApp(makeConfigHome(), makeFixtureProject());
   const page = await app.firstWindow();
-  // Zamknięcie karty z żywym procesem pyta o potwierdzenie.
-  page.on('dialog', (dialog) => void dialog.accept());
 
   await page.getByTestId('bottom-new-terminal').click();
   await expect(page.locator('[data-testid=bottom-dock] .xterm')).toBeVisible();
@@ -49,6 +47,9 @@ test('zamknięcie zakładki i zamknięcie aplikacji ubijają procesy pty', async
   expect(isProcessAlive(firstPid)).toBe(true);
 
   await page.locator('[data-testid=bottom-dock] .dock-tab .tab-close').click();
+  // Wewnętrzny dialog aplikacji (nie systemowy) potwierdza zamknięcie.
+  await expect(page.getByTestId('confirm-dialog')).toBeVisible();
+  await page.getByTestId('confirm-accept').click();
   await expect.poll(() => listPtyPids(app)).toEqual([]);
   await expect.poll(() => isProcessAlive(firstPid), { timeout: 10_000 }).toBe(false);
 

@@ -116,6 +116,10 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.TerminalDetachOpen, info),
   getDetachedInfo: (ptyId: number): Promise<DetachedTerminalInfo | null> =>
     ipcRenderer.invoke(IPC.TerminalDetachInfo, ptyId),
+  getWiedzaMcpStatus: (): Promise<{ running: boolean; url: string; error: string | null }> =>
+    ipcRenderer.invoke(IPC.WiedzaMcpStatus),
+  registerWiedzaMcp: (): Promise<{ ok: boolean; message: string }> =>
+    ipcRenderer.invoke(IPC.WiedzaMcpRegister),
 };
 
 contextBridge.exposeInMainWorld('api', api);

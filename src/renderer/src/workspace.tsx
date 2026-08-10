@@ -31,6 +31,7 @@ import {
   setDirtyListener,
 } from './editor/models';
 import { WelcomeScreen } from './components/WelcomeScreen';
+import { useDialogs } from './ui-dialogs';
 
 export interface BufferInfo {
   /** Treść zgodna z dyskiem przy ostatnim wczytaniu/zapisie — do tłumienia echa własnych zapisów. */
@@ -91,6 +92,7 @@ function describeReadError(error: ReadFileError): string {
 }
 
 export function WorkspaceProvider({ children }: { children: ReactNode }): ReactElement | null {
+  const { confirmDialog, notify } = useDialogs();
   const [root, setRoot] = useState<string | null>(null);
   const [rootResolved, setRootResolved] = useState(false);
 
@@ -255,15 +257,22 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
 
   const closeTab = useCallback(
     (path: string) => {
-      if (
-        isDirty(path) &&
-        !window.confirm(`Plik „${baseName(path)}" ma niezapisane zmiany. Zamknąć mimo to?`)
-      ) {
+      if (!isDirty(path)) {
+        applyTabs((state) => closeTabState(state, path));
         return;
       }
-      applyTabs((state) => closeTabState(state, path));
+      void confirmDialog({
+        title: 'Niezapisane zmiany',
+        message: `Plik „${baseName(path)}" ma niezapisane zmiany. Zamknąć mimo to?`,
+        confirmLabel: 'Zamknij bez zapisu',
+        danger: true,
+      }).then((accepted) => {
+        if (accepted) {
+          applyTabs((state) => closeTabState(state, path));
+        }
+      });
     },
-    [applyTabs],
+    [applyTabs, confirmDialog],
   );
 
   const saveActiveFile = useCallback(() => {
@@ -286,10 +295,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
           next.set(path, { savedText: content, external: null, loadError: null }),
         );
       } else {
-        window.alert(`Nie udało się zapisać pliku: ${result.error}`);
+        notify(`Nie udało się zapisać pliku: ${result.error}`, 'error');
       }
     });
-  }, [patchBuffers]);
+  }, [notify, patchBuffers]);
 
   const reloadActiveFromDisk = useCallback(() => {
     const path = tabsRef.current.activePath;

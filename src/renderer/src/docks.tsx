@@ -25,6 +25,7 @@ import {
   type TabKind,
 } from '../../shared/dock-tabs';
 import { createTerminalInstance, disposeTerminalInstance, serializeTerminal } from './terminals';
+import { useDialogs } from './ui-dialogs';
 import { useWorkspace } from './workspace';
 
 interface AddTabOptions {
@@ -65,6 +66,7 @@ let nextPaneNumber = 1;
 
 export function DocksProvider({ children }: { children: ReactNode }): ReactElement {
   const { root } = useWorkspace();
+  const { confirmDialog, notify } = useDialogs();
   const [docks, setDocksRaw] = useState<DocksState>(emptyDocksState);
   const docksRef = useRef(docks);
 
@@ -77,7 +79,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
     (dock: DockId, kind: TabKind, options?: AddTabOptions) => {
       void window.api.ptyCreate({ kind, cwd: root, args: options?.args }).then((result) => {
         if (!result.ok) {
-          window.alert(`Nie udało się uruchomić procesu: ${result.error}`);
+          notify(`Nie udało się uruchomić procesu: ${result.error}`, 'error');
           return;
         }
         const id = `tab-${nextTabNumber++}`;
@@ -113,7 +115,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
         );
       });
     },
-    [applyDocks, root],
+    [applyDocks, notify, root],
   );
 
   const activateTab = useCallback(
@@ -128,20 +130,28 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
       if (!found) {
         return;
       }
-      // Zamknięcie karty ubija proces — pytamy, dopóki żyje.
-      if (
-        found.tab.status !== 'exited' &&
-        !window.confirm(
-          `Zamknąć kartę „${found.tab.title}"? Działający proces zostanie zakończony.`,
-        )
-      ) {
+      const finish = (): void => {
+        void window.api.ptyKill(found.tab.ptyId);
+        disposeTerminalInstance(id);
+        applyDocks((state) => closeTabState(state, id));
+      };
+      if (found.tab.status === 'exited') {
+        finish();
         return;
       }
-      void window.api.ptyKill(found.tab.ptyId);
-      disposeTerminalInstance(id);
-      applyDocks((state) => closeTabState(state, id));
+      // Zamknięcie karty ubija proces — pytamy, dopóki żyje.
+      void confirmDialog({
+        title: 'Zamknąć kartę?',
+        message: `Karta „${found.tab.title}" ma działający proces — zostanie zakończony.`,
+        confirmLabel: 'Zamknij',
+        danger: true,
+      }).then((accepted) => {
+        if (accepted) {
+          finish();
+        }
+      });
     },
-    [applyDocks],
+    [applyDocks, confirmDialog],
   );
 
   const moveTab = useCallback(
