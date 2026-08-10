@@ -2,7 +2,8 @@ import { execFile } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
-import { resolveGraphEdges, type GraphNode, type KnowledgeGraph } from '../shared/graph';
+import { resolveGraphEdges, type GraphGroup, type GraphNode, type KnowledgeGraph } from '../shared/graph';
+import { classifyNote } from '../shared/knowledge-categories';
 import { listMarkdownFiles } from './knowledge';
 
 const execFileAsync = promisify(execFile);
@@ -24,7 +25,10 @@ async function lastAuthor(
   }
 }
 
-/** Węzły = notatki .md, krawędzie = linki, kolor = autor ostatniej zmiany (git). */
+/**
+ * Węzły = notatki .md, krawędzie = linki. Każdy węzeł niesie autora ostatniej
+ * zmiany (git) oraz kategorie: funkcję programu i warstwę (frontend/backend).
+ */
 export async function buildKnowledgeGraph(root: string): Promise<KnowledgeGraph> {
   const files = await listMarkdownFiles(root);
   const withContent: Array<{ path: string; content: string; lines: number }> = [];
@@ -40,26 +44,38 @@ export async function buildKnowledgeGraph(root: string): Promise<KnowledgeGraph>
     }
   }
 
+  const count = (map: Map<string, number>, key: string): void => {
+    map.set(key, (map.get(key) ?? 0) + 1);
+  };
+  const toGroups = (map: Map<string, number>): GraphGroup[] =>
+    [...map.entries()].map(([name, total]) => ({ name, count: total })).sort((a, b) => b.count - a.count);
+
   const nodes: GraphNode[] = [];
   const authorCounts = new Map<string, number>();
+  const categoryCounts = new Map<string, number>();
+  const layerCounts = new Map<string, number>();
   for (const file of withContent) {
     const { author, updatedAt } = await lastAuthor(root, file.path);
+    const { category, layer } = classifyNote(file.path, file.content);
     nodes.push({
       id: file.path,
       title: (file.path.split('/').pop() ?? file.path).replace(/\.md$/, ''),
       lines: file.lines,
       author,
       updatedAt,
+      category,
+      layer,
     });
-    const key = author ?? '(niezacommitowane)';
-    authorCounts.set(key, (authorCounts.get(key) ?? 0) + 1);
+    count(authorCounts, author ?? '(niezacommitowane)');
+    count(categoryCounts, category);
+    count(layerCounts, layer);
   }
 
   return {
     nodes,
     edges: resolveGraphEdges(withContent),
-    authors: [...authorCounts.entries()]
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count),
+    authors: toGroups(authorCounts),
+    categories: toGroups(categoryCounts),
+    layers: toGroups(layerCounts),
   };
 }

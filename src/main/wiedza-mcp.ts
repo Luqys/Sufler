@@ -62,9 +62,11 @@ function buildMcp(): McpServer {
   mcp.tool(
     'graf_wiedzy',
     'Pełny schemat grafu wiedzy projektu otwartego w VisualN3O: notatki .md jako węzły ' +
-      '(ścieżka, tytuł, autor ostatniej zmiany, data) i połączenia między nimi ' +
-      '(wikilinki [[...]] i linki markdown). Użyj, gdy potrzebujesz pełnej struktury ' +
-      'połączeń; szybki spis tematów daje narzędzie konspekt.',
+      '(ścieżka, tytuł, autor ostatniej zmiany, data, kategoria funkcji programu, ' +
+      'warstwa frontend/backend) i połączenia między nimi (wikilinki [[...]] i linki ' +
+      'markdown). Kategorię i warstwę można nadpisać frontmatterem notatki ' +
+      '(`kategoria:`, `warstwa:`). Użyj, gdy potrzebujesz pełnej struktury połączeń; ' +
+      'szybki spis tematów daje narzędzie konspekt.',
     {},
     async () => {
       const root = getProjectRoot();
