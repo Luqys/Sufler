@@ -2697,6 +2697,17 @@ body.dragging-horizontal .splitter.horizontal::after {
   outline-offset: 1px;
 }
 
+/* --- M32: przełącznik subagentów — blokada deny spoza settings.local --- */
+
+.skill-toggle:has(input:disabled) {
+  cursor: not-allowed;
+}
+
+.skill-toggle input:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .skill-dialog {
   width: min(500px, calc(100vw - 80px));
   max-height: calc(100vh - 80px);

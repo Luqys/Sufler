@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactElement } from 'react';
-import type { SkillCreateInput, SkillEntry, SkillsSnapshot } from '../../../shared/ipc';
+import type { AgentEntry, SkillCreateInput, SkillEntry, SkillsSnapshot } from '../../../shared/ipc';
 import { useDocks } from '../docks';
 import { tf, tp, useT } from '../i18n';
 import { useDialogs } from '../ui-dialogs';
@@ -10,6 +10,8 @@ interface RowToggle {
   checked: boolean;
   label: string;
   testid: string;
+  /** Blokada: deny spoza settings.local.json — przełącznik go nie cofnie. */
+  locked?: boolean;
   onChange(next: boolean): void;
 }
 
@@ -63,6 +65,7 @@ function EntryRow({
             aria-label={toggle.label}
             data-testid={toggle.testid}
             checked={toggle.checked}
+            disabled={toggle.locked}
             onChange={(event) => toggle.onChange(event.target.checked)}
           />
         </label>
@@ -127,6 +130,18 @@ export function SkillsPanel(): ReactElement {
 
   const toggleSkill = (skill: SkillEntry, next: boolean): void => {
     void window.api.setSkillEnabled(rootRef.current, skill.name, next).then((result) => {
+      if (!result.ok) {
+        notify(
+          t(result.error === 'settings-unreadable' ? 'skills.toggleUnreadable' : 'skills.toggleFailed'),
+          'error',
+        );
+      }
+      refresh();
+    });
+  };
+
+  const toggleAgent = (agent: AgentEntry, next: boolean): void => {
+    void window.api.setAgentEnabled(rootRef.current, agent.name, next).then((result) => {
       if (!result.ok) {
         notify(
           t(result.error === 'settings-unreadable' ? 'skills.toggleUnreadable' : 'skills.toggleFailed'),
@@ -210,7 +225,22 @@ export function SkillsPanel(): ReactElement {
                 name={agent.name}
                 description={agent.description}
                 path={agent.path}
-                badges={agent.model ? [{ text: agent.model, title: 'model' }] : []}
+                dimmed={!agent.enabled}
+                badges={[
+                  ...(!agent.enabled
+                    ? [{ text: t('skills.offBadge'), title: `permissions.deny: Agent(${agent.name})` }]
+                    : []),
+                  ...(agent.model ? [{ text: agent.model, title: 'model' }] : []),
+                ]}
+                toggle={{
+                  checked: agent.enabled,
+                  locked: agent.deniedElsewhere,
+                  label: agent.deniedElsewhere
+                    ? t('skills.agentLocked')
+                    : t('skills.agentToggleTitle'),
+                  testid: `agent-toggle-${agent.name}`,
+                  onChange: (next) => toggleAgent(agent, next),
+                }}
                 onOpen={openFile}
               />
             ))}

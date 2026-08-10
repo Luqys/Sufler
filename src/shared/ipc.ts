@@ -31,6 +31,7 @@ export const IPC = {
   SkillsChanged: 'skills:changed',
   SkillsCreate: 'skills:create',
   SkillsToggle: 'skills:toggle',
+  AgentsToggle: 'skills:agent-toggle',
   McpReadConfig: 'mcp:read-config',
   McpListStatus: 'mcp:list-status',
   McpGetDetails: 'mcp:get-details',
@@ -156,6 +157,10 @@ export interface AgentEntry {
   path: string;
   tools?: string;
   model?: string;
+  /** false ⇔ reguła `Agent(nazwa)` w permissions.deny któregoś z settings. */
+  enabled: boolean;
+  /** Deny w settings.json projektu lub użytkownika — lokalny przełącznik go nie cofnie. */
+  deniedElsewhere: boolean;
 }
 
 export interface RuleEntry {
@@ -212,6 +217,8 @@ export interface WindowApi {
   createSkill(root: string, input: SkillCreateInput): Promise<SkillCreateResult>;
   /** Przełącznik skillOverrides w <root>/.claude/settings.local.json. */
   setSkillEnabled(root: string, name: string, enabled: boolean): Promise<SkillToggleResult>;
+  /** Przełącznik subagenta: reguła Agent(nazwa) w permissions.deny settings.local.json. */
+  setAgentEnabled(root: string, name: string, enabled: boolean): Promise<SkillToggleResult>;
   readMcpConfig(root: string): Promise<McpConfigServer[]>;
   listMcpStatus(root: string): Promise<McpStatusResult>;
   getMcpDetails(root: string, name: string): Promise<McpDetail[]>;

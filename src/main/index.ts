@@ -39,7 +39,7 @@ import {
   setProjectRoot,
 } from './project';
 import { resolveShellEnv } from './shell-env';
-import { createSkill, readSkillsSnapshot, setSkillEnabled } from './skills';
+import { createSkill, readSkillsSnapshot, setAgentEnabled, setSkillEnabled } from './skills';
 import type { SkillCreateInput } from '../shared/ipc';
 import { closeSkillsWatcher, watchSkillsSources } from './skills-watcher';
 
@@ -198,6 +198,9 @@ void app.whenReady().then(() => {
   );
   ipcMain.handle(IPC.SkillsToggle, (_event, root: string, name: string, enabled: boolean) =>
     setSkillEnabled(root, name, enabled),
+  );
+  ipcMain.handle(IPC.AgentsToggle, (_event, root: string, name: string, enabled: boolean) =>
+    setAgentEnabled(root, name, enabled),
   );
   ipcMain.handle(IPC.SkillsWatch, (event, root: string) => {
     const win = BrowserWindow.fromWebContents(event.sender);

@@ -209,6 +209,10 @@ export const PL = {
   'skills.toggleUnreadable':
     'Nie udało się przełączyć: .claude/settings.local.json zawiera błędny JSON.',
   'skills.toggleFailed': 'Nie udało się zapisać .claude/settings.local.json.',
+  'skills.agentToggleTitle':
+    'Włącz/wyłącz subagenta — reguła Agent(nazwa) w permissions.deny w .claude/settings.local.json (tylko ten projekt)',
+  'skills.agentLocked':
+    'Wyłączony regułą deny w settings.json projektu lub użytkownika — usuń ją tam; lokalny przełącznik jej nie nadpisze.',
   'skills.create.title': 'Nowy skill',
   'skills.create.hint':
     'Skill to katalog z plikiem SKILL.md — opis podpowiada Claude, kiedy ma po niego sięgnąć.',
@@ -525,6 +529,10 @@ export const EN: Record<StringKey, string> = {
     'Enable/disable the skill — saves skillOverrides in .claude/settings.local.json (this project only)',
   'skills.toggleUnreadable': 'Toggle failed: .claude/settings.local.json contains invalid JSON.',
   'skills.toggleFailed': 'Failed to write .claude/settings.local.json.',
+  'skills.agentToggleTitle':
+    'Enable/disable the subagent — an Agent(name) rule in permissions.deny of .claude/settings.local.json (this project only)',
+  'skills.agentLocked':
+    'Disabled by a deny rule in project or user settings.json — remove it there; the local toggle cannot override it.',
   'skills.create.title': 'New skill',
   'skills.create.hint':
     'A skill is a folder with a SKILL.md file — the description tells Claude when to reach for it.',

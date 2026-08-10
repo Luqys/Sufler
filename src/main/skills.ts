@@ -1,6 +1,7 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { agentAvailability, denyRulesOf, withAgentDeny } from '../shared/agents';
 import { frontmatterBool, frontmatterString, parseFrontmatter } from '../shared/frontmatter';
 import {
   buildSkillFile,
@@ -74,19 +75,19 @@ export function claudeMdCandidates(root: string): Array<{ label: string; path: s
   ];
 }
 
-/** Mapy skillOverrides z łańcucha settings; uszkodzony JSON = pusta mapa. */
-async function readOverridesChain(root: string): Promise<Array<Record<string, unknown>>> {
-  const chain: Array<Record<string, unknown>> = [];
+/** Sparsowane pliki settings z łańcucha; brak pliku lub uszkodzony JSON = null. */
+async function readSettingsChain(root: string): Promise<unknown[]> {
+  const chain: unknown[] = [];
   for (const path of skillsSettingsPaths(root)) {
     const content = await readTextIfExists(path);
     if (content === null) {
-      chain.push({});
+      chain.push(null);
       continue;
     }
     try {
-      chain.push(overridesOf(JSON.parse(content)));
+      chain.push(JSON.parse(content));
     } catch {
-      chain.push({});
+      chain.push(null);
     }
   }
   return chain;
@@ -119,7 +120,10 @@ async function readSkillsFrom(
   return entries.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-async function readAgents(root: string): Promise<AgentEntry[]> {
+async function readAgents(
+  root: string,
+  denyChain: ReadonlyArray<readonly string[]>,
+): Promise<AgentEntry[]> {
   const dir = join(root, '.claude', 'agents');
   const entries: AgentEntry[] = [];
   for (const file of await listDir(dir)) {
@@ -132,12 +136,14 @@ async function readAgents(root: string): Promise<AgentEntry[]> {
       continue;
     }
     const { data } = parseFrontmatter(content);
+    const name = frontmatterString(data, 'name') ?? file.replace(/\.md$/, '');
     entries.push({
-      name: frontmatterString(data, 'name') ?? file.replace(/\.md$/, ''),
+      name,
       description: frontmatterString(data, 'description') ?? '',
       path,
       tools: frontmatterString(data, 'tools'),
       model: frontmatterString(data, 'model'),
+      ...agentAvailability(denyChain, name),
     });
   }
   return entries.sort((a, b) => a.name.localeCompare(b.name));
@@ -177,11 +183,12 @@ async function readClaudeMd(root: string): Promise<ClaudeMdEntry[]> {
 }
 
 export async function readSkillsSnapshot(root: string): Promise<SkillsSnapshot> {
-  const chain = await readOverridesChain(root);
+  const settingsChain = await readSettingsChain(root);
+  const chain = settingsChain.map(overridesOf);
   const [projectSkills, personalSkills, agents, rules, claudeMd] = await Promise.all([
     readSkillsFrom(join(root, '.claude', 'skills'), chain),
     readSkillsFrom(join(homedir(), '.claude', 'skills'), chain),
-    readAgents(root),
+    readAgents(root, settingsChain.map(denyRulesOf)),
     readRules(root),
     readClaudeMd(root),
   ]);
@@ -211,9 +218,41 @@ export async function createSkill(root: string, input: SkillCreateInput): Promis
   }
 }
 
+/** settings.local.json do zapisu; uszkodzony JSON → null (nie nadpisujemy go). */
+async function readWritableSettings(path: string): Promise<Record<string, unknown> | null> {
+  const content = await readTextIfExists(path);
+  if (content === null || content.trim() === '') {
+    return {};
+  }
+  try {
+    const parsed: unknown = JSON.parse(content);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      return null;
+    }
+    return parsed as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+async function writeSettings(
+  path: string,
+  settings: Record<string, unknown>,
+  enabled: boolean,
+): Promise<SkillToggleResult> {
+  try {
+    await mkdir(dirname(path), { recursive: true });
+    await writeFile(path, `${JSON.stringify(settings, null, 2)}\n`, 'utf8');
+    return { ok: true, enabled };
+  } catch {
+    return { ok: false, error: 'write-failed' };
+  }
+}
+
 /**
- * Przełącznik: aktualizuje `skillOverrides` w settings.local.json projektu.
- * Nie dotyka pozostałych kluczy pliku; uszkodzony JSON nie jest nadpisywany.
+ * Przełącznik skilla: aktualizuje `skillOverrides` w settings.local.json
+ * projektu. Nie dotyka pozostałych kluczy pliku; uszkodzony JSON nie jest
+ * nadpisywany.
  */
 export async function setSkillEnabled(
   root: string,
@@ -221,26 +260,29 @@ export async function setSkillEnabled(
   enabled: boolean,
 ): Promise<SkillToggleResult> {
   const localPath = skillsSettingsPaths(root)[0] ?? join(root, '.claude', 'settings.local.json');
-  let settings: Record<string, unknown> = {};
-  const content = await readTextIfExists(localPath);
-  if (content !== null && content.trim() !== '') {
-    try {
-      const parsed: unknown = JSON.parse(content);
-      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-        return { ok: false, error: 'settings-unreadable' };
-      }
-      settings = parsed as Record<string, unknown>;
-    } catch {
-      return { ok: false, error: 'settings-unreadable' };
-    }
+  const settings = await readWritableSettings(localPath);
+  if (settings === null) {
+    return { ok: false, error: 'settings-unreadable' };
   }
-  const chain = await readOverridesChain(root);
+  const chain = (await readSettingsChain(root)).map(overridesOf);
   settings['skillOverrides'] = toggledOverrides(chain[0] ?? {}, chain.slice(1), name, enabled);
-  try {
-    await mkdir(dirname(localPath), { recursive: true });
-    await writeFile(localPath, `${JSON.stringify(settings, null, 2)}\n`, 'utf8');
-    return { ok: true, enabled };
-  } catch {
-    return { ok: false, error: 'write-failed' };
+  return writeSettings(localPath, settings, enabled);
+}
+
+/**
+ * Przełącznik subagenta: reguła `Agent(nazwa)` w `permissions.deny`
+ * settings.local.json projektu. Deny z niższych poziomów nie da się cofnąć
+ * lokalnie — UI pokazuje wtedy blokadę (AgentEntry.deniedElsewhere).
+ */
+export async function setAgentEnabled(
+  root: string,
+  name: string,
+  enabled: boolean,
+): Promise<SkillToggleResult> {
+  const localPath = skillsSettingsPaths(root)[0] ?? join(root, '.claude', 'settings.local.json');
+  const settings = await readWritableSettings(localPath);
+  if (settings === null) {
+    return { ok: false, error: 'settings-unreadable' };
   }
+  return writeSettings(localPath, withAgentDeny(settings, name, enabled), enabled);
 }

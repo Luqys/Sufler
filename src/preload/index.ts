@@ -75,6 +75,8 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.SkillsCreate, root, input),
   setSkillEnabled: (root: string, name: string, enabled: boolean): Promise<SkillToggleResult> =>
     ipcRenderer.invoke(IPC.SkillsToggle, root, name, enabled),
+  setAgentEnabled: (root: string, name: string, enabled: boolean): Promise<SkillToggleResult> =>
+    ipcRenderer.invoke(IPC.AgentsToggle, root, name, enabled),
   onSkillsChanged: (listener: () => void): void => {
     ipcRenderer.on(IPC.SkillsChanged, () => listener());
   },
