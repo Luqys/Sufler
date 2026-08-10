@@ -174,6 +174,15 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
           <button
             type="button"
             className="titlebar-btn"
+            data-testid="settings-button"
+            title={t('titlebar.settings')}
+            onClick={() => setSettingsOpen(true)}
+          >
+            ⚙︎
+          </button>
+          <button
+            type="button"
+            className="titlebar-btn"
             data-testid="help-button"
             title={t('help.open')}
             onClick={() => setHelpOpen(true)}

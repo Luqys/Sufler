@@ -15,6 +15,7 @@ export const PL = {
 
   // Pasek tytułu
   'titlebar.login': 'Zaloguj się do konta Claude (otwiera `claude /login`)',
+  'titlebar.settings': 'Ustawienia (Cmd+,)',
 
   // Sidebar
   'sidebar.aria': 'Widoki panelu bocznego',
@@ -478,6 +479,7 @@ export const EN: Record<StringKey, string> = {
   'common.closeTab': 'Close tab',
 
   'titlebar.login': 'Sign in to your Claude account (opens `claude /login`)',
+  'titlebar.settings': 'Settings (Cmd+,)',
 
   'sidebar.aria': 'Sidebar views',
   'sidebar.rail.files': 'Files',
