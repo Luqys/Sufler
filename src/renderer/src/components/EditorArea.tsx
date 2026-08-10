@@ -21,7 +21,7 @@ export function EditorArea(): ReactElement {
         <EditorTabs />
         <div className="editor-empty-wrap">
           <div className="editor-empty">
-            <div className="editor-empty-title">VisualN3O</div>
+            <div className="editor-empty-title">Neodesk</div>
             <p className="placeholder">Kliknij plik w panelu po lewej, aby go otworzyć.</p>
           </div>
         </div>

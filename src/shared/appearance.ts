@@ -1,6 +1,6 @@
-/** Motyw aplikacji: tryb jasny/ciemny/systemowy + kolor przewodni (akcent). */
+/** Motyw aplikacji: tryb jasny/ciemny/systemowy/matrixowy + kolor przewodni (akcent). */
 
-export type ThemeMode = 'system' | 'light' | 'dark';
+export type ThemeMode = 'system' | 'light' | 'dark' | 'matrix';
 export type AccentId = 'clay' | 'blue' | 'green' | 'violet' | 'pink';
 
 export interface Appearance {
@@ -14,6 +14,7 @@ export const THEME_MODES: Array<{ id: ThemeMode; label: string }> = [
   { id: 'system', label: 'Systemowy' },
   { id: 'light', label: 'Jasny' },
   { id: 'dark', label: 'Ciemny' },
+  { id: 'matrix', label: 'Matrix' },
 ];
 
 /** swatch — kolor próbki w ustawieniach (wariant jasny). */

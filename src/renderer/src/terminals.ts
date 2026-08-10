@@ -3,6 +3,7 @@ import { SerializeAddon } from '@xterm/addon-serialize';
 import { Terminal, type ITheme } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 import { quotePathForPrompt } from '../../shared/media';
+import { FLAVOR_EVENT, isMatrixFlavor } from './appearance-client';
 
 /**
  * Rejestr instancji xterm poza drzewem Reacta. Przenoszenie zakładki między
@@ -75,11 +76,42 @@ function themeFor(dark: boolean): ITheme {
       };
 }
 
-darkMedia.addEventListener('change', () => {
+/** Motyw matrixowy: fosforyczna zieleń na czerni; czerwień zostaje dla błędów. */
+const MATRIX_THEME: ITheme = {
+  background: '#050b06',
+  foreground: '#7dff9b',
+  cursor: '#00e653',
+  selectionBackground: '#134d26',
+  black: '#0c1a0e',
+  red: '#ff6b60',
+  green: '#2fe66b',
+  yellow: '#b8e63e',
+  blue: '#2fd9a8',
+  magenta: '#66ffc2',
+  cyan: '#3ee6d2',
+  white: '#a8d9b0',
+  brightBlack: '#3f7a50',
+  brightRed: '#ff8a80',
+  brightGreen: '#5cff8f',
+  brightYellow: '#d2ff66',
+  brightBlue: '#4dffc4',
+  brightMagenta: '#8affd2',
+  brightCyan: '#66ffe9',
+  brightWhite: '#d9ffe0',
+};
+
+function currentTheme(): ITheme {
+  return isMatrixFlavor() ? MATRIX_THEME : themeFor(darkMedia.matches);
+}
+
+function rethemeAll(): void {
   for (const instance of instances.values()) {
-    instance.term.options.theme = themeFor(darkMedia.matches);
+    instance.term.options.theme = currentTheme();
   }
-});
+}
+
+darkMedia.addEventListener('change', rethemeAll);
+window.addEventListener(FLAVOR_EVENT, rethemeAll);
 
 // Jedna globalna subskrypcja na życie okna; routing po ptyId.
 window.api.onPtyData(({ ptyId, data }) => {
@@ -116,7 +148,7 @@ export function createTerminalInstance(
     fontSize: 12.5,
     cursorBlink: true,
     scrollback: 10_000,
-    theme: themeFor(darkMedia.matches),
+    theme: currentTheme(),
     // Programy zakładające ciemne tło (np. Claude Code) wypisują jasnoszare
     // kolory 256/truecolor, nieczytelne na białym — xterm dociąga je do kontrastu.
     minimumContrastRatio: 4.5,

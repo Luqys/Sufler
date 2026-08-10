@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react';
+import { applyAppearance } from '../appearance-client';
 import { createTerminalInstance } from '../terminals';
 import { TerminalView } from './TerminalView';
 
@@ -11,6 +12,8 @@ export function DetachedTerminal(): ReactElement {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Osobne okno nie przechodzi przez App — akcent i smak motywu ustawiamy tu.
+    void window.api.getAppearance().then(applyAppearance);
     const ptyId = Number(new URLSearchParams(location.search).get('ptyId'));
     if (!Number.isFinite(ptyId) || ptyId <= 0) {
       setError('Brak identyfikatora sesji.');
@@ -21,7 +24,7 @@ export function DetachedTerminal(): ReactElement {
         setError('Sesja nie istnieje (mogła zostać zamknięta).');
         return;
       }
-      document.title = `${info.title} — VisualN3O`;
+      document.title = `${info.title} — Neodesk`;
       const id = `detached-${ptyId}`;
       const instance = createTerminalInstance(id, ptyId);
       if (info.serialized) {

@@ -61,11 +61,11 @@ test('vault jako drugi korzeń: ukryte .obsidian/.trash, edycja i zapis notatki'
   await viewLines.click();
   await page.keyboard.press('Meta+ArrowDown');
   await page.keyboard.press('End');
-  await page.keyboard.type('Dopisek z VisualN3O.');
+  await page.keyboard.type('Dopisek z Neodeska.');
   await page.keyboard.press('Meta+s');
   await expect
     .poll(() => readFileSync(join(vault, 'Dziennik.md'), 'utf8'))
-    .toContain('Dopisek z VisualN3O.');
+    .toContain('Dopisek z Neodeska.');
   await expect
     .poll(() => readFileSync(join(vault, 'Dziennik.md'), 'utf8'))
     .toContain('tags: [dziennik, test]');

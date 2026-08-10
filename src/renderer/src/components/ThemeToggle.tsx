@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { ACCENTS, type AccentId } from '../../../shared/appearance';
-import { applyAccent } from '../appearance-client';
+import { applyAccent, applyThemeFlavor } from '../appearance-client';
 
 const ICON_SUN = (
   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
@@ -49,9 +49,12 @@ export function ThemeToggle(): ReactElement {
     }
   };
 
+  // Klik wychodzi też z trybu Matrix (to wariant ciemnego → przełącza na jasny).
   const toggleTheme = (): void => {
     void window.api.getAppearance().then((appearance) => {
-      void window.api.setAppearance({ ...appearance, mode: dark ? 'light' : 'dark' });
+      const mode = dark ? 'light' : 'dark';
+      applyThemeFlavor(mode);
+      void window.api.setAppearance({ ...appearance, mode });
     });
   };
 

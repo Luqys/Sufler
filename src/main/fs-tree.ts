@@ -93,7 +93,7 @@ export async function readDirListing(dirPath: string): Promise<ReadDirResult> {
 
 export async function writeTextFile(filePath: string, content: string): Promise<WriteFileResult> {
   try {
-    const tmp = `${filePath}.visualn3o-tmp`;
+    const tmp = `${filePath}.neodesk-tmp`;
     await writeFile(tmp, content, 'utf8');
     await rename(tmp, filePath);
     return { ok: true };

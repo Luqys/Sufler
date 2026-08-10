@@ -6,9 +6,9 @@ import { launchApp, makeConfigHome, makeFixtureProject } from './utils';
 test('ekran startowy: wybór z ostatnich folderów, terminal startuje w wybranym', async () => {
   const configHome = makeConfigHome();
   const project = makeFixtureProject();
-  mkdirSync(join(configHome, 'visualn3o'), { recursive: true });
+  mkdirSync(join(configHome, 'neodesk'), { recursive: true });
   writeFileSync(
-    join(configHome, 'visualn3o', 'state.json'),
+    join(configHome, 'neodesk', 'state.json'),
     JSON.stringify({ recentRoots: [project] }),
   );
 

@@ -34,11 +34,11 @@ function textResult(text: string, isError = false): {
 }
 
 function buildMcp(): McpServer {
-  const mcp = new McpServer({ name: 'visualn3o-graf-wiedzy', version: '1.0.0' });
+  const mcp = new McpServer({ name: 'neodesk-graf-wiedzy', version: '1.0.0' });
 
   mcp.tool(
     'konspekt',
-    'Konspekt wiedzy projektu otwartego w VisualN3O — mapa wszystkich notatek .md ' +
+    'Konspekt wiedzy projektu otwartego w Neodesk — mapa wszystkich notatek .md ' +
       '(tytuły, nagłówki, powiązania) z pliku konspekt-wiedzy.md w korzeniu repozytorium. ' +
       'Przed odczytem konspekt jest przeliczany, więc odpowiada aktualnemu stanowi notatek. ' +
       'Użyj na start, aby wiedzieć, co gdzie jest, zanim sięgniesz po pełne treści.',
@@ -46,7 +46,7 @@ function buildMcp(): McpServer {
     async () => {
       const root = getProjectRoot();
       if (!root) {
-        return textResult('Brak otwartego projektu w VisualN3O.', true);
+        return textResult('Brak otwartego projektu w Neodesk.', true);
       }
       await rebuildOutline(root).catch(() => {
         // nie blokujemy odczytu — spróbujemy podać ostatnią wersję z repozytorium
@@ -61,7 +61,7 @@ function buildMcp(): McpServer {
 
   mcp.tool(
     'graf_wiedzy',
-    'Pełny schemat grafu wiedzy projektu otwartego w VisualN3O: notatki .md jako węzły ' +
+    'Pełny schemat grafu wiedzy projektu otwartego w Neodesk: notatki .md jako węzły ' +
       '(ścieżka, tytuł, autor ostatniej zmiany, data, kategoria funkcji programu, ' +
       'warstwa frontend/backend) i połączenia między nimi (wikilinki [[...]] i linki ' +
       'markdown). Kategorię i warstwę można nadpisać frontmatterem notatki ' +
@@ -71,7 +71,7 @@ function buildMcp(): McpServer {
     async () => {
       const root = getProjectRoot();
       if (!root) {
-        return textResult('Brak otwartego projektu w VisualN3O.', true);
+        return textResult('Brak otwartego projektu w Neodesk.', true);
       }
       return textResult(JSON.stringify(await buildKnowledgeGraph(root), null, 1));
     },
@@ -84,7 +84,7 @@ function buildMcp(): McpServer {
     async ({ sciezka }) => {
       const root = getProjectRoot();
       if (!root) {
-        return textResult('Brak otwartego projektu w VisualN3O.', true);
+        return textResult('Brak otwartego projektu w Neodesk.', true);
       }
       const absolute = resolve(join(root, sciezka));
       if (!absolute.startsWith(`${resolve(root)}/`) || !absolute.endsWith('.md')) {
@@ -105,7 +105,7 @@ function buildMcp(): McpServer {
     async ({ notatka }) => {
       const root = getProjectRoot();
       if (!root) {
-        return textResult('Brak otwartego projektu w VisualN3O.', true);
+        return textResult('Brak otwartego projektu w Neodesk.', true);
       }
       const graph = await buildKnowledgeGraph(root);
       const neighbors = new Set<string>();

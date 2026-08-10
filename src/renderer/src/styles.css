@@ -59,6 +59,40 @@
   }
 }
 
+/* Motyw matrixowy (data-flavor na <html>, nativeTheme widzi „ciemny"):
+   fosforyczna zieleń na czerni. Podwójny selektor z [data-accent] wygrywa
+   specyficznością także z regułami kolorów przewodnich. */
+:root[data-flavor='matrix'],
+:root[data-flavor='matrix'][data-accent] {
+  --bg: #050b06;
+  --panel: #081209;
+  --panel-alt: #0c1a0e;
+  --border: #14401f;
+  --text: #c6ffd0;
+  --muted: #55a86b;
+  --accent: #00e653;
+  --git-modified: #b8e63e;
+  --git-untracked: #3ee673;
+  --card-highlight: rgb(0 230 83 / 0.12);
+}
+
+/* Vibrancy psułoby czerń — w Matrixie okno i sidebar są kryte. */
+:root[data-flavor='matrix'] body {
+  background: var(--bg);
+}
+:root[data-flavor='matrix'] .sidebar {
+  background: var(--panel);
+}
+:root[data-flavor='matrix'] .icon-rail {
+  background: var(--panel-alt);
+}
+
+/* Jasnozielony akcent wymaga ciemnego tekstu na wypełnionych elementach. */
+:root[data-flavor='matrix'] .chat-msg.user,
+:root[data-flavor='matrix'] .chat-send {
+  color: #04140a;
+}
+
 html,
 body,
 #root {
@@ -2630,6 +2664,11 @@ body.dragging-horizontal .splitter.horizontal::after {
   :root {
     --term-bg: #1b1c21;
   }
+}
+
+/* Tło terminala w Matrixie musi zgadzać się z paletą xterm (MATRIX_THEME). */
+:root[data-flavor='matrix'] {
+  --term-bg: #050b06;
 }
 
 .dock {

@@ -23,7 +23,7 @@ export function openTerminalWindow(info: DetachedTerminalInfo): void {
     height: 480,
     minWidth: 420,
     minHeight: 280,
-    title: `${info.title} — VisualN3O`,
+    title: `${info.title} — Neodesk`,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#1b1c21' : '#ffffff',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

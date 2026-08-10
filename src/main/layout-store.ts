@@ -1,11 +1,26 @@
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { defaultLayout, normalizeLayout, type LayoutState } from '../shared/layout';
 
+function configBase(): string {
+  return process.env['XDG_CONFIG_HOME'] || join(homedir(), '.config');
+}
+
 export function configDir(): string {
-  const base = process.env['XDG_CONFIG_HOME'] || join(homedir(), '.config');
-  return join(base, 'visualn3o');
+  return join(configBase(), 'neodesk');
+}
+
+/** Jednorazowa migracja po zmianie nazwy aplikacji: ~/.config/visualn3o → neodesk. */
+export function migrateLegacyConfigDir(): void {
+  const legacy = join(configBase(), 'visualn3o');
+  if (existsSync(legacy) && !existsSync(configDir())) {
+    try {
+      renameSync(legacy, configDir());
+    } catch {
+      // Nie udało się przenieść — start z domyślną konfiguracją.
+    }
+  }
 }
 
 export function layoutFilePath(): string {

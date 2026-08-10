@@ -65,7 +65,7 @@ test('wyszukiwanie ripgrep znajduje znany ciąg i otwiera plik', async () => {
 test('skróty przełączają panele, a stan widoczności przeżywa restart', async () => {
   const configHome = makeConfigHome();
   const project = makeFixtureProject();
-  const layoutFile = join(configHome, 'visualn3o', 'layout.json');
+  const layoutFile = join(configHome, 'neodesk', 'layout.json');
 
   let app = await launchApp(configHome, project);
   let page = await app.firstWindow();

@@ -33,11 +33,32 @@ const diagnosticsOptions = {
 monaco.typescript.typescriptDefaults.setDiagnosticsOptions(diagnosticsOptions);
 monaco.typescript.javascriptDefaults.setDiagnosticsOptions(diagnosticsOptions);
 
+// Motyw matrixowy edytora: kolory składni z vs-dark, tło i tekst w zieleniach.
+monaco.editor.defineTheme('neodesk-matrix', {
+  base: 'vs-dark',
+  inherit: true,
+  rules: [{ token: '', foreground: 'c6ffd0', background: '050b06' }],
+  colors: {
+    'editor.background': '#050b06',
+    'editor.foreground': '#c6ffd0',
+    'editorLineNumber.foreground': '#2f7a44',
+    'editorLineNumber.activeForeground': '#5cff8f',
+    'editorCursor.foreground': '#00e653',
+    'editor.selectionBackground': '#134d26',
+    'editor.lineHighlightBackground': '#0a1a0f',
+    'editorWidget.background': '#081209',
+    'editorGutter.background': '#050b06',
+  },
+});
+
 const darkMedia = window.matchMedia('(prefers-color-scheme: dark)');
 function applyTheme(): void {
-  monaco.editor.setTheme(darkMedia.matches ? 'vs-dark' : 'vs');
+  const matrix = document.documentElement.dataset['flavor'] === 'matrix';
+  monaco.editor.setTheme(matrix ? 'neodesk-matrix' : darkMedia.matches ? 'vs-dark' : 'vs');
 }
 darkMedia.addEventListener('change', applyTheme);
+// Zmiana smaku motywu (Matrix ↔ zwykły) — patrz appearance-client.
+window.addEventListener('neodesk:flavor', applyTheme);
 applyTheme();
 
 // Frontmatter YAML notatek markdown jako zwijalny region (SPEC.md, Obsidian w. 1).

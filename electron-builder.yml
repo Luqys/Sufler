@@ -1,5 +1,5 @@
-appId: io.n3osystem.visualn3o
-productName: VisualN3O
+appId: io.n3osystem.neodesk
+productName: Neodesk
 directories:
   output: dist
 files:

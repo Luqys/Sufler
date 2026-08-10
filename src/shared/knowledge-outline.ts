@@ -45,7 +45,7 @@ export function buildOutline(projectName: string, sources: OutlineSource[]): str
   const parts: string[] = [
     `# Konspekt wiedzy — ${projectName}`,
     '',
-    'Plik generowany automatycznie przez VisualN3O na podstawie notatek `.md`',
+    'Plik generowany automatycznie przez Neodesk na podstawie notatek `.md`',
     'projektu (nie edytuj ręcznie). Dla Claude: to mapa wiedzy — tu sprawdzisz,',
     'w którym pliku znajduje się dany temat.',
   ];

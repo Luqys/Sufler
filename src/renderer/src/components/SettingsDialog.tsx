@@ -5,7 +5,7 @@ import {
   THEME_MODES,
   type Appearance,
 } from '../../../shared/appearance';
-import { applyAccent } from '../appearance-client';
+import { applyAppearance } from '../appearance-client';
 import { useWorkspace } from '../workspace';
 
 interface SettingsDialogProps {
@@ -23,7 +23,7 @@ export function SettingsDialog({ onClose }: SettingsDialogProps): ReactElement {
   const updateAppearance = (patch: Partial<Appearance>): void => {
     const next = { ...appearance, ...patch };
     setAppearanceState(next);
-    applyAccent(next.accent);
+    applyAppearance(next);
     void window.api.setAppearance(next);
   };
 
@@ -112,7 +112,7 @@ export function SettingsDialog({ onClose }: SettingsDialogProps): ReactElement {
         <section className="settings-section">
           <h3 className="view-title">Konfiguracja</h3>
           <p className="settings-path">
-            Układ i stan aplikacji: ~/.config/visualn3o/ (layout.json, state.json)
+            Układ i stan aplikacji: ~/.config/neodesk/ (layout.json, state.json)
           </p>
         </section>
       </div>

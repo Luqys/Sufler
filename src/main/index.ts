@@ -12,7 +12,7 @@ import { closeKnowledgeWatcher, watchKnowledge } from './knowledge-watcher';
 import { getUsageLimits } from './usage-limits';
 import { closeWatcher, setWatchedFiles } from './file-watcher';
 import { readDirListing, readFileForEditor, readImageForPreview, writeTextFile } from './fs-tree';
-import { readLayout, writeLayout } from './layout-store';
+import { migrateLegacyConfigDir, readLayout, writeLayout } from './layout-store';
 import { runGitLog, runGitShowCommit } from './git-log';
 import { runGitStatus } from './git-status';
 import { installAppMenu } from './menu';
@@ -48,7 +48,7 @@ function createWindow(): void {
     minWidth: 960,
     minHeight: 600,
     show: false,
-    title: 'VisualN3O',
+    title: 'Neodesk',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 14, y: 11 },
     // Vibrancy sidebara (SPEC.md, M9) — tło okna musi zostać przezroczyste,
@@ -74,6 +74,8 @@ function createWindow(): void {
 }
 
 void app.whenReady().then(() => {
+  // Przed pierwszym odczytem stanu: przenosiny konfiguracji po zmianie nazwy.
+  migrateLegacyConfigDir();
   applyAppearanceAtBoot();
 
   // W dev ikona docka z build/icon.png (w pakiecie robi to icon.icns).
