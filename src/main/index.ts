@@ -1,7 +1,8 @@
 import { app, BrowserWindow, ipcMain, nativeTheme } from 'electron';
 import { join } from 'node:path';
 import { IPC } from '../shared/ipc';
-import { readDirListing, readFileForEditor } from './fs-tree';
+import { closeWatcher, setWatchedFiles } from './file-watcher';
+import { readDirListing, readFileForEditor, writeTextFile } from './fs-tree';
 import { readLayout, writeLayout } from './layout-store';
 import { chooseProjectRoot, getProjectRoot } from './project';
 
@@ -44,6 +45,15 @@ void app.whenReady().then(() => {
   });
   ipcMain.handle(IPC.FsReadDir, (_event, dirPath: string) => readDirListing(dirPath));
   ipcMain.handle(IPC.FsReadFile, (_event, filePath: string) => readFileForEditor(filePath));
+  ipcMain.handle(IPC.FsWriteFile, (_event, filePath: string, content: string) =>
+    writeTextFile(filePath, content),
+  );
+  ipcMain.handle(IPC.WatchSetFiles, (event, paths: string[]) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+      setWatchedFiles(win, paths);
+    }
+  });
 
   createWindow();
 
@@ -56,4 +66,8 @@ void app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   app.quit();
+});
+
+app.on('will-quit', () => {
+  closeWatcher();
 });

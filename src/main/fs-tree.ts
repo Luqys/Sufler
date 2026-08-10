@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
-import { readFile, readdir, stat } from 'node:fs/promises';
+import { readFile, readdir, rename, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { DirEntry, ReadDirResult, ReadFileResult } from '../shared/ipc';
+import type { DirEntry, ReadDirResult, ReadFileResult, WriteFileResult } from '../shared/ipc';
 
 /** Spec wyklucza pliki >50 MB; tniemy znacznie wcześniej, zanim Monaco zacznie się krztusić. */
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -76,6 +76,17 @@ export async function readDirListing(dirPath: string): Promise<ReadDirResult> {
       entry.ignored = ignored.has(entry.name);
     }
     return { ok: true, entries: sortEntries(entries) };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+export async function writeTextFile(filePath: string, content: string): Promise<WriteFileResult> {
+  try {
+    const tmp = `${filePath}.visualn3o-tmp`;
+    await writeFile(tmp, content, 'utf8');
+    await rename(tmp, filePath);
+    return { ok: true };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }

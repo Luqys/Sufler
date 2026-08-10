@@ -1,14 +1,14 @@
 import { useEffect, useRef, type ReactElement } from 'react';
+import { getModel } from '../editor/models';
 import { monaco } from '../monaco-setup';
 
-interface MonacoEditorProps {
-  path: string;
-  content: string;
-}
+/** Pozycje kursora/scrolla per plik — przetrwają przełączanie zakładek. */
+const viewStates = new Map<string, monaco.editor.ICodeEditorViewState | null>();
 
-export function MonacoEditor({ path, content }: MonacoEditorProps): ReactElement {
+export function MonacoEditor({ path }: { path: string }): ReactElement {
   const hostRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const currentPathRef = useRef<string | null>(null);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -25,8 +25,12 @@ export function MonacoEditor({ path, content }: MonacoEditorProps): ReactElement
     });
     editorRef.current = editor;
     return () => {
+      if (currentPathRef.current) {
+        viewStates.set(currentPathRef.current, editor.saveViewState());
+      }
       editor.dispose();
       editorRef.current = null;
+      currentPathRef.current = null;
     };
   }, []);
 
@@ -35,20 +39,17 @@ export function MonacoEditor({ path, content }: MonacoEditorProps): ReactElement
     if (!editor) {
       return;
     }
-    const uri = monaco.Uri.file(path);
-    let model = monaco.editor.getModel(uri);
-    if (model) {
-      model.setValue(content);
-    } else {
-      // Język wyznaczany z rozszerzenia w URI (wbudowane gramatyki Monaco).
-      model = monaco.editor.createModel(content, undefined, uri);
+    if (currentPathRef.current && currentPathRef.current !== path) {
+      viewStates.set(currentPathRef.current, editor.saveViewState());
     }
-    const previous = editor.getModel();
-    editor.setModel(model);
-    if (previous && previous !== model) {
-      previous.dispose();
+    editor.setModel(getModel(path));
+    currentPathRef.current = path;
+    const state = viewStates.get(path);
+    if (state) {
+      editor.restoreViewState(state);
     }
-  }, [path, content]);
+    editor.focus();
+  }, [path]);
 
   return <div ref={hostRef} className="monaco-host" data-testid="monaco-host" />;
 }

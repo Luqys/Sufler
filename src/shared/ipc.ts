@@ -7,6 +7,9 @@ export const IPC = {
   ProjectOpenDialog: 'project:open-dialog',
   FsReadDir: 'fs:read-dir',
   FsReadFile: 'fs:read-file',
+  FsWriteFile: 'fs:write-file',
+  WatchSetFiles: 'watch:set-files',
+  WatchEvent: 'watch:event',
 } as const;
 
 export interface DirEntry {
@@ -28,6 +31,13 @@ export type ReadFileResult =
   | { ok: true; content: string }
   | { ok: false; error: ReadFileError };
 
+export type WriteFileResult = { ok: true } | { ok: false; error: string };
+
+export interface WatchEvent {
+  path: string;
+  kind: 'changed' | 'deleted';
+}
+
 /** API udostępniane rendererowi przez contextBridge (window.api). */
 export interface WindowApi {
   getLayout(): Promise<LayoutState>;
@@ -36,4 +46,9 @@ export interface WindowApi {
   openProjectDialog(): Promise<string | null>;
   readDir(dirPath: string): Promise<ReadDirResult>;
   readFile(filePath: string): Promise<ReadFileResult>;
+  writeFile(filePath: string, content: string): Promise<WriteFileResult>;
+  /** Deklaratywnie ustawia pełną listę obserwowanych plików (otwarte zakładki). */
+  watchFiles(paths: string[]): Promise<void>;
+  /** Subskrypcja na całe życie okna — bez wypisu (patrz workspace). */
+  onWatchEvent(listener: (event: WatchEvent) => void): void;
 }

@@ -1,40 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { execSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { _electron as electron, type ElectronApplication } from 'playwright';
-
-function makeFixtureProject(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'vn3o-proj-'));
-  writeFileSync(join(dir, '.gitignore'), 'node_modules/\n*.log\n');
-  writeFileSync(join(dir, 'README.md'), '# Projekt testowy\n');
-  writeFileSync(join(dir, 'debug.log'), 'ukryty\n');
-  mkdirSync(join(dir, 'src'));
-  writeFileSync(join(dir, 'src', 'app.ts'), "export const answer = 42;\nconsole.log('witaj', answer);\n");
-  mkdirSync(join(dir, 'node_modules', 'fake-pkg'), { recursive: true });
-  writeFileSync(join(dir, 'node_modules', 'fake-pkg', 'index.js'), 'module.exports = 1;\n');
-  execSync('git init', { cwd: dir, stdio: 'ignore' });
-  return dir;
-}
-
-function launchApp(configHome: string, projectRoot: string): Promise<ElectronApplication> {
-  const env: Record<string, string> = {};
-  for (const [key, value] of Object.entries(process.env)) {
-    if (value !== undefined) {
-      env[key] = value;
-    }
-  }
-  env['XDG_CONFIG_HOME'] = configHome;
-  env['VISUALN3O_ROOT'] = projectRoot;
-  delete env['ELECTRON_RENDERER_URL'];
-  return electron.launch({ args: ['.'], env });
-}
+import { launchApp, makeConfigHome, makeFixtureProject } from './utils';
 
 test('drzewo respektuje .gitignore, a przełącznik pokazuje ignorowane wpisy', async () => {
-  const configHome = mkdtempSync(join(tmpdir(), 'vn3o-e2e-'));
   const project = makeFixtureProject();
-  const app = await launchApp(configHome, project);
+  const app = await launchApp(makeConfigHome(), project);
   const page = await app.firstWindow();
   const tree = page.getByTestId('file-tree');
 
@@ -56,9 +27,8 @@ test('drzewo respektuje .gitignore, a przełącznik pokazuje ignorowane wpisy', 
 });
 
 test('kliknięcie pliku w drzewie otwiera go w Monaco', async () => {
-  const configHome = mkdtempSync(join(tmpdir(), 'vn3o-e2e-'));
   const project = makeFixtureProject();
-  const app = await launchApp(configHome, project);
+  const app = await launchApp(makeConfigHome(), project);
   const page = await app.firstWindow();
   const consoleErrors: string[] = [];
   page.on('console', (message) => {
@@ -71,7 +41,11 @@ test('kliknięcie pliku w drzewie otwiera go w Monaco', async () => {
   await tree.getByText('src', { exact: true }).click();
   await tree.getByText('app.ts').click();
 
-  await expect(page.getByTestId('current-file')).toHaveText('src/app.ts');
+  await expect(page.getByTestId('tab-active')).toContainText('app.ts');
+  await expect(page.getByTestId('tab-active')).toHaveAttribute(
+    'title',
+    join(project, 'src', 'app.ts'),
+  );
   await expect(page.locator('.monaco-editor .view-lines')).toContainText('answer');
 
   // Monaco pod file:// potrafi po cichu stracić web workery — ma to być głośna porażka.
@@ -83,9 +57,8 @@ test('kliknięcie pliku w drzewie otwiera go w Monaco', async () => {
 });
 
 test('przycisk odświeżania pokazuje pliki dodane z zewnątrz', async () => {
-  const configHome = mkdtempSync(join(tmpdir(), 'vn3o-e2e-'));
   const project = makeFixtureProject();
-  const app = await launchApp(configHome, project);
+  const app = await launchApp(makeConfigHome(), project);
   const page = await app.firstWindow();
   const tree = page.getByTestId('file-tree');
 

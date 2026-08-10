@@ -1,11 +1,13 @@
 import type { ReactElement } from 'react';
 import { useWorkspace } from '../workspace';
+import { EditorTabs } from './EditorTabs';
 import { MonacoEditor } from './MonacoEditor';
 
 export function EditorArea(): ReactElement {
-  const { root, currentFile } = useWorkspace();
+  const { tabsState, buffers, reloadActiveFromDisk, keepMyVersion, closeTab } = useWorkspace();
+  const activePath = tabsState.activePath;
 
-  if (!currentFile) {
+  if (!activePath) {
     return (
       <main className="editor-area" data-testid="editor">
         <div className="editor-empty-wrap">
@@ -18,21 +20,50 @@ export function EditorArea(): ReactElement {
     );
   }
 
-  const relativePath = currentFile.path.startsWith(`${root}/`)
-    ? currentFile.path.slice(root.length + 1)
-    : currentFile.path;
+  const buffer = buffers.get(activePath);
+  const external = buffer?.external ?? null;
 
   return (
     <main className="editor-area" data-testid="editor">
-      <div className="editor-file-bar" data-testid="current-file" title={currentFile.path}>
-        {relativePath}
-      </div>
-      {currentFile.status === 'loaded' ? (
-        <MonacoEditor path={currentFile.path} content={currentFile.content} />
-      ) : (
-        <div className="editor-empty-wrap">
-          <p className="placeholder">{currentFile.message}</p>
+      <EditorTabs />
+      {external !== null && (
+        <div className="external-bar" data-testid="external-bar">
+          <span className="external-msg">
+            {external === 'changed'
+              ? 'Plik został zmieniony na dysku poza edytorem.'
+              : 'Plik został usunięty z dysku.'}
+          </span>
+          {external === 'changed' && (
+            <button
+              type="button"
+              className="bar-btn"
+              data-testid="external-reload"
+              onClick={reloadActiveFromDisk}
+            >
+              Przeładuj
+            </button>
+          )}
+          <button
+            type="button"
+            className="bar-btn"
+            data-testid="external-keep"
+            onClick={keepMyVersion}
+          >
+            Zachowaj moją wersję
+          </button>
+          {external === 'deleted' && (
+            <button type="button" className="bar-btn" onClick={() => closeTab(activePath)}>
+              Zamknij zakładkę
+            </button>
+          )}
         </div>
+      )}
+      {buffer?.loadError ? (
+        <div className="editor-empty-wrap">
+          <p className="placeholder">{buffer.loadError}</p>
+        </div>
+      ) : (
+        <MonacoEditor path={activePath} />
       )}
     </main>
   );

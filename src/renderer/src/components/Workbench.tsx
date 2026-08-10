@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, type ReactElement } from 'react';
 import { clampSize, type LayoutSizeKey, type LayoutState } from '../../../shared/layout';
+import { baseName } from '../../../shared/paths';
 import { useWorkspace } from '../workspace';
 import { Dock } from './Dock';
 import { EditorArea } from './EditorArea';
@@ -9,10 +10,6 @@ import { Splitter } from './Splitter';
 const SPLITTER_SIZE = 5;
 const MIN_CENTER_WIDTH = 320;
 const MIN_EDITOR_HEIGHT = 160;
-
-function baseName(path: string): string {
-  return path.split('/').filter(Boolean).pop() ?? path;
-}
 
 export function Workbench({ initialLayout }: { initialLayout: LayoutState }): ReactElement {
   const { root } = useWorkspace();

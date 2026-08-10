@@ -3,20 +3,51 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactElement,
   type ReactNode,
 } from 'react';
-import type { ReadFileError } from '../../shared/ipc';
+import {
+  activateTab as activateTabState,
+  closeTab as closeTabState,
+  emptyTabsState,
+  openTab as openTabState,
+  pinTab as pinTabState,
+  type EditorTabsState,
+} from '../../shared/editor-tabs';
+import type { ReadFileError, WatchEvent } from '../../shared/ipc';
+import { baseName } from '../../shared/paths';
+import {
+  disposeModel,
+  ensureModel,
+  getModelValue,
+  isDirty,
+  markKeptMine,
+  markSaved,
+  reloadModel,
+  setDirtyListener,
+} from './editor/models';
 
-export type CurrentFile =
-  | { path: string; status: 'loaded'; content: string }
-  | { path: string; status: 'error'; message: string };
+export interface BufferInfo {
+  /** Treść zgodna z dyskiem przy ostatnim wczytaniu/zapisie — do tłumienia echa własnych zapisów. */
+  savedText: string;
+  external: 'changed' | 'deleted' | null;
+  loadError: string | null;
+}
 
 interface WorkspaceValue {
   root: string;
-  currentFile: CurrentFile | null;
-  openFile(path: string): void;
+  tabsState: EditorTabsState;
+  buffers: ReadonlyMap<string, BufferInfo>;
+  dirtyPaths: ReadonlySet<string>;
+  openFile(path: string, options?: { pinned?: boolean }): void;
+  activateTab(path: string): void;
+  pinTab(path: string): void;
+  closeTab(path: string): void;
+  saveActiveFile(): void;
+  reloadActiveFromDisk(): void;
+  keepMyVersion(): void;
   chooseProject(): void;
 }
 
@@ -43,7 +74,52 @@ function describeReadError(error: ReadFileError): string {
 
 export function WorkspaceProvider({ children }: { children: ReactNode }): ReactElement | null {
   const [root, setRoot] = useState<string | null>(null);
-  const [currentFile, setCurrentFile] = useState<CurrentFile | null>(null);
+
+  const [tabsState, setTabsStateRaw] = useState<EditorTabsState>(emptyTabsState);
+  const tabsRef = useRef(tabsState);
+
+  const buffersRef = useRef<Map<string, BufferInfo>>(new Map());
+  const [buffers, setBuffersState] = useState<ReadonlyMap<string, BufferInfo>>(buffersRef.current);
+
+  const [dirtyPaths, setDirtyPaths] = useState<ReadonlySet<string>>(new Set());
+
+  const patchBuffers = useCallback((mutate: (next: Map<string, BufferInfo>) => void) => {
+    const next = new Map(buffersRef.current);
+    mutate(next);
+    buffersRef.current = next;
+    setBuffersState(next);
+  }, []);
+
+  const dropDirty = useCallback((path: string) => {
+    setDirtyPaths((prev) => {
+      if (!prev.has(path)) {
+        return prev;
+      }
+      const next = new Set(prev);
+      next.delete(path);
+      return next;
+    });
+  }, []);
+
+  /** Zmiana zakładek + sprzątanie modeli/buforów po zakładkach, które zniknęły (np. zastąpiony podgląd). */
+  const applyTabs = useCallback(
+    (updater: (state: EditorTabsState) => EditorTabsState) => {
+      const before = tabsRef.current.tabs.map((tab) => tab.path);
+      tabsRef.current = updater(tabsRef.current);
+      setTabsStateRaw(tabsRef.current);
+      const after = new Set(tabsRef.current.tabs.map((tab) => tab.path));
+      for (const path of before) {
+        if (!after.has(path)) {
+          disposeModel(path);
+          patchBuffers((next) => {
+            next.delete(path);
+          });
+          dropDirty(path);
+        }
+      }
+    },
+    [dropDirty, patchBuffers],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -57,30 +133,235 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     };
   }, []);
 
-  const openFile = useCallback((path: string) => {
-    void window.api.readFile(path).then((result) => {
+  // Brudny podgląd przypina się automatycznie — inaczej kolejny podgląd
+  // zastąpiłby zakładkę z niezapisanymi zmianami.
+  useEffect(() => {
+    setDirtyListener((path, dirty) => {
+      if (dirty) {
+        applyTabs((state) => pinTabState(state, path));
+      }
+      setDirtyPaths((prev) => {
+        if (prev.has(path) === dirty) {
+          return prev;
+        }
+        const next = new Set(prev);
+        if (dirty) {
+          next.add(path);
+        } else {
+          next.delete(path);
+        }
+        return next;
+      });
+    });
+    return () => setDirtyListener(null);
+  }, [applyTabs]);
+
+  const openFile = useCallback(
+    (path: string, options?: { pinned?: boolean }) => {
+      const pinned = options?.pinned ?? false;
+      const open = (): void => applyTabs((state) => openTabState(state, path, baseName(path), pinned));
+      if (buffersRef.current.has(path)) {
+        open();
+        return;
+      }
+      void window.api.readFile(path).then((result) => {
+        if (!buffersRef.current.has(path)) {
+          if (result.ok) {
+            ensureModel(path, result.content);
+            patchBuffers((next) =>
+              next.set(path, { savedText: result.content, external: null, loadError: null }),
+            );
+          } else {
+            patchBuffers((next) =>
+              next.set(path, {
+                savedText: '',
+                external: null,
+                loadError: describeReadError(result.error),
+              }),
+            );
+          }
+        }
+        open();
+      });
+    },
+    [applyTabs, patchBuffers],
+  );
+
+  const activateTab = useCallback(
+    (path: string) => applyTabs((state) => activateTabState(state, path)),
+    [applyTabs],
+  );
+
+  const pinTab = useCallback(
+    (path: string) => applyTabs((state) => pinTabState(state, path)),
+    [applyTabs],
+  );
+
+  const closeTab = useCallback(
+    (path: string) => {
+      if (
+        isDirty(path) &&
+        !window.confirm(`Plik „${baseName(path)}" ma niezapisane zmiany. Zamknąć mimo to?`)
+      ) {
+        return;
+      }
+      applyTabs((state) => closeTabState(state, path));
+    },
+    [applyTabs],
+  );
+
+  const saveActiveFile = useCallback(() => {
+    const path = tabsRef.current.activePath;
+    if (!path) {
+      return;
+    }
+    const buffer = buffersRef.current.get(path);
+    if (!buffer || buffer.loadError) {
+      return;
+    }
+    const content = getModelValue(path);
+    if (content === null) {
+      return;
+    }
+    void window.api.writeFile(path, content).then((result) => {
       if (result.ok) {
-        setCurrentFile({ path, status: 'loaded', content: result.content });
+        markSaved(path);
+        patchBuffers((next) =>
+          next.set(path, { savedText: content, external: null, loadError: null }),
+        );
       } else {
-        setCurrentFile({ path, status: 'error', message: describeReadError(result.error) });
+        window.alert(`Nie udało się zapisać pliku: ${result.error}`);
       }
     });
-  }, []);
+  }, [patchBuffers]);
+
+  const reloadActiveFromDisk = useCallback(() => {
+    const path = tabsRef.current.activePath;
+    if (!path) {
+      return;
+    }
+    void window.api.readFile(path).then((result) => {
+      const buffer = buffersRef.current.get(path);
+      if (!buffer) {
+        return;
+      }
+      if (!result.ok) {
+        patchBuffers((next) => next.set(path, { ...buffer, external: 'deleted' }));
+        return;
+      }
+      reloadModel(path, result.content);
+      patchBuffers((next) =>
+        next.set(path, { savedText: result.content, external: null, loadError: null }),
+      );
+    });
+  }, [patchBuffers]);
+
+  const keepMyVersion = useCallback(() => {
+    const path = tabsRef.current.activePath;
+    if (!path) {
+      return;
+    }
+    const buffer = buffersRef.current.get(path);
+    if (!buffer) {
+      return;
+    }
+    markKeptMine(path);
+    patchBuffers((next) => next.set(path, { ...buffer, external: null }));
+  }, [patchBuffers]);
 
   const chooseProject = useCallback(() => {
     void window.api.openProjectDialog().then((picked) => {
       if (picked) {
+        applyTabs(() => emptyTabsState);
         setRoot(picked);
-        setCurrentFile(null);
       }
     });
-  }, []);
+  }, [applyTabs]);
+
+  // Obserwacja plików otwartych w zakładkach.
+  useEffect(() => {
+    void window.api.watchFiles(tabsState.tabs.map((tab) => tab.path));
+  }, [tabsState.tabs]);
+
+  const handleWatchEvent = useCallback(
+    (event: WatchEvent) => {
+      if (!buffersRef.current.has(event.path)) {
+        return;
+      }
+      void (async () => {
+        // Chwila oddechu dla piszącego (zapis tmp + rename bywa dwuetapowy).
+        await new Promise((resolve) => setTimeout(resolve, 120));
+        const result = await window.api.readFile(event.path);
+        const buffer = buffersRef.current.get(event.path);
+        if (!buffer) {
+          return;
+        }
+        if (!result.ok) {
+          patchBuffers((next) => next.set(event.path, { ...buffer, external: 'deleted' }));
+          return;
+        }
+        if (result.content === buffer.savedText) {
+          // Echo własnego zapisu albo powrót do znanego stanu.
+          if (buffer.external !== null) {
+            patchBuffers((next) => next.set(event.path, { ...buffer, external: null }));
+          }
+          return;
+        }
+        if (result.content === getModelValue(event.path)) {
+          // Dysk dogonił bufor — przyjmujemy po cichu.
+          markSaved(event.path);
+          patchBuffers((next) =>
+            next.set(event.path, { savedText: result.content, external: null, loadError: null }),
+          );
+          return;
+        }
+        patchBuffers((next) => next.set(event.path, { ...buffer, external: 'changed' }));
+      })();
+    },
+    [patchBuffers],
+  );
+
+  useEffect(() => {
+    window.api.onWatchEvent(handleWatchEvent);
+  }, [handleWatchEvent]);
+
+  // Cmd+S zapisuje aktywną zakładkę niezależnie od tego, co ma fokus.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        !event.shiftKey &&
+        !event.altKey &&
+        event.key.toLowerCase() === 's'
+      ) {
+        event.preventDefault();
+        saveActiveFile();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
+  }, [saveActiveFile]);
 
   if (!root) {
     return null;
   }
   return (
-    <WorkspaceContext.Provider value={{ root, currentFile, openFile, chooseProject }}>
+    <WorkspaceContext.Provider
+      value={{
+        root,
+        tabsState,
+        buffers,
+        dirtyPaths,
+        openFile,
+        activateTab,
+        pinTab,
+        closeTab,
+        saveActiveFile,
+        reloadActiveFromDisk,
+        keepMyVersion,
+        chooseProject,
+      }}
+    >
       {children}
     </WorkspaceContext.Provider>
   );

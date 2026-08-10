@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type CSSProperties, type ReactElement } from 'react';
 import type { DirEntry } from '../../../shared/ipc';
+import { baseName } from '../../../shared/paths';
 import { useWorkspace } from '../workspace';
 
 type Listing =
@@ -40,12 +41,8 @@ const ICON_EYE = (
   </svg>
 );
 
-function baseName(path: string): string {
-  return path.split('/').filter(Boolean).pop() ?? path;
-}
-
 export function FileTree(): ReactElement {
-  const { root, currentFile, openFile, chooseProject } = useWorkspace();
+  const { root, tabsState, openFile, chooseProject } = useWorkspace();
   const [listings, setListings] = useState<ReadonlyMap<string, Listing>>(new Map());
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [showIgnored, setShowIgnored] = useState(false);
@@ -120,7 +117,7 @@ export function FileTree(): ReactElement {
       if (entry.ignored) {
         classes.push('ignored');
       }
-      if (currentFile?.path === entry.path) {
+      if (tabsState.activePath === entry.path) {
         classes.push('selected');
       }
       return (
@@ -131,6 +128,11 @@ export function FileTree(): ReactElement {
             style={indent}
             title={entry.path}
             onClick={() => (entry.kind === 'dir' ? toggleDir(entry.path) : openFile(entry.path))}
+            onDoubleClick={() => {
+              if (entry.kind === 'file') {
+                openFile(entry.path, { pinned: true });
+              }
+            }}
           >
             <span className={`tree-icon${isOpen ? ' open' : ''}`}>
               {entry.kind === 'dir' ? ICON_CHEVRON : ICON_FILE}
