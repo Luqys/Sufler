@@ -3292,3 +3292,277 @@ body.dragging-horizontal .splitter.horizontal::after {
   padding-left: 6px;
   padding-right: 6px;
 }
+
+/* --- M50: dopracowany wygląd Ustawień i nakładki grafu --- */
+
+.settings-page {
+  padding: 34px 32px 64px;
+}
+
+.settings-page-head {
+  max-width: 680px;
+  margin: 0 auto 20px;
+}
+
+.settings-page-title {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+}
+
+.settings-page-sub {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.settings-page .settings-section {
+  max-width: 680px;
+  margin: 0 auto 14px;
+  padding: 18px 20px 20px;
+  gap: 0;
+  border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--panel) 55%, transparent);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+}
+
+.settings-page .view-title {
+  margin: 0;
+  font-size: 10.5px;
+  letter-spacing: 1px;
+  color: color-mix(in srgb, var(--text) 55%, transparent);
+}
+
+/* Zawijany opis pod nagłówkiem — nigdy nie ucinany wielokropkiem. */
+.settings-hint {
+  margin: 5px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.settings-mono {
+  margin: 10px 0 0;
+  padding: 7px 11px;
+  border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  font-family: ui-monospace, 'SF Mono', monospace;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  user-select: text;
+  overflow-wrap: anywhere;
+}
+
+/* Segmentowany przełącznik — wspólny język z trybami grafu. */
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  margin-top: 12px;
+  padding: 3px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+
+.segmented-btn {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.segmented-btn:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+.segmented-btn.active {
+  color: var(--text);
+  background: color-mix(in srgb, var(--panel) 96%, transparent);
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.16),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.settings-swatches {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.settings-page .accent-swatch {
+  width: 22px;
+  height: 22px;
+  border: none;
+  box-shadow: 0 0 0 2px var(--panel);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.settings-page .accent-swatch:hover {
+  transform: scale(1.08);
+}
+
+.settings-page .accent-swatch.active {
+  box-shadow:
+    0 0 0 2px var(--panel),
+    0 0 0 4px color-mix(in srgb, var(--text) 65%, transparent);
+}
+
+.settings-btn {
+  padding: 6px 14px;
+  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel) 90%, transparent);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.settings-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.settings-page .settings-actions {
+  margin-top: 12px;
+}
+
+.settings-page .settings-fields {
+  gap: 12px;
+  margin: 14px 0 0;
+}
+
+.settings-page .settings-field {
+  gap: 5px;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--text) 78%, transparent);
+}
+
+.settings-page .settings-field input {
+  padding: 8px 11px;
+  border-radius: 9px;
+  border-color: color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--bg) 45%, transparent);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.settings-page .settings-field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+/* Samouczek dziedziczy szerokość i rytm Ustawień. */
+.help-page .settings-section,
+.help-page .help-intro {
+  max-width: 680px;
+}
+
+/* Nakładka grafu: neutralne przyciski, akcent tylko dla stanu włączonego. */
+.graph-overlay {
+  gap: 8px;
+  padding: 6px 8px 6px 14px;
+}
+
+.graph-stats {
+  padding-right: 10px;
+  border-right: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.graph-overlay .bar-btn {
+  padding: 4px 11px;
+  border-radius: 8px;
+  color: var(--muted);
+  background: transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.graph-overlay .bar-btn:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.graph-overlay .bar-btn.graph-orphans-on {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.graph-search {
+  width: 150px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border-color: color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--bg) 40%, transparent);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.graph-search:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+/* Pięć trybów mieści się w dwóch równych rzędach zamiast zostawiać sierotę. */
+.graph-legend {
+  min-width: 214px;
+  max-width: 268px;
+  padding: 9px 11px 11px;
+  gap: 7px;
+}
+
+.graph-mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9px;
+}
+
+.graph-mode-btn {
+  flex: 1 1 calc(33.333% - 2px);
+  min-width: 0;
+  padding: 4px 6px;
+  font-size: 10px;
+  letter-spacing: 0.1px;
+}
+
+.graph-legend .accent-popover-title {
+  margin-top: 2px;
+}
+
+/* M50a: segment nie rozpycha się na całą kartę, nakładka nie wchodzi pod legendę. */
+
+.settings-page .segmented,
+.settings-page .settings-swatches,
+.settings-page .settings-actions {
+  align-self: flex-start;
+}
+
+.graph-overlay {
+  flex-wrap: wrap;
+  max-width: calc(100% - 300px);
+}
+
+.graph-overlay .graph-stats {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

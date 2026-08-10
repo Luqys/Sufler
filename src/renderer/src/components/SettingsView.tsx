@@ -39,15 +39,19 @@ export function SettingsView(): ReactElement {
 
   return (
     <div className="settings-page" data-testid="settings-view">
-      <h2 className="settings-page-title">{t('settings.title')}</h2>
+      <header className="settings-page-head">
+        <h2 className="settings-page-title">{t('settings.title')}</h2>
+        <p className="settings-page-sub">{t('settings.subtitle')}</p>
+      </header>
       <section className="settings-section">
         <h3 className="view-title">{t('settings.appearance')}</h3>
-        <div className="settings-actions" role="radiogroup" aria-label={t('settings.themeAria')}>
+        <p className="settings-hint">{t('settings.appearanceHint')}</p>
+        <div className="segmented" role="radiogroup" aria-label={t('settings.themeAria')}>
           {THEME_MODES.map((mode) => (
             <button
               key={mode.id}
               type="button"
-              className={`bar-btn${appearance.mode === mode.id ? ' active' : ''}`}
+              className={`segmented-btn${appearance.mode === mode.id ? ' active' : ''}`}
               data-testid={`theme-${mode.id}`}
               aria-pressed={appearance.mode === mode.id}
               onClick={() => updateAppearance({ mode: mode.id })}
@@ -56,7 +60,7 @@ export function SettingsView(): ReactElement {
             </button>
           ))}
         </div>
-        <div className="settings-actions" role="radiogroup" aria-label={t('settings.accentAria')}>
+        <div className="settings-swatches" role="radiogroup" aria-label={t('settings.accentAria')}>
           {ACCENTS.map((accent) => (
             <button
               key={accent.id}
@@ -73,12 +77,12 @@ export function SettingsView(): ReactElement {
       </section>
       <section className="settings-section">
         <h3 className="view-title">{t('settings.language')}</h3>
-        <div className="settings-actions" role="radiogroup" aria-label={t('settings.language')}>
+        <div className="segmented" role="radiogroup" aria-label={t('settings.language')}>
           {LANGUAGES.map((lang) => (
             <button
               key={lang.id}
               type="button"
-              className={`bar-btn${appearance.language === lang.id ? ' active' : ''}`}
+              className={`segmented-btn${appearance.language === lang.id ? ' active' : ''}`}
               data-testid={`language-${lang.id}`}
               aria-pressed={appearance.language === lang.id}
               onClick={() => updateAppearance({ language: lang.id })}
@@ -90,15 +94,18 @@ export function SettingsView(): ReactElement {
       </section>
       <section className="settings-section">
         <h3 className="view-title">{t('settings.project')}</h3>
-        <p className="settings-path" title={root}>
+        <p className="settings-mono" title={root}>
           {root}
         </p>
-        <button type="button" className="bar-btn" onClick={chooseProject}>
-          {t('settings.changeProject')}
-        </button>
+        <div className="settings-actions">
+          <button type="button" className="settings-btn" onClick={chooseProject}>
+            {t('settings.changeProject')}
+          </button>
+        </div>
       </section>
       <section className="settings-section">
         <h3 className="view-title">{t('settings.obsidianTitle')}</h3>
+        <p className="settings-hint">{t('settings.obsidianIntro')}</p>
         <div className="settings-fields">
           <label className="settings-field">
             <span>{t('settings.obsidianApiKey')}</span>
@@ -143,11 +150,11 @@ export function SettingsView(): ReactElement {
             />
           </label>
         </div>
-        <p className="settings-path">{t('settings.obsidianHint')}</p>
+        <p className="settings-hint">{t('settings.obsidianHint')}</p>
       </section>
       <section className="settings-section">
         <h3 className="view-title">{t('settings.config')}</h3>
-        <p className="settings-path">{t('settings.configPath')}</p>
+        <p className="settings-mono">{t('settings.configPath')}</p>
       </section>
     </div>
   );

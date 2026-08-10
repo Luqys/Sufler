@@ -74,7 +74,9 @@ export const PL = {
 
   // Ustawienia
   'settings.title': 'Ustawienia',
+  'settings.subtitle': 'Wygląd, język i integracje — zmiany zapisują się od razu.',
   'settings.appearance': 'Wygląd',
+  'settings.appearanceHint': 'Motyw i kolor przewodni obowiązują w całej aplikacji, także w terminalach.',
   'settings.themeAria': 'Motyw',
   'settings.accentAria': 'Kolor przewodni',
   'settings.language': 'Język / Language',
@@ -83,6 +85,8 @@ export const PL = {
   'settings.config': 'Konfiguracja',
   'settings.configPath': 'Układ i stan aplikacji: ~/.config/sufler/ (layout.json, state.json)',
   'settings.obsidianTitle': 'Obsidian — notatka dzienna',
+  'settings.obsidianIntro':
+    'Opcjonalne. Wymaga pluginu Local REST API uruchomionego w Obsidianie.',
   'settings.obsidianApiKey': 'Klucz API (plugin Local REST API)',
   'settings.obsidianUrl': 'Adres serwera',
   'settings.obsidianDailyFile': 'Plik notatki — {date} to dzisiejsza data',
@@ -531,7 +535,9 @@ export const EN: Record<StringKey, string> = {
 
 
   'settings.title': 'Settings',
+  'settings.subtitle': 'Appearance, language and integrations — changes save instantly.',
   'settings.appearance': 'Appearance',
+  'settings.appearanceHint': 'The theme and accent apply across the app, terminals included.',
   'settings.themeAria': 'Theme',
   'settings.accentAria': 'Accent color',
   'settings.language': 'Language / Język',
@@ -540,6 +546,7 @@ export const EN: Record<StringKey, string> = {
   'settings.config': 'Configuration',
   'settings.configPath': 'Layout and app state: ~/.config/sufler/ (layout.json, state.json)',
   'settings.obsidianTitle': 'Obsidian — daily note',
+  'settings.obsidianIntro': 'Optional. Requires the Local REST API plugin running in Obsidian.',
   'settings.obsidianApiKey': 'API key (Local REST API plugin)',
   'settings.obsidianUrl': 'Server address',
   'settings.obsidianDailyFile': 'Note file — {date} is today’s date',
