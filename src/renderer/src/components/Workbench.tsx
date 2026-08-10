@@ -34,18 +34,12 @@ const ICON_CLAUDE_SPARK = (
   </svg>
 );
 
-const ICON_CHAT = (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round">
-    <path d="M2 4A1.8 1.8 0 0 1 3.8 2.2h8.4A1.8 1.8 0 0 1 14 4v5.6a1.8 1.8 0 0 1-1.8 1.8H8.4l-3.1 2.6v-2.6H3.8A1.8 1.8 0 0 1 2 9.6V4Z" />
-  </svg>
-);
-
 const SPLITTER_SIZE = 5;
 const MIN_CENTER_WIDTH = 320;
 const MIN_EDITOR_HEIGHT = 160;
 
 export function Workbench({ initialLayout }: { initialLayout: LayoutState }): ReactElement {
-  const { root, openChat } = useWorkspace();
+  const { root } = useWorkspace();
   const t = useT();
   const [layout, setLayout] = useState(initialLayout);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -139,20 +133,6 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
     window.api.onTogglePanel((key) => toggleVisibilityRef.current(key));
   }, []);
 
-  // Przenosiny czatu do ukrytego doku muszą ten dok pokazać (patrz ChatView).
-  useEffect(() => {
-    const onReveal = (event: Event): void => {
-      const dock = (event as CustomEvent<'right' | 'bottom'>).detail;
-      const key: LayoutVisibilityKey = dock === 'right' ? 'rightDockVisible' : 'bottomDockVisible';
-      if (!layoutRef.current[key]) {
-        apply({ [key]: true });
-        void window.api.setLayout(layoutRef.current);
-      }
-    };
-    window.addEventListener('vn3o:reveal-dock', onReveal);
-    return () => window.removeEventListener('vn3o:reveal-dock', onReveal);
-  }, [apply]);
-
   const origin = (): LayoutState => dragOrigin.current ?? layoutRef.current;
 
   const columns: string[] = [];
@@ -172,15 +152,6 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
       <header className="titlebar">
         <span className="titlebar-title">Sufler — {baseName(root)}</span>
         <div className="titlebar-actions">
-          <button
-            type="button"
-            className="titlebar-btn"
-            data-testid="open-chat"
-            title={t('titlebar.chat')}
-            onClick={openChat}
-          >
-            {ICON_CHAT}
-          </button>
           <button
             type="button"
             className="titlebar-btn"

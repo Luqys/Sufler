@@ -1,5 +1,4 @@
 import { useState, type DragEvent, type ReactElement } from 'react';
-import { CHAT_PATH } from '../../../shared/chat';
 import { baseName } from '../../../shared/paths';
 import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../../shared/preview';
 import { useT } from '../i18n';
@@ -24,22 +23,6 @@ const ICON_GLOBE_SMALL = (
   </svg>
 );
 
-const ICON_CLAUDE_SPARK = (
-  <svg width="14" height="14" viewBox="0 0 16 16">
-    <text
-      x="8"
-      y="12.4"
-      textAnchor="middle"
-      fontSize="12"
-      fontWeight={700}
-      fill="#d97757"
-      fontFamily="-apple-system, sans-serif"
-    >
-      ✳
-    </text>
-  </svg>
-);
-
 const ICON_GRAPH = (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#b78af5" strokeWidth="1.4">
     <circle cx="4" cy="4.4" r="1.9" />
@@ -51,9 +34,6 @@ const ICON_GRAPH = (
 
 /** Ikona zakładki: widoki specjalne mają własne „faviconki", pliki — wg typu. */
 function tabIcon(path: string): ReactElement {
-  if (path === CHAT_PATH) {
-    return ICON_CLAUDE_SPARK;
-  }
   if (path === KNOWLEDGE_GRAPH_PATH) {
     return ICON_GRAPH;
   }

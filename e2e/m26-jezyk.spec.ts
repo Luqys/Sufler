@@ -25,7 +25,10 @@ test('język UI: przełączenie na angielski działa w całej aplikacji i zapisu
   await expect(page.getByTestId('bottom-dock')).toContainText(
     'Click + to open a terminal or a Claude session.',
   );
-  await expect(page.getByTestId('open-chat')).toHaveAttribute('title', /Chat with Claude/);
+  await expect(page.getByTestId('claude-login-button')).toHaveAttribute(
+    'title',
+    /Sign in to your Claude account/,
+  );
 
   // Wybór wylądował w state.json (przeżyje restart).
   await expect

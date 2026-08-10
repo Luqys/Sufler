@@ -6,22 +6,15 @@ import { launchApp, makeConfigHome, makeFixtureProject } from './utils';
 const RED_DOT_PNG =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 
-test('obrazek ze schowka trafia jako ścieżka do czatu i do terminala', async () => {
+test('obrazek ze schowka trafia jako ścieżka do terminala', async () => {
   test.setTimeout(60_000);
-  const app = await launchApp(makeConfigHome(), makeFixtureProject(), {
-    VISUALN3O_CHAT_FAKE: '1',
-  });
+  const app = await launchApp(makeConfigHome(), makeFixtureProject());
   const page = await app.firstWindow();
 
   // Bitmapa w systemowym schowku (proces main ma dostęp do clipboard).
   await app.evaluate(({ clipboard, nativeImage }, dataUrl) => {
     clipboard.writeImage(nativeImage.createFromDataURL(dataUrl));
   }, RED_DOT_PNG);
-
-  // Czat: [+] wstawia ścieżkę zapisanego obrazka do pola wejściowego.
-  await page.getByTestId('open-chat').click();
-  await page.getByTestId('chat-attach').click();
-  await expect(page.getByTestId('chat-input')).toHaveValue(/sufler-obrazki[^ ]+\.png/);
 
   // Terminal: syntetyczne wklejenie obrazka (bez tekstu) wkleja ścieżkę do pty.
   await page.getByTestId('bottom-new-terminal').click();

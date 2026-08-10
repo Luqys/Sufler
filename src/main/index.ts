@@ -5,7 +5,6 @@ import type { TabKind } from '../shared/dock-tabs';
 import type { LayoutVisibilityKey } from '../shared/layout';
 import { IPC } from '../shared/ipc';
 import { applyAppearanceAtBoot, getAppearance, setAppearance } from './appearance';
-import { interruptChat, resetChat, sendChatMessage } from './chat';
 import { saveClipboardImage } from './clipboard-image';
 import { t, tf } from './i18n';
 import { generateKnowledgeContext, listMarkdownFiles } from './knowledge';
@@ -162,16 +161,6 @@ void app.whenReady().then(() => {
     openTerminalWindow(info);
   });
   ipcMain.handle(IPC.TerminalDetachInfo, (_event, ptyId: number) => getDetachedInfo(ptyId));
-  ipcMain.handle(IPC.ChatSend, (event, root: string, text: string) => {
-    const win = BrowserWindow.fromWebContents(event.sender);
-    return win ? sendChatMessage(win, root, text) : { ok: false, error: 'brak okna' };
-  });
-  ipcMain.handle(IPC.ChatInterrupt, () => {
-    interruptChat();
-  });
-  ipcMain.handle(IPC.ChatReset, () => {
-    resetChat();
-  });
   ipcMain.handle(IPC.ClipboardSaveImage, () => saveClipboardImage());
   ipcMain.handle(IPC.WiedzaMcpStatus, () => getWiedzaMcpStatus());
   ipcMain.handle(IPC.WiedzaMcpRegister, async () => {

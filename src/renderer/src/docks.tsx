@@ -14,7 +14,6 @@ import {
   activeTabs,
   addTab as addTabState,
   allTabs,
-  CHAT_TAB_PTY,
   closeTab as closeTabState,
   emptyDocksState,
   findTab,
@@ -51,8 +50,6 @@ interface DocksValue {
   detachTab(id: string): void;
   /** Wpisuje tekst do pty aktywnej sesji Claude (preferuje aktywne zakładki paneli). */
   insertToActiveClaude(text: string): boolean;
-  /** Otwiera (lub przenosi) kartę czatu z Claude we wskazanym doku. */
-  openChatTab(dock: DockId): void;
 }
 
 const DocksContext = createContext<DocksValue | null>(null);
@@ -134,11 +131,6 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
       if (!found) {
         return;
       }
-      // Karta czatu nie ma procesu, a historia żyje w chat-store — bez pytań.
-      if (found.tab.kind === 'chat') {
-        applyDocks((state) => closeTabState(state, id));
-        return;
-      }
       const finish = (): void => {
         void window.api.ptyKill(found.tab.ptyId);
         disposeTerminalInstance(id);
@@ -177,7 +169,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
   const detachTab = useCallback(
     (id: string) => {
       const found = findTab(docksRef.current, id);
-      if (!found || found.tab.kind === 'chat') {
+      if (!found) {
         return;
       }
       const serialized = serializeTerminal(id) ?? '';
@@ -192,27 +184,6 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
       });
     },
     [applyDocks],
-  );
-
-  const openChatTab = useCallback(
-    (dock: DockId) => {
-      const existing = allTabs(docksRef.current).find((tab) => tab.kind === 'chat');
-      if (existing) {
-        applyDocks((state) => moveTabState(state, existing.id, dock));
-        return;
-      }
-      applyDocks((state) =>
-        addTabState(state, dock, {
-          id: `tab-${nextTabNumber++}`,
-          kind: 'chat',
-          title: t('tabs.chatTitle'),
-          cwd: root,
-          ptyId: CHAT_TAB_PTY,
-          status: 'running',
-        }),
-      );
-    },
-    [applyDocks, root],
   );
 
   const insertToActiveClaude = useCallback((text: string): boolean => {
@@ -250,7 +221,6 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
         splitTab,
         detachTab,
         insertToActiveClaude,
-        openChatTab,
       }}
     >
       {children}

@@ -14,7 +14,6 @@ export const PL = {
   'common.closeTab': 'Zamknij zakładkę',
 
   // Pasek tytułu
-  'titlebar.chat': 'Czat z Claude (silnik Claude Code)',
   'titlebar.login': 'Zaloguj się do konta Claude (otwiera `claude /login`)',
 
   // Sidebar
@@ -46,7 +45,6 @@ export const PL = {
 
   // Zakładki edytora i obszar edytora
   'tabs.preview': 'Podgląd przeglądarki (localhost) z trybem wskazywania elementów',
-  'tabs.chatTitle': 'Czat',
   'tabs.graphTitle': 'Graf wiedzy',
   'tabs.previewTitle': 'Podgląd',
   'editor.empty': 'Kliknij plik w panelu po lewej, aby go otworzyć.',
@@ -62,21 +60,6 @@ export const PL = {
   'editor.closeWithoutSave': 'Zamknij bez zapisu',
   'editor.saveFailed': 'Nie udało się zapisać pliku: {error}',
 
-  // Czat
-  'chat.moveEditor': 'Otwórz czat w oknie edytora',
-  'chat.moveRight': 'Otwórz czat w doku bocznym',
-  'chat.moveBottom': 'Otwórz czat w doku dolnym',
-  'chat.reset': 'Nowa rozmowa',
-  'chat.emptyTitle': 'Trafiłeś w absolutnie właściwe miejsce!',
-  'chat.emptyBody':
-    'Rozmawiasz z Claude nad projektem {root} — z dostępem do plików i narzędzi, na Twoim logowaniu Claude Code.',
-  'chat.busy': 'Claude pracuje…',
-  'chat.placeholder': 'Napisz do Claude…',
-  'chat.attach': 'Wstaw obrazek ze schowka (albo wklej go wprost w pole tekstowe)',
-  'chat.inputHint': 'Enter — wyślij · Shift+Enter — nowa linia',
-  'chat.interrupt': 'Przerwij odpowiedź',
-  'chat.send': 'Wyślij (Enter)',
-  'chat.noClipboardImage': 'Brak obrazka w schowku — skopiuj zrzut ekranu i spróbuj ponownie.',
 
   // Ustawienia
   'settings.title': 'Ustawienia',
@@ -322,7 +305,6 @@ export const PL = {
   'main.openProject': 'Otwórz folder projektu',
   'main.chooseVault': 'Wybierz vault Obsidiana',
   'main.knowledgeUnreadable': 'Żaden z wybranych plików nie dał się odczytać.',
-  'main.chatFailed': 'Nie udało się porozmawiać z Claude: {error}',
   'main.mcpRegistered': 'Zarejestrowano serwer „wiedza-graf" w Claude (scope user).',
   'main.mcpAlready': 'Serwer „wiedza-graf" był już zarejestrowany.',
   'main.mcpRegisterFailed': 'Nie udało się zarejestrować: {error}',
@@ -340,7 +322,6 @@ export const EN: Record<StringKey, string> = {
   'common.close': 'Close',
   'common.closeTab': 'Close tab',
 
-  'titlebar.chat': 'Chat with Claude (Claude Code engine)',
   'titlebar.login': 'Sign in to your Claude account (opens `claude /login`)',
 
   'sidebar.aria': 'Sidebar views',
@@ -369,7 +350,6 @@ export const EN: Record<StringKey, string> = {
   'dock.closeMessage': 'Tab “{title}” has a running process — it will be terminated.',
 
   'tabs.preview': 'Browser preview (localhost) with element picking mode',
-  'tabs.chatTitle': 'Chat',
   'tabs.graphTitle': 'Knowledge graph',
   'tabs.previewTitle': 'Preview',
   'editor.empty': 'Click a file in the panel on the left to open it.',
@@ -385,20 +365,6 @@ export const EN: Record<StringKey, string> = {
   'editor.closeWithoutSave': 'Close without saving',
   'editor.saveFailed': 'Failed to save the file: {error}',
 
-  'chat.moveEditor': 'Open chat in the editor area',
-  'chat.moveRight': 'Open chat in the side dock',
-  'chat.moveBottom': 'Open chat in the bottom dock',
-  'chat.reset': 'New conversation',
-  'chat.emptyTitle': "You've come to the absolutely right place!",
-  'chat.emptyBody':
-    "You're talking to Claude about the {root} project — with access to files and tools, on your Claude Code login.",
-  'chat.busy': 'Claude is working…',
-  'chat.placeholder': 'Message Claude…',
-  'chat.attach': 'Insert an image from the clipboard (or paste it straight into the text box)',
-  'chat.inputHint': 'Enter — send · Shift+Enter — new line',
-  'chat.interrupt': 'Stop the response',
-  'chat.send': 'Send (Enter)',
-  'chat.noClipboardImage': 'No image in the clipboard — copy a screenshot and try again.',
 
   'settings.title': 'Settings',
   'settings.appearance': 'Appearance',
@@ -624,7 +590,6 @@ export const EN: Record<StringKey, string> = {
   'main.openProject': 'Open project folder',
   'main.chooseVault': 'Choose an Obsidian vault',
   'main.knowledgeUnreadable': 'None of the selected files could be read.',
-  'main.chatFailed': 'Talking to Claude failed: {error}',
   'main.mcpRegistered': 'Registered the "wiedza-graf" server in Claude (user scope).',
   'main.mcpAlready': 'The "wiedza-graf" server was already registered.',
   'main.mcpRegisterFailed': 'Registration failed: {error}',
