@@ -22,6 +22,23 @@ import { IPC } from '../shared/ipc';
 /** Sesje, dla których nagłówek już powstał (w tym uruchomieniu aplikacji). */
 const started = new Set<string>();
 
+/**
+ * Kolejka zapisów per plik. Hooki potrafią przyjść kilka naraz (polecenie,
+ * edycja, komenda), a bez serializacji nagłówek pisany przez pierwsze
+ * żądanie nadpisywał wpisy dopisane w tym czasie przez kolejne.
+ */
+const queues = new Map<string, Promise<unknown>>();
+
+function enqueue<T>(key: string, task: () => Promise<T>): Promise<T> {
+  const previous = queues.get(key) ?? Promise.resolve();
+  const next = previous.then(task, task);
+  queues.set(
+    key,
+    next.catch(() => undefined),
+  );
+  return next;
+}
+
 export function isSessionLogEnabled(): boolean {
   return readState().sessionLog !== false;
 }
@@ -69,41 +86,43 @@ export async function appendSessionLog(
   if (!entry) {
     return null;
   }
-  try {
-    await mkdir(dirname(absolute), { recursive: true });
-    if (!started.has(absolute)) {
-      started.add(absolute);
-      let exists = true;
-      try {
-        await readFile(absolute, 'utf8');
-      } catch {
-        exists = false;
-      }
-      if (!exists) {
-        await writeFile(
-          absolute,
-          buildSessionLogHeader({
-            sessionId: event.sessionId,
-            isoDate,
-            project: baseName(root),
-            branch: await currentBranch(root),
-          }),
-          'utf8',
-        );
-        // Nowy plik w świeżo utworzonym katalogu bywa niewidoczny dla chokidara
-        // (obserwacja katalogu rusza po jego powstaniu), więc panel Wiedza
-        // dostaje sygnał wprost — inaczej dziennik pojawiłby się dopiero przy
-        // kolejnej zmianie notatek.
-        for (const win of BrowserWindow.getAllWindows()) {
-          if (!win.isDestroyed()) {
-            win.webContents.send(IPC.KnowledgeChanged);
+  return enqueue(absolute, async () => {
+    try {
+      await mkdir(dirname(absolute), { recursive: true });
+      if (!started.has(absolute)) {
+        started.add(absolute);
+        let exists = true;
+        try {
+          await readFile(absolute, 'utf8');
+        } catch {
+          exists = false;
+        }
+        if (!exists) {
+          await writeFile(
+            absolute,
+            buildSessionLogHeader({
+              sessionId: event.sessionId,
+              isoDate,
+              project: baseName(root),
+              branch: await currentBranch(root),
+            }),
+            'utf8',
+          );
+          // Nowy plik w świeżo utworzonym katalogu bywa niewidoczny dla
+          // chokidara (obserwacja katalogu rusza po jego powstaniu), więc panel
+          // Wiedza dostaje sygnał wprost — inaczej dziennik pojawiłby się
+          // dopiero przy kolejnej zmianie notatek.
+          for (const win of BrowserWindow.getAllWindows()) {
+            if (!win.isDestroyed()) {
+              win.webContents.send(IPC.KnowledgeChanged);
+            }
           }
         }
       }
+      await appendFile(absolute, entry, 'utf8');
+      return absolute;
+    } catch {
+      return null;
     }
-    await appendFile(absolute, entry, 'utf8');
-    return absolute;
-  } catch {
-    return null;
-  }
+  });
 }
