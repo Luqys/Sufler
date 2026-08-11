@@ -33,7 +33,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #1e1f24;
     --panel: #25262c;
     --panel-alt: #2b2c33;
@@ -57,6 +57,38 @@
   :root[data-accent='pink'] {
     --accent: #f472b6;
   }
+}
+
+/* Te same zmienne pod jawnym atrybutem: wybor uzytkownika dziala takze wtedy,
+   gdy prefers-color-scheme nie podaza za nativeTheme (M58). */
+:root[data-theme='dark'] {
+  --bg: #1e1f24;
+  --panel: #25262c;
+  --panel-alt: #2b2c33;
+  --border: #36373f;
+  --text: #e8e8ea;
+  --muted: #8e8e96;
+  --accent: #d97757;
+  --git-modified: #e2c08d;
+  --git-untracked: #73c991;
+  --card-highlight: rgb(255 255 255 / 0.07);
+  --term-bg: #1b1c21;
+}
+
+:root[data-theme='dark'][data-accent='blue'] {
+  --accent: #60a5fa;
+}
+
+:root[data-theme='dark'][data-accent='green'] {
+  --accent: #4ade80;
+}
+
+:root[data-theme='dark'][data-accent='violet'] {
+  --accent: #a78bfa;
+}
+
+:root[data-theme='dark'][data-accent='pink'] {
+  --accent: #f472b6;
 }
 
 /* Motyw matrixowy (data-flavor na <html>, nativeTheme widzi „ciemny"):
@@ -2703,7 +2735,7 @@ body.dragging-horizontal .splitter.horizontal::after {
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --term-bg: #1b1c21;
   }
 }

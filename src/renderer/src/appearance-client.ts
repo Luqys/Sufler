@@ -1,7 +1,25 @@
 import type { AccentId, Appearance, ThemeMode } from '../../shared/appearance';
 import { setLanguage } from './i18n';
 
-/** Kolor przewodni przez atrybut na <html>; tryb jasny/ciemny załatwia nativeTheme. */
+/** Zapytanie o ciemny motyw systemu — źródło prawdy dla trybu „Systemowy". */
+const darkQuery =
+  typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+
+let currentMode: ThemeMode = 'system';
+let systemWatch = false;
+
+/**
+ * Jawny atrybut motywu na <html> (M58). Wcześniej tryb jasny/ciemny wisiał
+ * wyłącznie na prefers-color-scheme sterowanym przez nativeTheme — gdy ten
+ * sygnał nie docierał do okna, wybór użytkownika nie dawał efektu i zapisany
+ * ciemny motyw wracał jasny po restarcie.
+ */
+export function applyThemeMode(mode: ThemeMode): void {
+  const dark = mode === 'dark' || mode === 'matrix' || (mode === 'system' && !!darkQuery?.matches);
+  document.documentElement.dataset['theme'] = dark ? 'dark' : 'light';
+}
+
+/** Kolor przewodni przez atrybut na <html>. */
 export function applyAccent(accent: AccentId): void {
   document.documentElement.dataset['accent'] = accent;
 }
@@ -28,6 +46,18 @@ export function isMatrixFlavor(): boolean {
 
 export function applyAppearance(appearance: Appearance): void {
   applyAccent(appearance.accent);
+  applyThemeMode(appearance.mode);
   applyThemeFlavor(appearance.mode);
   setLanguage(appearance.language);
+  currentMode = appearance.mode;
+  // Tryb „Systemowy" podąża za zmianą motywu systemu w locie.
+  if (darkQuery && !systemWatch) {
+    systemWatch = true;
+    darkQuery.addEventListener('change', () => {
+      if (currentMode === 'system') {
+        applyThemeMode('system');
+        window.dispatchEvent(new CustomEvent(FLAVOR_EVENT));
+      }
+    });
+  }
 }
