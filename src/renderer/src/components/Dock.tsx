@@ -5,6 +5,7 @@ import { useDocks } from '../docks';
 import { getLocale, useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 import { TerminalView } from './TerminalView';
+import { isOutsideWindow } from '../../../shared/detached';
 
 const DND_MIME = 'application/x-visualn3o-tab';
 
@@ -205,13 +206,7 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
               }}
               onDragEnd={(event) => {
                 // Upuszczenie poza oknem → sesja wyjeżdża do osobnego okna.
-                const margin = 40;
-                const outside =
-                  event.screenX < window.screenX - margin ||
-                  event.screenX > window.screenX + window.outerWidth + margin ||
-                  event.screenY < window.screenY - margin ||
-                  event.screenY > window.screenY + window.outerHeight + margin;
-                if (outside && (event.screenX !== 0 || event.screenY !== 0)) {
+                if (isOutsideWindow(event, window)) {
                   detachTab(tab.id);
                 }
               }}

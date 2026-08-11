@@ -6,6 +6,7 @@ import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../../shared/prev
 import { useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 import { fileIconFor } from './file-icons';
+import { isOutsideWindow } from '../../../shared/detached';
 
 const DND_MIME = 'application/x-visualn3o-editor-tab';
 
@@ -112,6 +113,17 @@ export function EditorTabs({ group }: { group: EditorGroup }): ReactElement {
             onDragStart={(event) => {
               event.dataTransfer.setData(DND_MIME, tab.path);
               event.dataTransfer.effectAllowed = 'move';
+            }}
+            onDragEnd={(event) => {
+              // Upuszczenie poza oknem → karta jedzie do osobnego okna.
+              if (isOutsideWindow(event, window)) {
+                void window.api.openDetachedWindow({
+                  kind: 'view',
+                  target: tab.path,
+                  title: tab.title,
+                });
+                closeTab(group.id, tab.path);
+              }
             }}
             onDragOver={(event) => onTabDragOver(event, tab.path)}
             onDragLeave={() => setDropPath((current) => (current === tab.path ? null : current))}

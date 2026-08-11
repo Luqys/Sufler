@@ -65,6 +65,8 @@ import { isGlobalSessionLogEnabled, setGlobalSessionLogEnabled } from './session
 import { summarizeSessionLog } from './session-summary';
 import { listCheckpoints, restoreCheckpoint } from './checkpoints';
 import { readWorklog } from './worklog';
+import { openDetachedWindow } from './panel-windows';
+import type { DetachedTarget } from '../shared/detached';
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -244,6 +246,7 @@ void app.whenReady().then(() => {
   );
   ipcMain.handle(IPC.CheckpointsList, (_event, root: string) => listCheckpoints(root));
   ipcMain.handle(IPC.WorklogGet, (_event, root: string) => readWorklog(root));
+  ipcMain.handle(IPC.DetachedOpen, (_event, info: DetachedTarget) => openDetachedWindow(info));
   ipcMain.handle(IPC.CheckpointsRestore, (_event, root: string, hash: string) =>
     restoreCheckpoint(root, hash),
   );

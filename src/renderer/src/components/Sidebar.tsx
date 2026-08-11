@@ -8,6 +8,7 @@ import { KnowledgePanel } from './KnowledgePanel';
 import { McpPanel } from './McpPanel';
 import { SearchPanel } from './SearchPanel';
 import { SkillsPanel } from './SkillsPanel';
+import { isDetachablePanel, isOutsideWindow } from '../../../shared/detached';
 
 type SidebarView = 'files' | 'search' | 'git' | 'knowledge' | 'skills' | 'mcp';
 
@@ -95,6 +96,21 @@ export function Sidebar(): ReactElement {
             title={t(item.labelKey)}
             data-testid={`rail-${item.id}`}
             aria-pressed={view === item.id}
+            draggable
+            onDragStart={(event) => {
+              event.dataTransfer.setData('text/plain', item.id);
+              event.dataTransfer.effectAllowed = 'copy';
+            }}
+            onDragEnd={(event) => {
+              // Wyciągnięcie ikony poza okno otwiera panel w osobnym oknie.
+              if (isDetachablePanel(item.id) && isOutsideWindow(event, window)) {
+                void window.api.openDetachedWindow({
+                  kind: 'panel',
+                  target: item.id,
+                  title: t(item.labelKey),
+                });
+              }
+            }}
             onClick={() => selectView(item.id)}
           >
             {item.icon}
