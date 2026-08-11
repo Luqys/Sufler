@@ -33,7 +33,13 @@ import {
 import type { IdeBridgeRequestPayload, ReadFileError, WatchEvent } from '../../shared/ipc';
 import { isImagePath } from '../../shared/media';
 import { baseName } from '../../shared/paths';
-import { BROWSER_PREVIEW_PATH, HELP_PATH, KNOWLEDGE_GRAPH_PATH, SETTINGS_PATH } from '../../shared/preview';
+import {
+  BROWSER_PREVIEW_PATH,
+  HELP_PATH,
+  KNOWLEDGE_GRAPH_PATH,
+  SETTINGS_PATH,
+  WORKLOG_PATH,
+} from '../../shared/preview';
 import {
   disposeModel,
   ensureModel,
@@ -82,6 +88,7 @@ interface WorkspaceValue {
   openKnowledgeGraph(): void;
   openSettingsTab(): void;
   openHelpTab(): void;
+  openWorklogTab(): void;
   /** Zakładka diffa (M33): zmiany robocze, zmiana z commita albo propozycja CLI. */
   openDiffTab(descriptor: DiffDescriptor): void;
   /** Zapis propozycji openDiff (null → treść z rejestru) i odpowiedź FILE_SAVED do CLI. */
@@ -632,6 +639,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     applyGroups((state) => openTabInActiveGroup(state, HELP_PATH, t('tabs.helpTitle'), true));
   }, [applyGroups]);
 
+  const openWorklogTab = useCallback(() => {
+    applyGroups((state) => openTabInActiveGroup(state, WORKLOG_PATH, t('tabs.worklogTitle'), true));
+  }, [applyGroups]);
+
   // Cmd+S zapisuje aktywną zakładkę niezależnie od tego, co ma fokus.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -675,6 +686,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         openKnowledgeGraph,
         openSettingsTab,
         openHelpTab,
+        openWorklogTab,
         openDiffTab,
         acceptIdeDiff,
         rejectIdeDiff,

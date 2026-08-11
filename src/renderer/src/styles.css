@@ -3745,3 +3745,76 @@ body.dragging-horizontal .splitter.horizontal::after {
   font-size: 11px;
   line-height: 1.4;
 }
+
+/* M56: historia pracy — oś czasu commitów i sesji */
+
+.worklog-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 10px;
+}
+
+.worklog-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  font-size: 12.5px;
+}
+
+.worklog-row:hover {
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+}
+
+.worklog-time {
+  flex: none;
+  width: 42px;
+  font-family: ui-monospace, 'SF Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.worklog-kind {
+  flex: none;
+  width: 54px;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.worklog-kind-commit {
+  color: var(--muted);
+}
+
+.worklog-kind-session {
+  color: var(--accent);
+}
+
+.worklog-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  text-align: left;
+}
+
+button.worklog-link {
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.worklog-link:hover {
+  text-decoration: underline;
+}
+
+.worklog-detail {
+  flex: none;
+  font-size: 11px;
+  color: var(--muted);
+}

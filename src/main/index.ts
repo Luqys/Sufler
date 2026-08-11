@@ -64,6 +64,7 @@ import { isSessionLogEnabled, setSessionLogEnabled } from './session-log';
 import { isGlobalSessionLogEnabled, setGlobalSessionLogEnabled } from './session-log-global';
 import { summarizeSessionLog } from './session-summary';
 import { listCheckpoints, restoreCheckpoint } from './checkpoints';
+import { readWorklog } from './worklog';
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -242,6 +243,7 @@ void app.whenReady().then(() => {
     summarizeSessionLog(root, path),
   );
   ipcMain.handle(IPC.CheckpointsList, (_event, root: string) => listCheckpoints(root));
+  ipcMain.handle(IPC.WorklogGet, (_event, root: string) => readWorklog(root));
   ipcMain.handle(IPC.CheckpointsRestore, (_event, root: string, hash: string) =>
     restoreCheckpoint(root, hash),
   );

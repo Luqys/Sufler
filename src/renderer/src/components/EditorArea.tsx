@@ -3,7 +3,13 @@ import { useT } from '../i18n';
 import type { EditorGroup } from '../../../shared/editor-groups';
 import { isDiffPath } from '../../../shared/diff-tabs';
 import { isImagePath } from '../../../shared/media';
-import { BROWSER_PREVIEW_PATH, HELP_PATH, KNOWLEDGE_GRAPH_PATH, SETTINGS_PATH } from '../../../shared/preview';
+import {
+  BROWSER_PREVIEW_PATH,
+  HELP_PATH,
+  KNOWLEDGE_GRAPH_PATH,
+  SETTINGS_PATH,
+  WORKLOG_PATH,
+} from '../../../shared/preview';
 import { useWorkspace } from '../workspace';
 import { BrowserPreview } from './BrowserPreview';
 import { DiffView } from './DiffView';
@@ -11,6 +17,7 @@ import { EditorTabs } from './EditorTabs';
 import { GraphView } from './GraphView';
 import { HelpView } from './HelpView';
 import { SettingsView } from './SettingsView';
+import { WorklogView } from './WorklogView';
 import { ImageViewer } from './ImageViewer';
 import { MonacoEditor } from './MonacoEditor';
 
@@ -45,6 +52,10 @@ function GroupContent({ group, focused }: { group: EditorGroup; focused: boolean
 
   if (activePath === HELP_PATH) {
     return <HelpView />;
+  }
+
+  if (activePath === WORKLOG_PATH) {
+    return <WorklogView />;
   }
 
   if (isDiffPath(activePath)) {

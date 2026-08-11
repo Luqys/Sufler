@@ -9,6 +9,7 @@ import type { UsageLimitsResult } from './limits';
 import type { McpConfigServer, McpDetail, McpListEntry } from './mcp';
 import type { ObsidianRestConfig } from './obsidian-rest';
 import type { Checkpoint } from './checkpoints';
+import type { WorklogEntry } from './worklog';
 import type { SkillOverrideState } from './skills';
 
 export const IPC = {
@@ -45,6 +46,7 @@ export const IPC = {
   CheckpointsList: 'checkpoints:list',
   CheckpointsRestore: 'checkpoints:restore',
   CheckpointsChanged: 'checkpoints:changed',
+  WorklogGet: 'worklog:get',
   AgentsCreate: 'skills:agent-create',
   RulesCreate: 'skills:rule-create',
   McpReadConfig: 'mcp:read-config',
@@ -313,6 +315,8 @@ export interface WindowApi {
   listCheckpoints(root: string): Promise<Checkpoint[]>;
   restoreCheckpoint(root: string, hash: string): Promise<RestoreResult>;
   onCheckpointsChanged(listener: () => void): void;
+  /** Historia pracy (M56): commity i dzienniki sesji na jednej osi czasu. */
+  getWorklog(root: string): Promise<WorklogEntry[]>;
   /** Kreator: nowy plik subagenta w <root>/.claude/agents. */
   createAgent(root: string, input: AgentCreateInput): Promise<SkillCreateResult>;
   /** Kreator: nowy plik reguły w <root>/.claude/rules. */

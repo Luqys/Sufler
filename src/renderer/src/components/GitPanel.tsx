@@ -203,7 +203,7 @@ function Checkpoints({ root }: { root: string }): ReactElement | null {
 
 export function GitPanel(): ReactElement {
   const t = useT();
-  const { root, openDiffTab } = useWorkspace();
+  const { root, openDiffTab, openWorklogTab } = useWorkspace();
   const [result, setResult] = useState<GitLogResult | null>(null);
   const [changes, setChanges] = useState<GitStatusFile[]>([]);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
@@ -272,6 +272,15 @@ export function GitPanel(): ReactElement {
         ) : (
           <span className="mcp-note">{t('git.header')}</span>
         )}
+        <button
+          type="button"
+          className="tree-toolbtn"
+          data-testid="worklog-open"
+          title={t('worklog.open')}
+          onClick={openWorklogTab}
+        >
+          ◷
+        </button>
         <button
           type="button"
           className="tree-toolbtn"

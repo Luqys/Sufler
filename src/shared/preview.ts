@@ -21,6 +21,9 @@ export const SETTINGS_PATH = 'vn3o://ustawienia';
 /** Karta Samouczka w obszarze edytora (M47). */
 export const HELP_PATH = 'vn3o://samouczek';
 
+/** Karta Historii pracy w obszarze edytora (M56). */
+export const WORKLOG_PATH = 'vn3o://historia';
+
 export function normalizeUrl(input: string): string {
   const trimmed = input.trim();
   if (trimmed === '') {

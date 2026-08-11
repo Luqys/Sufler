@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import type { Appearance } from '../shared/appearance';
 import type { Checkpoint } from '../shared/checkpoints';
+import type { WorklogEntry } from '../shared/worklog';
 import type { TabKind } from '../shared/dock-tabs';
 import type { LayoutVisibilityKey } from '../shared/layout';
 import {
@@ -107,6 +108,7 @@ const api: WindowApi = {
   onCheckpointsChanged: (listener: () => void): void => {
     ipcRenderer.on(IPC.CheckpointsChanged, () => listener());
   },
+  getWorklog: (root: string): Promise<WorklogEntry[]> => ipcRenderer.invoke(IPC.WorklogGet, root),
   createAgent: (root: string, input: AgentCreateInput): Promise<SkillCreateResult> =>
     ipcRenderer.invoke(IPC.AgentsCreate, root, input),
   createRule: (root: string, input: RuleCreateInput): Promise<SkillCreateResult> =>
