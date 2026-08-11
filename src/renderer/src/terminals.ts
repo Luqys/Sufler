@@ -3,7 +3,7 @@ import { SerializeAddon } from '@xterm/addon-serialize';
 import { Terminal, type ITheme } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 import { quotePathForPrompt } from '../../shared/media';
-import { FLAVOR_EVENT, isMatrixFlavor } from './appearance-client';
+import { FLAVOR_EVENT, isDarkTheme, isMatrixFlavor } from './appearance-client';
 import { t } from './i18n';
 
 /**
@@ -26,8 +26,6 @@ const instances = new Map<string, TerminalInstance>();
 const byPtyId = new Map<number, TerminalInstance>();
 /** Dane, które przyszły zanim powstała instancja (wyścig create→subskrypcja). */
 const pendingOutput = new Map<number, string[]>();
-
-const darkMedia = window.matchMedia('(prefers-color-scheme: dark)');
 
 function themeFor(dark: boolean): ITheme {
   return dark
@@ -102,7 +100,7 @@ const MATRIX_THEME: ITheme = {
 };
 
 function currentTheme(): ITheme {
-  return isMatrixFlavor() ? MATRIX_THEME : themeFor(darkMedia.matches);
+  return isMatrixFlavor() ? MATRIX_THEME : themeFor(isDarkTheme());
 }
 
 function rethemeAll(): void {
@@ -111,7 +109,6 @@ function rethemeAll(): void {
   }
 }
 
-darkMedia.addEventListener('change', rethemeAll);
 window.addEventListener(FLAVOR_EVENT, rethemeAll);
 
 // Jedna globalna subskrypcja na życie okna; routing po ptyId.

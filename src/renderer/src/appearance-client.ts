@@ -40,6 +40,16 @@ export function applyThemeFlavor(mode: ThemeMode): void {
   window.dispatchEvent(new CustomEvent(FLAVOR_EVENT));
 }
 
+/**
+ * Czy obowiązuje ciemna paleta — jedyne źródło prawdy dla modułów, które nie
+ * czytają CSS (Monaco, xterm) i dla przycisku motywu. Wcześniej pytały wprost
+ * o prefers-color-scheme, przez co edytor i terminale zostawały białe mimo
+ * wybranego motywu ciemnego (M60).
+ */
+export function isDarkTheme(): boolean {
+  return document.documentElement.dataset['theme'] === 'dark';
+}
+
 export function isMatrixFlavor(): boolean {
   return document.documentElement.dataset['flavor'] === 'matrix';
 }

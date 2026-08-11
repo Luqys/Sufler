@@ -4,6 +4,7 @@ import cssWorker from 'monaco-editor/language/css/css.worker.js?worker';
 import htmlWorker from 'monaco-editor/language/html/html.worker.js?worker';
 import jsonWorker from 'monaco-editor/language/json/json.worker.js?worker';
 import tsWorker from 'monaco-editor/language/typescript/ts.worker.js?worker';
+import { isDarkTheme } from './appearance-client';
 
 self.MonacoEnvironment = {
   getWorker(_workerId: string, label: string): Worker {
@@ -51,12 +52,10 @@ monaco.editor.defineTheme('sufler-matrix', {
   },
 });
 
-const darkMedia = window.matchMedia('(prefers-color-scheme: dark)');
 function applyTheme(): void {
   const matrix = document.documentElement.dataset['flavor'] === 'matrix';
-  monaco.editor.setTheme(matrix ? 'sufler-matrix' : darkMedia.matches ? 'vs-dark' : 'vs');
+  monaco.editor.setTheme(matrix ? 'sufler-matrix' : isDarkTheme() ? 'vs-dark' : 'vs');
 }
-darkMedia.addEventListener('change', applyTheme);
 // Zmiana smaku motywu (Matrix ↔ zwykły) — patrz appearance-client.
 window.addEventListener('sufler:flavor', applyTheme);
 applyTheme();

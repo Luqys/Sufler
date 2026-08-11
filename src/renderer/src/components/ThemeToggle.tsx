@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { ACCENTS, type AccentId } from '../../../shared/appearance';
-import { applyAccent, applyThemeFlavor } from '../appearance-client';
+import { applyAccent, applyThemeFlavor, FLAVOR_EVENT, isDarkTheme } from '../appearance-client';
 import { useT } from '../i18n';
 
 const ICON_SUN = (
@@ -24,17 +24,17 @@ const LONG_PRESS_MS = 500;
  */
 export function ThemeToggle(): ReactElement {
   const t = useT();
-  const [dark, setDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches);
+  const [dark, setDark] = useState(isDarkTheme);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [currentAccent, setCurrentAccent] = useState<AccentId>('clay');
   const pressTimer = useRef<number | null>(null);
   const longPressFired = useRef(false);
 
   useEffect(() => {
-    const media = matchMedia('(prefers-color-scheme: dark)');
-    const onChange = (): void => setDark(media.matches);
-    media.addEventListener('change', onChange);
-    return () => media.removeEventListener('change', onChange);
+    // Stan przycisku podąża za motywem aplikacji, nie za samym systemem.
+    const onChange = (): void => setDark(isDarkTheme());
+    window.addEventListener(FLAVOR_EVENT, onChange);
+    return () => window.removeEventListener(FLAVOR_EVENT, onChange);
   }, []);
 
   const openPicker = (): void => {
