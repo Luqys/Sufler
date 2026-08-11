@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { assignLanes, maxLaneCount, type LaneRow } from '../../../shared/git-graph';
 import type { StringKey } from '../../../shared/i18n';
+import type { Checkpoint } from '../../../shared/checkpoints';
 import type { GitCommit, GitCommitFile, GitLogResult, GitStatusFile } from '../../../shared/ipc';
 import { getLocale, t, tf, useT } from '../i18n';
+import { useDialogs } from '../ui-dialogs';
 import { useWorkspace } from '../workspace';
 
 /** Paleta torów gałęzi (indeks kolumny → kolor). */
@@ -130,6 +132,75 @@ function relativeDate(iso: string): string {
 }
 
 /** Historia commitów repozytorium projektu (git log + diff-tree) + zmiany robocze. */
+/** Punkty przywracania (M55): migawki drzewa sprzed tur Claude. */
+function Checkpoints({ root }: { root: string }): ReactElement | null {
+  const t = useT();
+  const { confirmDialog, notify } = useDialogs();
+  const [items, setItems] = useState<Checkpoint[]>([]);
+  const subscribed = useRef(false);
+
+  const refresh = useCallback(() => {
+    void window.api.listCheckpoints(root).then(setItems);
+  }, [root]);
+
+  useEffect(() => {
+    refresh();
+    if (!subscribed.current) {
+      subscribed.current = true;
+      window.api.onCheckpointsChanged(refresh);
+    }
+  }, [refresh]);
+
+  const restore = (checkpoint: Checkpoint): void => {
+    void confirmDialog({
+      title: t('checkpoints.restoreTitle'),
+      message: tf('checkpoints.restoreMessage', { label: checkpoint.label }),
+    }).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      void window.api.restoreCheckpoint(root, checkpoint.hash).then((result) => {
+        notify(
+          result.ok ? t('checkpoints.restored') : t('checkpoints.restoreFailed'),
+          result.ok ? 'success' : 'error',
+        );
+        refresh();
+      });
+    });
+  };
+
+  return (
+    <details className="checkpoints" data-testid="checkpoints" open={items.length > 0}>
+      <summary>
+        {t('checkpoints.title')} <span className="group-count">{items.length}</span>
+      </summary>
+      <p className="checkpoints-hint placeholder">{t('checkpoints.hint')}</p>
+      {items.length === 0 && <p className="placeholder">{t('checkpoints.empty')}</p>}
+      {items.map((checkpoint) => (
+        <div key={checkpoint.hash} className="checkpoint-row" data-testid="checkpoint-row">
+          <span className="checkpoint-time">
+            {new Date(checkpoint.date).toLocaleTimeString(getLocale(), {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </span>
+          <span className="checkpoint-label" title={checkpoint.label}>
+            {checkpoint.label}
+          </span>
+          <button
+            type="button"
+            className="bar-btn"
+            data-testid="checkpoint-restore"
+            onClick={() => restore(checkpoint)}
+          >
+            {t('checkpoints.restore')}
+          </button>
+        </div>
+      ))}
+    </details>
+  );
+}
+
 export function GitPanel(): ReactElement {
   const t = useT();
   const { root, openDiffTab } = useWorkspace();
@@ -211,6 +282,7 @@ export function GitPanel(): ReactElement {
           {ICON_REFRESH}
         </button>
       </div>
+      <Checkpoints root={root} />
       {result === null && <p className="placeholder">{t('git.loading')}</p>}
       {result !== null && !result.ok && <p className="placeholder">{t('git.notRepo')}</p>}
       {result?.ok && result.commits.length === 0 && (

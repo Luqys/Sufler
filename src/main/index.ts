@@ -63,6 +63,7 @@ import { closeSkillsWatcher, watchSkillsSources } from './skills-watcher';
 import { isSessionLogEnabled, setSessionLogEnabled } from './session-log';
 import { isGlobalSessionLogEnabled, setGlobalSessionLogEnabled } from './session-log-global';
 import { summarizeSessionLog } from './session-summary';
+import { listCheckpoints, restoreCheckpoint } from './checkpoints';
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -239,6 +240,10 @@ void app.whenReady().then(() => {
   );
   ipcMain.handle(IPC.SessionLogSummarize, (_event, root: string, path: string) =>
     summarizeSessionLog(root, path),
+  );
+  ipcMain.handle(IPC.CheckpointsList, (_event, root: string) => listCheckpoints(root));
+  ipcMain.handle(IPC.CheckpointsRestore, (_event, root: string, hash: string) =>
+    restoreCheckpoint(root, hash),
   );
   ipcMain.handle(IPC.AgentsCreate, (_event, root: string, input: AgentCreateInput) =>
     createAgent(root, input),

@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import type { Appearance } from '../shared/appearance';
+import type { Checkpoint } from '../shared/checkpoints';
 import type { TabKind } from '../shared/dock-tabs';
 import type { LayoutVisibilityKey } from '../shared/layout';
 import {
@@ -27,6 +28,7 @@ import {
   type SkillCreateInput,
   type SkillCreateResult,
   type GlobalSessionLogResult,
+  type RestoreResult,
   type SummaryResult,
   type SkillToggleResult,
   type SkillsSnapshot,
@@ -98,6 +100,13 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.SessionLogGlobalSet, enabled),
   summarizeSessionLog: (root: string, path: string): Promise<SummaryResult> =>
     ipcRenderer.invoke(IPC.SessionLogSummarize, root, path),
+  listCheckpoints: (root: string): Promise<Checkpoint[]> =>
+    ipcRenderer.invoke(IPC.CheckpointsList, root),
+  restoreCheckpoint: (root: string, hash: string): Promise<RestoreResult> =>
+    ipcRenderer.invoke(IPC.CheckpointsRestore, root, hash),
+  onCheckpointsChanged: (listener: () => void): void => {
+    ipcRenderer.on(IPC.CheckpointsChanged, () => listener());
+  },
   createAgent: (root: string, input: AgentCreateInput): Promise<SkillCreateResult> =>
     ipcRenderer.invoke(IPC.AgentsCreate, root, input),
   createRule: (root: string, input: RuleCreateInput): Promise<SkillCreateResult> =>

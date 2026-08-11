@@ -11,6 +11,7 @@ import {
 import { baseName } from '../shared/paths';
 import { getProjectRoot } from './project';
 import { readState, writeState } from './state-store';
+import { createCheckpoint } from './checkpoints';
 import { IPC } from '../shared/ipc';
 
 /**
@@ -85,6 +86,19 @@ export async function appendSessionLog(
   const entry = buildSessionLogEntry(event, time);
   if (!entry) {
     return null;
+  }
+  // Polecenie = początek tury Claude, czyli najlepszy moment na migawkę
+  // drzewa: stan sprzed zmian, do którego można wrócić jednym kliknięciem.
+  if (event.kind === 'prompt') {
+    void createCheckpoint(root, event.prompt ?? '').then((hash) => {
+      if (hash) {
+        for (const win of BrowserWindow.getAllWindows()) {
+          if (!win.isDestroyed()) {
+            win.webContents.send(IPC.CheckpointsChanged);
+          }
+        }
+      }
+    });
   }
   return enqueue(absolute, async () => {
     try {

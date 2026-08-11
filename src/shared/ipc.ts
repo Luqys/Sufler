@@ -8,6 +8,7 @@ import type { LayoutState, LayoutVisibilityKey } from './layout';
 import type { UsageLimitsResult } from './limits';
 import type { McpConfigServer, McpDetail, McpListEntry } from './mcp';
 import type { ObsidianRestConfig } from './obsidian-rest';
+import type { Checkpoint } from './checkpoints';
 import type { SkillOverrideState } from './skills';
 
 export const IPC = {
@@ -41,6 +42,9 @@ export const IPC = {
   SessionLogGlobalGet: 'session-log:global-get',
   SessionLogGlobalSet: 'session-log:global-set',
   SessionLogSummarize: 'session-log:summarize',
+  CheckpointsList: 'checkpoints:list',
+  CheckpointsRestore: 'checkpoints:restore',
+  CheckpointsChanged: 'checkpoints:changed',
   AgentsCreate: 'skills:agent-create',
   RulesCreate: 'skills:rule-create',
   McpReadConfig: 'mcp:read-config',
@@ -196,6 +200,10 @@ export type SkillCreateResult =
   | { ok: true; path: string }
   | { ok: false; error: 'invalid-name' | 'exists' | 'write-failed' };
 
+export type RestoreResult =
+  | { ok: true; backup: string | null }
+  | { ok: false; error: 'not-a-repo' | 'unknown-checkpoint' | 'restore-failed' };
+
 export type SummaryResult =
   | { ok: true; summary: string }
   | { ok: false; error: 'not-a-log' | 'too-short' | 'claude-failed' | 'write-failed' };
@@ -301,6 +309,10 @@ export interface WindowApi {
   setGlobalSessionLog(enabled: boolean): Promise<GlobalSessionLogResult>;
   /** Streszcza dziennik przez `claude -p` i wstawia sekcję Podsumowanie. */
   summarizeSessionLog(root: string, path: string): Promise<SummaryResult>;
+  /** Punkty przywracania (M55) — migawki drzewa sprzed pracy Claude. */
+  listCheckpoints(root: string): Promise<Checkpoint[]>;
+  restoreCheckpoint(root: string, hash: string): Promise<RestoreResult>;
+  onCheckpointsChanged(listener: () => void): void;
   /** Kreator: nowy plik subagenta w <root>/.claude/agents. */
   createAgent(root: string, input: AgentCreateInput): Promise<SkillCreateResult>;
   /** Kreator: nowy plik reguły w <root>/.claude/rules. */

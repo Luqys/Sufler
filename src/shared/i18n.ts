@@ -184,6 +184,17 @@ export const PL = {
   'git.loadingFiles': 'Wczytywanie zmian…',
   'git.noFiles': 'Brak zmian plików.',
   'git.changesTitle': 'Zmiany robocze',
+  'checkpoints.title': 'Punkty przywracania',
+  'checkpoints.hint':
+    'Migawka drzewa zapisywana przed każdą turą Claude. Przywrócenie zapisuje najpierw stan bieżący, więc cofnięcie też da się cofnąć.',
+  'checkpoints.empty': 'Brak migawek — pojawią się przy pierwszym poleceniu dla Claude.',
+  'checkpoints.restore': 'Przywróć',
+  'checkpoints.restoreTitle': 'Przywrócić pliki z tej migawki?',
+  'checkpoints.restoreMessage':
+    'Pliki w projekcie wrócą do stanu „{label}". Bieżący stan zapiszę jako nową migawkę.',
+  'checkpoints.restored': 'Przywrócono stan z migawki.',
+  'checkpoints.restoreFailed': 'Nie udało się przywrócić migawki.',
+  'checkpoints.notRepo': 'Punkty przywracania wymagają repozytorium git.',
   'git.statusUntracked': 'nieśledzony',
 
   // Diffy (M33) — panel Git i propozycje openDiff z sesji Claude
@@ -651,6 +662,17 @@ export const EN: Record<StringKey, string> = {
   'git.loadingFiles': 'Loading changes…',
   'git.noFiles': 'No file changes.',
   'git.changesTitle': 'Working changes',
+  'checkpoints.title': 'Restore points',
+  'checkpoints.hint':
+    'A snapshot of the tree taken before each Claude turn. Restoring saves the current state first, so undoing can be undone too.',
+  'checkpoints.empty': 'No snapshots yet — the first one appears with your first prompt to Claude.',
+  'checkpoints.restore': 'Restore',
+  'checkpoints.restoreTitle': 'Restore files from this snapshot?',
+  'checkpoints.restoreMessage':
+    'Project files will go back to the state “{label}”. The current state will be saved as a new snapshot.',
+  'checkpoints.restored': 'Restored the snapshot.',
+  'checkpoints.restoreFailed': 'Could not restore the snapshot.',
+  'checkpoints.notRepo': 'Restore points require a git repository.',
   'git.statusUntracked': 'untracked',
 
   'diff.worktreeSuffix': 'changes',
