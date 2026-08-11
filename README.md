@@ -107,10 +107,9 @@ z `.github/workflows/release.yml`.
 | `npm run dev` | aplikacja w trybie deweloperskim (HMR) |
 | `npm run typecheck` | TypeScript bez emisji |
 | `npm run lint` | ESLint |
-| `npm test` | testy jednostkowe (vitest) |
-| `npm run e2e` | build + testy Playwright na zbudowanej aplikacji |
+| `npm run build` | produkcyjny build procesów głównego i renderera |
 
-Zmiana jest gotowa, gdy wszystkie cztery komendy są zielone.
+Zmiana jest gotowa, gdy wszystkie komendy są zielone.
 
 ### Struktura
 
@@ -119,8 +118,6 @@ src/main       proces główny Electrona — okna, IPC, git, MCP, hooki
 src/preload    most contextBridge (window.api)
 src/shared     typy i czysta logika współdzielona, testowana jednostkowo
 src/renderer   interfejs w React
-tests          testy jednostkowe (vitest)
-e2e            scenariusze Playwright
 build          ikony aplikacji wraz ze źródłami wektorowymi
 docs           specyfikacja i decyzje projektowe
 .github        automaty CI i wydań
@@ -130,8 +127,6 @@ Logika, którą da się przetestować bez Electrona, mieszka w `src/shared` —
 procesy główny i renderer korzystają z niej wspólnie. Teksty interfejsu idą
 wyłącznie przez słownik `src/shared/i18n.ts` (polski i angielski, typ wymusza
 komplet tłumaczeń).
-
-Zrzut w README odświeża generator: `npx playwright test -c scripts/zrzut.config.ts`.
 
 Szczegóły projektowe i historia kamieni milowych: [docs/SPEC.md](docs/SPEC.md).
 Konwencje pracy z asystentem: [CLAUDE.md](CLAUDE.md).

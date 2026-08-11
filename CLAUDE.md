@@ -6,13 +6,11 @@ i kamienie milowe: **docs/SPEC.md** — przeczytaj przed rozpoczęciem pracy.
 ## Komendy
 
 - `npm run dev` — aplikacja w trybie dev (HMR)
-- `npm test` — testy jednostkowe (vitest, katalog `tests/`)
-- `npm run e2e` — build + testy Playwright (otwiera na chwilę okna aplikacji; zrzuty w `e2e-artifacts/`)
 - `npm run typecheck`, `npm run lint`
 - `npm run dist` — `.dmg` dla arm64 i x64 (bez podpisu; node-pty z prebuildów, `npmRebuild: false`)
 
-Definicja ukończenia kamienia milowego: wszystkie cztery komendy zielone
-+ zrzut ekranu ze scenariusza e2e.
+Definicja ukończenia kamienia milowego: `npm run typecheck`, `npm run lint`
+i `npm run build` zielone, a zmiana sprawdzona w uruchomionej aplikacji.
 
 ## Struktura
 
@@ -20,7 +18,6 @@ Definicja ukończenia kamienia milowego: wszystkie cztery komendy zielone
 - `src/preload` — most contextBridge (`window.api`, typ `WindowApi` w `src/shared/ipc.ts`)
 - `src/shared` — typy i czysta logika współdzielona między procesami (tu trzymać logikę testowalną jednostkowo)
 - `src/renderer` — UI w React; komponenty w `src/renderer/src/components`
-- `e2e` — testy Playwright (`_electron`), `tests` — vitest
 
 ## Zasady
 

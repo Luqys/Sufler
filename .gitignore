@@ -1,8 +1,6 @@
 node_modules
 out/
 dist/
-e2e-artifacts/
 *.log
 .DS_Store
 *.tsbuildinfo
-test-results/
