@@ -34,6 +34,41 @@ const ICON_CLAUDE_SPARK = (
   </svg>
 );
 
+/* Zębatka i znak zapytania jako SVG w tej samej metryce co reszta paska —
+   wcześniej były znakami tekstowymi i odstawały wielkością oraz grubością. */
+const ICON_SETTINGS = (
+  <svg
+    width="15"
+    height="15"
+    viewBox="0 0 16 16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.4"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="8" cy="8" r="2.1" />
+    <path d="M8 1.6v1.6M8 12.8v1.6M14.4 8h-1.6M3.2 8H1.6M12.5 3.5l-1.1 1.1M4.6 11.4l-1.1 1.1M12.5 12.5l-1.1-1.1M4.6 4.6L3.5 3.5" />
+  </svg>
+);
+
+const ICON_HELP = (
+  <svg
+    width="15"
+    height="15"
+    viewBox="0 0 16 16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.4"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="8" cy="8" r="6.1" />
+    <path d="M6.2 6.1a1.85 1.85 0 1 1 2.4 1.85c-.4.15-.6.5-.6.95v.35" />
+    <path d="M8 11.6h.01" />
+  </svg>
+);
+
 const SPLITTER_SIZE = 5;
 const MIN_CENTER_WIDTH = 320;
 const MIN_EDITOR_HEIGHT = 160;
@@ -166,7 +201,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
             title={t('titlebar.settings')}
             onClick={openSettingsTab}
           >
-            ⚙︎
+            {ICON_SETTINGS}
           </button>
           <button
             type="button"
@@ -175,7 +210,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
             title={t('help.open')}
             onClick={openHelpTab}
           >
-            ?
+            {ICON_HELP}
           </button>
           <button
             type="button"
