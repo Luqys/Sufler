@@ -55,6 +55,8 @@ const api: WindowApi = {
   setLayout: (state: LayoutState): Promise<void> => ipcRenderer.invoke(IPC.LayoutSet, state),
   getProjectRoot: (): Promise<string | null> => ipcRenderer.invoke(IPC.ProjectGetRoot),
   getRecentRoots: (): Promise<string[]> => ipcRenderer.invoke(IPC.ProjectRecentRoots),
+  getProjectIcon: (root: string): Promise<string | null> =>
+    ipcRenderer.invoke(IPC.ProjectIcon, root),
   setProjectRoot: (path: string): Promise<boolean> => ipcRenderer.invoke(IPC.ProjectSetRoot, path),
   openProjectDialog: (): Promise<string | null> => ipcRenderer.invoke(IPC.ProjectOpenDialog),
   getWebviewPreloadPath: (): Promise<string> => ipcRenderer.invoke(IPC.PreviewGetPreloadPath),

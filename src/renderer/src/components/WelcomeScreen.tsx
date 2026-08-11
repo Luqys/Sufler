@@ -1,16 +1,11 @@
-import { useEffect, useState, type ReactElement } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactElement } from 'react';
 import { baseName } from '../../../shared/paths';
+import { projectHue, projectMonogram } from '../../../shared/project-icon';
 import { useT } from '../i18n';
 
 interface WelcomeScreenProps {
   onPicked(root: string): void;
 }
-
-const ICON_FOLDER = (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round">
-    <path d="M1.8 4a1.2 1.2 0 0 1 1.2-1.2h3l1.6 1.7h5.4A1.2 1.2 0 0 1 14.2 5.7v6.3a1.2 1.2 0 0 1-1.2 1.2H3a1.2 1.2 0 0 1-1.2-1.2V4Z" />
-  </svg>
-);
 
 const ICON_OPEN = (
   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -40,12 +35,44 @@ const ICON_MARK = (
  * Ekran startowy: przy każdym uruchomieniu użytkownik wybiera folder roboczy.
  * Terminale i sesje Claude będą startować właśnie w nim.
  */
+/**
+ * Kafelek projektu: favicon wzięty z folderu, a gdy projekt żadnego nie ma —
+ * monogram na barwie wyliczonej ze ścieżki (ten sam projekt, ten sam kolor).
+ */
+function ProjectMark({ path, icon }: { path: string; icon: string | null }): ReactElement {
+  if (icon) {
+    return (
+      <span className="welcome-recent-icon" data-mark="favicon">
+        <img src={icon} alt="" className="welcome-recent-favicon" data-testid="welcome-favicon" />
+      </span>
+    );
+  }
+  return (
+    <span
+      className="welcome-recent-icon"
+      data-mark="monogram"
+      data-testid="welcome-monogram"
+      style={{ '--project-hue': String(projectHue(path)) } as CSSProperties}
+    >
+      {projectMonogram(baseName(path))}
+    </span>
+  );
+}
+
 export function WelcomeScreen({ onPicked }: WelcomeScreenProps): ReactElement {
   const t = useT();
   const [recents, setRecents] = useState<string[]>([]);
+  const [icons, setIcons] = useState<Record<string, string | null>>({});
 
   useEffect(() => {
-    void window.api.getRecentRoots().then(setRecents);
+    void window.api.getRecentRoots().then((list) => {
+      setRecents(list);
+      for (const path of list) {
+        void window.api.getProjectIcon(path).then((icon) => {
+          setIcons((current) => ({ ...current, [path]: icon }));
+        });
+      }
+    });
   }, []);
 
   const browse = (): void => {
@@ -101,7 +128,7 @@ export function WelcomeScreen({ onPicked }: WelcomeScreenProps): ReactElement {
                     title={path}
                     onClick={() => pickRecent(path)}
                   >
-                    <span className="welcome-recent-icon">{ICON_FOLDER}</span>
+                    <ProjectMark path={path} icon={icons[path] ?? null} />
                     <span className="welcome-recent-text">
                       <span className="welcome-recent-name">{baseName(path)}</span>
                       <span className="welcome-recent-path">{path}</span>

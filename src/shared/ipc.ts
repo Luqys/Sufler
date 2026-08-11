@@ -20,6 +20,7 @@ export const IPC = {
   ProjectGetRoot: 'project:get-root',
   ProjectOpenDialog: 'project:open-dialog',
   ProjectRecentRoots: 'project:recent-roots',
+  ProjectIcon: 'project:icon',
   ProjectSetRoot: 'project:set-root',
   PreviewGetPreloadPath: 'preview:get-preload-path',
   FsReadDir: 'fs:read-dir',
@@ -283,6 +284,8 @@ export interface WindowApi {
   /** null → pokaż ekran startowy z wyborem folderu. */
   getProjectRoot(): Promise<string | null>;
   getRecentRoots(): Promise<string[]>;
+  /** „Favicon" projektu jako data URI; null → renderer rysuje monogram. */
+  getProjectIcon(root: string): Promise<string | null>;
   setProjectRoot(path: string): Promise<boolean>;
   openProjectDialog(): Promise<string | null>;
   /** Ścieżka file:// preloadu dla <webview> podglądu przeglądarki. */
