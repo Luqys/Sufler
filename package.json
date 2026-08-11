@@ -12,10 +12,10 @@
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json --composite false && tsc --noEmit -p tsconfig.web.json --composite false",
     "lint": "eslint .",
-    "dist": "electron-vite build && electron-builder --mac --win",
+    "dist": "electron-vite build && electron-builder --mac --win --publish never",
     "postinstall": "node scripts/fix-node-pty.js",
-    "dist:mac": "electron-vite build && electron-builder --mac",
-    "dist:win": "electron-vite build && electron-builder --win"
+    "dist:mac": "electron-vite build && electron-builder --mac --publish never",
+    "dist:win": "electron-vite build && electron-builder --win --publish never"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.2.0",
