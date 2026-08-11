@@ -1,11 +1,15 @@
 name: Wydanie
 
-# Paczki powstają na maszynach docelowych: macOS buduje .dmg, Windows .exe.
-# Uruchamiane tagiem (np. v0.1.0) albo ręcznie z zakładki Actions.
+# Paczki powstają na maszynach docelowych: macOS buduje .dmg, Windows .exe,
+# a gotowe pliki lądują w Releases. Uruchamiane tagiem (np. v0.1.0)
+# albo ręcznie z zakładki Actions.
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   paczka:
@@ -15,11 +19,8 @@ jobs:
         include:
           - os: macos-latest
             komenda: npm run dist:mac
-            artefakty: dist/*.dmg
           - os: windows-latest
             komenda: npm run dist:win
-            artefakty: |
-              dist/*.exe
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +30,21 @@ jobs:
           cache: npm
       - run: npm ci
       - run: ${{ matrix.komenda }}
+      - name: Instalatory do wydania
+        uses: softprops/action-gh-release@v2
+        with:
+          # Wydanie robocze przy ręcznym uruchomieniu, wersjonowane przy tagu.
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'roboczy' }}
+          name: ${{ github.ref_type == 'tag' && github.ref_name || 'Wydanie robocze' }}
+          draft: false
+          prerelease: ${{ github.ref_type != 'tag' }}
+          fail_on_unmatched_files: false
+          files: |
+            dist/*.dmg
+            dist/*.exe
       - uses: actions/upload-artifact@v4
         with:
           name: sufler-${{ matrix.os }}
-          path: ${{ matrix.artefakty }}
+          path: |
+            dist/*.dmg
+            dist/*.exe
