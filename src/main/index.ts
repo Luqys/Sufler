@@ -14,6 +14,7 @@ import { closeKnowledgeWatcher, watchKnowledge } from './knowledge-watcher';
 import { getUsageLimits } from './usage-limits';
 import { closeWatcher, setWatchedFiles } from './file-watcher';
 import { readDirListing, readFileForEditor, readImageForPreview, writeTextFile } from './fs-tree';
+import { importDroppedPaths } from './import-drop';
 import { migrateLegacyConfigDir, readLayout, writeLayout } from './layout-store';
 import { runGitLog, runGitShowCommit } from './git-log';
 import { runGitShowFile } from './git-show';
@@ -177,6 +178,9 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.FsReadImage, (_event, filePath: string) => readImageForPreview(filePath));
   ipcMain.handle(IPC.FsWriteFile, (_event, filePath: string, content: string) =>
     writeTextFile(filePath, content),
+  );
+  ipcMain.handle(IPC.FsImportPaths, (_event, root: string, destDir: string, sources: string[]) =>
+    importDroppedPaths(root, destDir, sources),
   );
   ipcMain.handle(IPC.WatchSetFiles, (event, paths: string[]) => {
     const win = BrowserWindow.fromWebContents(event.sender);

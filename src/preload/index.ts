@@ -30,6 +30,7 @@ import {
   type SkillCreateInput,
   type SkillCreateResult,
   type GlobalSessionLogResult,
+  type ImportPathsResult,
   type RestoreResult,
   type SummaryResult,
   type SkillToggleResult,
@@ -64,6 +65,8 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.FsReadImage, filePath),
   writeFile: (filePath: string, content: string): Promise<WriteFileResult> =>
     ipcRenderer.invoke(IPC.FsWriteFile, filePath, content),
+  importPaths: (root: string, destDir: string, sources: string[]): Promise<ImportPathsResult> =>
+    ipcRenderer.invoke(IPC.FsImportPaths, root, destDir, sources),
   watchFiles: (paths: string[]): Promise<void> => ipcRenderer.invoke(IPC.WatchSetFiles, paths),
   onWatchEvent: (listener: (event: WatchEvent) => void): void => {
     ipcRenderer.on(IPC.WatchEvent, (_event, payload: WatchEvent) => listener(payload));

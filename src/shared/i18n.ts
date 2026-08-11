@@ -164,6 +164,7 @@ export const PL = {
   'unit.lines': 'linia|linie|linii',
   'unit.matches': 'trafienie|trafienia|trafień',
   'unit.files': 'plik|pliki|plików',
+  'unit.items': 'element|elementy|elementów',
 
   // Drzewo plików
   'ft.noAccess': 'Brak dostępu',
@@ -171,6 +172,9 @@ export const PL = {
   'ft.openProject': 'Otwórz folder projektu…',
   'ft.refresh': 'Odśwież drzewo',
   'ft.showIgnored': 'Pokaż pliki ignorowane przez .gitignore',
+  'ft.importDone': 'Dodano do projektu: {count}',
+  'ft.importSkipped': 'Pominięto: {names}',
+  'ft.importFailed': 'Import upuszczonych plików nie powiódł się',
 
   // Panel git
   'git.statusAdded': 'dodany',
@@ -667,12 +671,16 @@ export const EN: Record<StringKey, string> = {
   'unit.lines': 'line|lines',
   'unit.matches': 'match|matches',
   'unit.files': 'file|files',
+  'unit.items': 'item|items',
 
   'ft.noAccess': 'No access',
   'ft.empty': '(empty)',
   'ft.openProject': 'Open project folder…',
   'ft.refresh': 'Refresh tree',
   'ft.showIgnored': 'Show files ignored by .gitignore',
+  'ft.importDone': 'Added to the project: {count}',
+  'ft.importSkipped': 'Skipped: {names}',
+  'ft.importFailed': 'Importing dropped files failed',
 
   'git.statusAdded': 'added',
   'git.statusModified': 'modified',

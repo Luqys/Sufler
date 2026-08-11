@@ -10,6 +10,7 @@ import type { McpConfigServer, McpDetail, McpListEntry } from './mcp';
 import type { ObsidianRestConfig } from './obsidian-rest';
 import type { Checkpoint } from './checkpoints';
 import type { DetachedTarget } from './detached';
+import type { ImportSkip } from './import-drop';
 import type { WorklogEntry } from './worklog';
 import type { SkillOverrideState } from './skills';
 
@@ -25,6 +26,7 @@ export const IPC = {
   FsReadFile: 'fs:read-file',
   FsReadImage: 'fs:read-image',
   FsWriteFile: 'fs:write-file',
+  FsImportPaths: 'fs:import-paths',
   WatchSetFiles: 'watch:set-files',
   WatchEvent: 'watch:event',
   PtyCreate: 'pty:create',
@@ -146,6 +148,11 @@ export type ReadImageResult =
   | { ok: false; error: 'too-large' | 'not-image' | 'unreadable' };
 
 export type WriteFileResult = { ok: true } | { ok: false; error: string };
+
+/** Import przeciąganiem (M61): wynik kopiowania upuszczonych ścieżek. */
+export type ImportPathsResult =
+  | { ok: true; copied: number; skipped: ImportSkip[] }
+  | { ok: false; error: string };
 
 export interface WatchEvent {
   path: string;
@@ -285,6 +292,8 @@ export interface WindowApi {
   /** Obrazek jako data URI — do podglądu w zakładce edytora. */
   readImage(filePath: string): Promise<ReadImageResult>;
   writeFile(filePath: string, content: string): Promise<WriteFileResult>;
+  /** Kopiuje upuszczone z systemu ścieżki do katalogu projektu (M61). */
+  importPaths(root: string, destDir: string, sources: string[]): Promise<ImportPathsResult>;
   /** Deklaratywnie ustawia pełną listę obserwowanych plików (otwarte zakładki). */
   watchFiles(paths: string[]): Promise<void>;
   /** Subskrypcja na całe życie okna — bez wypisu (patrz workspace). */

@@ -5,12 +5,13 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type DragEvent,
   type ReactElement,
 } from 'react';
 import { activeGroup } from '../../../shared/editor-groups';
 import type { DirEntry, TreeChangedEvent } from '../../../shared/ipc';
 import { baseName } from '../../../shared/paths';
-import { useT } from '../i18n';
+import { tf, tp, useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 import { FOLDER_ICON, fileIconFor } from './file-icons';
 
@@ -65,9 +66,12 @@ export function FileTree(): ReactElement {
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [showIgnored, setShowIgnored] = useState(false);
   const [gitFiles, setGitFiles] = useState<ReadonlyMap<string, GitState>>(new Map());
+  const [dropDir, setDropDir] = useState<string | null>(null);
+  const [importNote, setImportNote] = useState<string | null>(null);
   const listingsRef = useRef(listings);
   const pendingDirs = useRef(new Set<string>());
   const debounceTimer = useRef<number | null>(null);
+  const noteTimer = useRef<number | null>(null);
 
   useEffect(() => {
     listingsRef.current = listings;
@@ -178,6 +182,78 @@ export function FileTree(): ReactElement {
     refreshGitStatus();
   };
 
+  /* ── Import przeciąganiem z systemu (M61) ─────────────────────── */
+
+  const showImportNote = (text: string): void => {
+    setImportNote(text);
+    if (noteTimer.current !== null) {
+      window.clearTimeout(noteTimer.current);
+    }
+    noteTimer.current = window.setTimeout(() => {
+      noteTimer.current = null;
+      setImportNote(null);
+    }, 6000);
+  };
+
+  const hasOsFiles = (event: DragEvent): boolean =>
+    event.dataTransfer.types.includes('Files');
+
+  /** Cel importu dla wiersza: katalog wprost, dla pliku — jego rodzic. */
+  const dropTargetFor = (entry: DirEntry): string =>
+    entry.kind === 'dir' ? entry.path : entry.path.slice(0, entry.path.lastIndexOf('/'));
+
+  const handleDragOver = (target: string) => (event: DragEvent): void => {
+    if (!hasOsFiles(event)) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'copy';
+    if (dropDir !== target) {
+      setDropDir(target);
+    }
+  };
+
+  const handleDrop = (target: string) => (event: DragEvent): void => {
+    if (!hasOsFiles(event)) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    setDropDir(null);
+    const sources = [...event.dataTransfer.files]
+      .map((file) => window.api.pathForFile(file))
+      .filter((path) => path.length > 0);
+    if (sources.length === 0) {
+      return;
+    }
+    void window.api.importPaths(root, target, sources).then((result) => {
+      if (!result.ok) {
+        showImportNote(t('ft.importFailed'));
+        return;
+      }
+      const parts: string[] = [];
+      if (result.copied > 0) {
+        parts.push(tf('ft.importDone', { count: tp('unit.items', result.copied) }));
+      }
+      if (result.skipped.length > 0) {
+        const names = result.skipped.slice(0, 3).map((skip) => skip.name);
+        const suffix = result.skipped.length > 3 ? '…' : '';
+        parts.push(tf('ft.importSkipped', { names: names.join(', ') + suffix }));
+      }
+      if (parts.length > 0) {
+        showImportNote(parts.join(' · '));
+      }
+      refresh();
+    });
+  };
+
+  const handleTreeDragLeave = (event: DragEvent): void => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setDropDir(null);
+    }
+  };
+
   const renderDir = (dirPath: string, depth: number): ReactElement | ReactElement[] => {
     const indent: CSSProperties = { paddingLeft: 10 + depth * 14 };
     const listing = listings.get(dirPath);
@@ -219,6 +295,9 @@ export function FileTree(): ReactElement {
       if (gitState) {
         classes.push(`git-${gitState}`);
       }
+      if (dropDir !== null && dropDir === entry.path) {
+        classes.push('drop-target');
+      }
       return (
         <div key={entry.path}>
           <button
@@ -238,6 +317,8 @@ export function FileTree(): ReactElement {
                 openFile(entry.path, { pinned: true });
               }
             }}
+            onDragOver={handleDragOver(dropTargetFor(entry))}
+            onDrop={handleDrop(dropTargetFor(entry))}
           >
             {entry.kind === 'dir' ? (
               <>
@@ -289,9 +370,20 @@ export function FileTree(): ReactElement {
           {ICON_EYE}
         </button>
       </div>
-      <div className="tree-scroll" data-testid="file-tree">
+      <div
+        className={`tree-scroll${dropDir === root ? ' drop-target' : ''}`}
+        data-testid="file-tree"
+        onDragOver={handleDragOver(root)}
+        onDrop={handleDrop(root)}
+        onDragLeave={handleTreeDragLeave}
+      >
         {renderDir(root, 0)}
       </div>
+      {importNote !== null && (
+        <div className="tree-import-note" data-testid="import-note">
+          {importNote}
+        </div>
+      )}
     </div>
   );
 }
