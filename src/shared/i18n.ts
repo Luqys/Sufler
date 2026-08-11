@@ -207,7 +207,6 @@ export const PL = {
     'Pliki w projekcie wrócą do stanu „{label}". Bieżący stan zapiszę jako nową migawkę.',
   'checkpoints.restored': 'Przywrócono stan z migawki.',
   'checkpoints.restoreFailed': 'Nie udało się przywrócić migawki.',
-  'checkpoints.notRepo': 'Punkty przywracania wymagają repozytorium git.',
   'git.statusUntracked': 'nieśledzony',
 
   // Diffy (M33) — panel Git i propozycje openDiff z sesji Claude
@@ -345,7 +344,6 @@ export const PL = {
   'skills.claudeMd': 'Pliki CLAUDE.md',
   'skills.claudeMdHint': 'Długi CLAUDE.md to rozdmuchany kontekst — Claude gubi wtedy instrukcje.',
   'skills.new': '+ Nowy skill',
-  'skills.offBadge': 'wyłączony',
   'skills.toggleTitle':
     'Włącz/wyłącz skill — zapis skillOverrides w .claude/settings.local.json (tylko ten projekt)',
   'skills.toggleUnreadable':
@@ -712,7 +710,6 @@ export const EN: Record<StringKey, string> = {
     'Project files will go back to the state “{label}”. The current state will be saved as a new snapshot.',
   'checkpoints.restored': 'Restored the snapshot.',
   'checkpoints.restoreFailed': 'Could not restore the snapshot.',
-  'checkpoints.notRepo': 'Restore points require a git repository.',
   'git.statusUntracked': 'untracked',
 
   'diff.worktreeSuffix': 'changes',
@@ -844,7 +841,6 @@ export const EN: Record<StringKey, string> = {
   'skills.claudeMd': 'CLAUDE.md files',
   'skills.claudeMdHint': 'A long CLAUDE.md means bloated context — Claude starts losing instructions.',
   'skills.new': '+ New skill',
-  'skills.offBadge': 'off',
   'skills.toggleTitle':
     'Enable/disable the skill — saves skillOverrides in .claude/settings.local.json (this project only)',
   'skills.toggleUnreadable': 'Toggle failed: .claude/settings.local.json contains invalid JSON.',
