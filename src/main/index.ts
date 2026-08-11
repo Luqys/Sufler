@@ -50,6 +50,7 @@ import {
   getVaultPath,
   setProjectRoot,
 } from './project';
+import { readProjectIcon } from './project-icon';
 import { resolveShellEnv } from './shell-env';
 import {
   createAgent,
@@ -157,6 +158,7 @@ void app.whenReady().then(() => {
   });
   ipcMain.handle(IPC.ProjectGetRoot, () => getProjectRoot());
   ipcMain.handle(IPC.ProjectRecentRoots, () => getRecentRoots());
+  ipcMain.handle(IPC.ProjectIcon, (_event, root: string) => readProjectIcon(root));
   ipcMain.handle(IPC.ProjectSetRoot, (_event, path: string) => {
     const changed = setProjectRoot(path);
     updateIdeWorkspaceFolders();
