@@ -415,6 +415,8 @@ export const PL = {
   'usage.week': 'Tydzień (wszystkie modele)',
   'usage.error': 'Limity planu: {error}',
   'usage.stale': 'Pokazuję ostatnie znane wartości.',
+  'usage.warn': 'Limit sesji na {p}% — rozważ /clear albo krótszą przerwę.',
+  'usage.forecast': 'przy obecnym tempie limit skończy się za {h} godz. {m} min',
 
   // Podgląd przeglądarki
   'preview.copied': 'Brak sesji Claude — odniesienie skopiowano do schowka.',
@@ -884,6 +886,8 @@ export const EN: Record<StringKey, string> = {
   'usage.week': 'Week (all models)',
   'usage.error': 'Plan limits: {error}',
   'usage.stale': 'Showing the last known values.',
+  'usage.warn': 'Session limit at {p}% — consider /clear or a short break.',
+  'usage.forecast': 'at the current pace the limit runs out in {h} h {m} min',
 
   'preview.copied': 'No Claude session — the reference was copied to the clipboard.',
   'preview.go': 'Open',

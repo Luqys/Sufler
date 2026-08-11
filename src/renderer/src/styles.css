@@ -3737,3 +3737,11 @@ body.dragging-horizontal .splitter.horizontal::after {
   padding: 2px 8px;
   font-size: 10.5px;
 }
+
+/* M57: prognoza wyczerpania limitu */
+
+.usage-forecast span {
+  color: var(--accent);
+  font-size: 11px;
+  line-height: 1.4;
+}

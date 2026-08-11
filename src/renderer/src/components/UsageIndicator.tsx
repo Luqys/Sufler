@@ -1,6 +1,14 @@
-import { useEffect, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
 import type { UsageLimitEntry, UsageLimitsResult } from '../../../shared/limits';
+import {
+  forecastExhaustion,
+  formatDuration,
+  pushSample,
+  shouldWarn,
+  type UsageSample,
+} from '../../../shared/limits-forecast';
 import { getLocale, tf, useT } from '../i18n';
+import { useDialogs } from '../ui-dialogs';
 
 /** Reset dziś → sama godzina; dalej → dzień tygodnia + godzina. */
 function resetLabel(iso: string | null): string {
@@ -34,14 +42,43 @@ function LimitBar({ entry }: { entry: UsageLimitEntry }): ReactElement {
  */
 export function UsageIndicator(): ReactElement {
   const t = useT();
+  const { notify } = useDialogs();
   const [open, setOpen] = useState(false);
   const [limits, setLimits] = useState<UsageLimitsResult | null>(null);
   const [loading, setLoading] = useState(false);
+  /** Historia pomiarów okna 5h — z niej liczymy tempo i prognozę. */
+  const samplesRef = useRef<UsageSample[]>([]);
+  const warnedAtRef = useRef<number | null>(null);
+  const [forecast, setForecast] = useState<number | null>(null);
+
+  /** Nowy pomiar: aktualizuje prognozę i w razie potrzeby ostrzega. */
+  const observe = useCallback(
+    (data: UsageLimitsResult): void => {
+      const session = data.ok ? data.limits.session : (data.stale?.session ?? null);
+      if (!session) {
+        return;
+      }
+      samplesRef.current = pushSample(samplesRef.current, {
+        at: Date.now(),
+        percent: session.percent,
+      });
+      setForecast(forecastExhaustion(samplesRef.current));
+      if (shouldWarn(session.percent, warnedAtRef.current)) {
+        warnedAtRef.current = session.percent;
+        notify(tf('usage.warn', { p: session.percent }), 'error');
+      } else if (session.percent < 50) {
+        // Okno się zresetowało — pozwalamy ostrzec ponownie.
+        warnedAtRef.current = null;
+      }
+    },
+    [notify],
+  );
 
   const refresh = (force: boolean): void => {
     setLoading(true);
     void window.api.getUsageLimits(force).then((data) => {
       setLimits(data);
+      observe(data);
       setLoading(false);
     });
   };
@@ -49,10 +86,15 @@ export function UsageIndicator(): ReactElement {
   useEffect(() => {
     refresh(false);
     const minute = window.setInterval(() => {
-      void window.api.getUsageLimits(false).then(setLimits);
+      void window.api.getUsageLimits(false).then((data) => {
+        setLimits(data);
+        observe(data);
+      });
     }, 60_000);
     return () => window.clearInterval(minute);
-  }, []);
+    // refresh czyta świeże `observe` przy każdym wywołaniu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [observe]);
 
   // Po nieudanym pobraniu pokazujemy ostatnie znane wartości (stale).
   const planLimits = limits ? (limits.ok ? limits.limits : (limits.stale ?? null)) : null;
@@ -122,6 +164,16 @@ export function UsageIndicator(): ReactElement {
                     <div className="usage-session-row usage-session-sub">
                       <span>{tf('usage.reset', { when: resetLabel(session.resetsAt) })}</span>
                     </div>
+                    {forecast !== null && (
+                      <div className="usage-session-row usage-forecast" data-testid="usage-forecast">
+                        <span>
+                          {tf('usage.forecast', {
+                            h: formatDuration(forecast).hours,
+                            m: formatDuration(forecast).minutes,
+                          })}
+                        </span>
+                      </div>
+                    )}
                   </>
                 )}
                 {weekly && (
