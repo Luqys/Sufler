@@ -21,6 +21,7 @@ import {
   parseHookRequest,
   HOOK_ENDPOINT_PATH,
 } from '../shared/claude-hooks';
+import { appendSessionLog } from './session-log';
 import {
   buildLockFileContent,
   handleIdeRpcMessage,
@@ -236,20 +237,34 @@ export function startIdeServer(rootProvider: () => string | null): void {
   });
 }
 
-/** Hook Notification/Stop z sesji Claude → deterministyczny status karty. */
+/**
+ * Hooki z sesji Claude: Notification/Stop dają deterministyczny status karty
+ * (M35), UserPromptSubmit/PostToolUse zasilają dziennik sesji (M52) — dlatego
+ * ciało żądania (JSON ze stdin) jest teraz czytane, a nie porzucane.
+ */
 function handleHookRequest(request: IncomingMessage, response: ServerResponse): void {
   const event = parseHookRequest(request.headers, authToken);
-  // Treść hooka (JSON na stdin curla) pomijamy — nagłówki niosą wszystko.
-  request.resume();
+  let body = '';
+  request.setEncoding('utf8');
+  request.on('data', (chunk: string) => {
+    if (body.length < 256 * 1024) {
+      body += chunk;
+    }
+  });
   request.on('end', () => {
     if (!event) {
       response.writeHead(403);
       response.end();
       return;
     }
-    for (const win of BrowserWindow.getAllWindows()) {
-      if (!win.isDestroyed()) {
-        win.webContents.send(IPC.ClaudeHookEvent, event);
+    if (event.kind === 'prompt' || event.kind === 'tool' || event.kind === 'stop') {
+      void appendSessionLog(event.kind, body);
+    }
+    if (event.kind === 'notification' || event.kind === 'stop') {
+      for (const win of BrowserWindow.getAllWindows()) {
+        if (!win.isDestroyed()) {
+          win.webContents.send(IPC.ClaudeHookEvent, event);
+        }
       }
     }
     response.writeHead(204);

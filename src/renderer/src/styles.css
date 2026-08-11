@@ -3566,3 +3566,53 @@ body.dragging-horizontal .splitter.horizontal::after {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* M52: przełącznik dziennika sesji w Ustawieniach */
+
+.settings-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.settings-switch input {
+  appearance: none;
+  width: 34px;
+  height: 19px;
+  margin: 0;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--muted) 28%, transparent);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.settings-switch input::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--text);
+  opacity: 0.75;
+  transition: transform 0.15s ease;
+}
+
+.settings-switch input:checked {
+  background: color-mix(in srgb, var(--accent) 75%, transparent);
+  border-color: var(--accent);
+}
+
+.settings-switch input:checked::after {
+  transform: translateX(15px);
+  background: #fff;
+  opacity: 1;
+}

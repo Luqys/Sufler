@@ -84,6 +84,10 @@ export const PL = {
   'settings.changeProject': 'Zmień folder projektu…',
   'settings.config': 'Konfiguracja',
   'settings.configPath': 'Układ i stan aplikacji: ~/.config/sufler/ (layout.json, state.json)',
+  'settings.sessionLog': 'Dziennik sesji Claude',
+  'settings.sessionLogHint':
+    'Sufler dopisuje przebieg pracy (polecenia, edytowane pliki, komendy) do pliku .md w katalogu dziennik-sesji/. Po `/clear` wczytaj ten plik, aby wrócić do wątku bez odtwarzania całej rozmowy — to najprostszy sposób na oszczędzanie kontekstu.',
+  'settings.sessionLogSwitch': 'Zapisuj dziennik sesji',
   'settings.obsidianTitle': 'Obsidian — notatka dzienna',
   'settings.obsidianIntro':
     'Opcjonalne. Wymaga pluginu Local REST API uruchomionego w Obsidianie.',
@@ -545,6 +549,10 @@ export const EN: Record<StringKey, string> = {
   'settings.changeProject': 'Change project folder…',
   'settings.config': 'Configuration',
   'settings.configPath': 'Layout and app state: ~/.config/sufler/ (layout.json, state.json)',
+  'settings.sessionLog': 'Claude session log',
+  'settings.sessionLogHint':
+    'Sufler appends the course of work (prompts, edited files, commands) to a .md file in the dziennik-sesji/ folder. After `/clear`, open that file to pick up the thread without replaying the whole conversation — the simplest way to save context.',
+  'settings.sessionLogSwitch': 'Record the session log',
   'settings.obsidianTitle': 'Obsidian — daily note',
   'settings.obsidianIntro': 'Optional. Requires the Local REST API plugin running in Obsidian.',
   'settings.obsidianApiKey': 'API key (Local REST API plugin)',

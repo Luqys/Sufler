@@ -60,6 +60,7 @@ import {
 } from './skills';
 import type { AgentCreateInput, RuleCreateInput, SkillCreateInput } from '../shared/ipc';
 import { closeSkillsWatcher, watchSkillsSources } from './skills-watcher';
+import { isSessionLogEnabled, setSessionLogEnabled } from './session-log';
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -228,6 +229,8 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.AgentsToggle, (_event, root: string, name: string, enabled: boolean) =>
     setAgentEnabled(root, name, enabled),
   );
+  ipcMain.handle(IPC.SessionLogGet, () => isSessionLogEnabled());
+  ipcMain.handle(IPC.SessionLogSet, (_event, enabled: boolean) => setSessionLogEnabled(enabled));
   ipcMain.handle(IPC.AgentsCreate, (_event, root: string, input: AgentCreateInput) =>
     createAgent(root, input),
   );

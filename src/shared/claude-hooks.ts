@@ -6,15 +6,17 @@
  * Czysta logika (budowa ustawień + parsowanie żądania) — testowana jednostkowo.
  */
 
+export type ClaudeHookKind = 'notification' | 'stop' | 'prompt' | 'tool';
+
 export interface ClaudeHookEvent {
   ptyId: number;
-  kind: 'notification' | 'stop';
+  kind: ClaudeHookKind;
 }
 
 /** Ścieżka endpointu na serwerze HTTP aplikacji (współdzielonym z ide-ws). */
 export const HOOK_ENDPOINT_PATH = '/hook';
 
-function hookCommand(port: number, token: string, event: 'notification' | 'stop'): string {
+function hookCommand(port: number, token: string, event: ClaudeHookKind): string {
   // $VISUALN3O_TAB_ID rozwiązuje shell hooka — zmienna siedzi w env pty karty.
   return (
     `curl -sf -m 3 -X POST` +
@@ -26,15 +28,22 @@ function hookCommand(port: number, token: string, event: 'notification' | 'stop'
   );
 }
 
-/** Zawartość pliku dla `claude --settings <plik>` — tylko hooki, nic więcej. */
+/**
+ * Zawartość pliku dla `claude --settings <plik>` — tylko hooki, nic więcej.
+ * Notification/Stop niosą status karty (M35), UserPromptSubmit/PostToolUse
+ * zasilają dziennik sesji (M52). Ciało JSON ze stdin trafia do endpointu
+ * `--data-binary @-`, bo dziennik potrzebuje session_id i tool_input.
+ */
 export function buildHookSettings(port: number, token: string): object {
-  const entry = (event: 'notification' | 'stop'): object[] => [
+  const entry = (event: ClaudeHookKind): object[] => [
     { hooks: [{ type: 'command', command: hookCommand(port, token, event), timeout: 5 }] },
   ];
   return {
     hooks: {
       Notification: entry('notification'),
       Stop: entry('stop'),
+      UserPromptSubmit: entry('prompt'),
+      PostToolUse: entry('tool'),
     },
   };
 }
@@ -59,7 +68,7 @@ export function parseHookRequest(
     return null;
   }
   const event = headerValue(headers['x-sufler-event']);
-  if (event !== 'notification' && event !== 'stop') {
+  if (event !== 'notification' && event !== 'stop' && event !== 'prompt' && event !== 'tool') {
     return null;
   }
   return { ptyId, kind: event };

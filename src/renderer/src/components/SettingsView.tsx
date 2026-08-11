@@ -17,10 +17,12 @@ export function SettingsView(): ReactElement {
   const t = useT();
   const [appearance, setAppearanceState] = useState<Appearance>(DEFAULT_APPEARANCE);
   const [obsidian, setObsidian] = useState<ObsidianRestConfig>({});
+  const [sessionLog, setSessionLog] = useState(true);
 
   useEffect(() => {
     void window.api.getAppearance().then(setAppearanceState);
     void window.api.getObsidianConfig().then(setObsidian);
+    void window.api.getSessionLogEnabled().then(setSessionLog);
   }, []);
 
   const updateObsidian = (patch: Partial<ObsidianRestConfig>): void => {
@@ -102,6 +104,24 @@ export function SettingsView(): ReactElement {
             {t('settings.changeProject')}
           </button>
         </div>
+      </section>
+      <section className="settings-section">
+        <h3 className="view-title">{t('settings.sessionLog')}</h3>
+        <p className="settings-hint">{t('settings.sessionLogHint')}</p>
+        <label className="settings-switch">
+          <input
+            type="checkbox"
+            role="switch"
+            data-testid="session-log-toggle"
+            checked={sessionLog}
+            onChange={(event) => {
+              const next = event.target.checked;
+              setSessionLog(next);
+              void window.api.setSessionLogEnabled(next);
+            }}
+          />
+          <span>{t('settings.sessionLogSwitch')}</span>
+        </label>
       </section>
       <section className="settings-section">
         <h3 className="view-title">{t('settings.obsidianTitle')}</h3>

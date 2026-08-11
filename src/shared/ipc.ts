@@ -36,6 +36,8 @@ export const IPC = {
   SkillsCreate: 'skills:create',
   SkillsToggle: 'skills:toggle',
   AgentsToggle: 'skills:agent-toggle',
+  SessionLogGet: 'session-log:get',
+  SessionLogSet: 'session-log:set',
   AgentsCreate: 'skills:agent-create',
   RulesCreate: 'skills:rule-create',
   McpReadConfig: 'mcp:read-config',
@@ -280,6 +282,9 @@ export interface WindowApi {
   setSkillEnabled(root: string, name: string, enabled: boolean): Promise<SkillToggleResult>;
   /** Przełącznik subagenta: reguła Agent(nazwa) w permissions.deny settings.local.json. */
   setAgentEnabled(root: string, name: string, enabled: boolean): Promise<SkillToggleResult>;
+  /** Dziennik sesji Claude (M52) — automatyczny zapis przebiegu pracy do .md. */
+  getSessionLogEnabled(): Promise<boolean>;
+  setSessionLogEnabled(enabled: boolean): Promise<boolean>;
   /** Kreator: nowy plik subagenta w <root>/.claude/agents. */
   createAgent(root: string, input: AgentCreateInput): Promise<SkillCreateResult>;
   /** Kreator: nowy plik reguły w <root>/.claude/rules. */

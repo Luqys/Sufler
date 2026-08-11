@@ -12,6 +12,8 @@ export interface AppState {
   appearance?: unknown;
   /** Local REST API — „wyślij do notatki dziennej" (M36). */
   obsidian?: ObsidianRestConfig;
+  /** Dziennik sesji Claude (M52); brak wartości = włączony. */
+  sessionLog?: boolean;
 }
 
 function stateFilePath(): string {
@@ -36,6 +38,9 @@ export function readState(): AppState {
     }
     if (typeof obj['appearance'] === 'object' && obj['appearance'] !== null) {
       state.appearance = obj['appearance'];
+    }
+    if (typeof obj['sessionLog'] === 'boolean') {
+      state.sessionLog = obj['sessionLog'];
     }
     if (typeof obj['obsidian'] === 'object' && obj['obsidian'] !== null) {
       const source = obj['obsidian'] as Record<string, unknown>;

@@ -88,6 +88,9 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.SkillsToggle, root, name, enabled),
   setAgentEnabled: (root: string, name: string, enabled: boolean): Promise<SkillToggleResult> =>
     ipcRenderer.invoke(IPC.AgentsToggle, root, name, enabled),
+  getSessionLogEnabled: (): Promise<boolean> => ipcRenderer.invoke(IPC.SessionLogGet),
+  setSessionLogEnabled: (enabled: boolean): Promise<boolean> =>
+    ipcRenderer.invoke(IPC.SessionLogSet, enabled),
   createAgent: (root: string, input: AgentCreateInput): Promise<SkillCreateResult> =>
     ipcRenderer.invoke(IPC.AgentsCreate, root, input),
   createRule: (root: string, input: RuleCreateInput): Promise<SkillCreateResult> =>
