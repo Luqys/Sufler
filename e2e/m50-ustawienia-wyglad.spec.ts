@@ -1,4 +1,6 @@
 import { expect, test } from '@playwright/test';
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { launchApp, makeConfigHome, makeFixtureProject } from './utils';
 
 test('Ustawienia: segmentowane przełączniki, pełny opis i zrzuty w trzech motywach', async () => {
@@ -36,11 +38,28 @@ test('Ustawienia: segmentowane przełączniki, pełny opis i zrzuty w trzech mot
 });
 
 test('nakładka grafu: tryby w równych rzędach, stan aktywny przycisku', async () => {
-  const app = await launchApp(makeConfigHome(), makeFixtureProject());
+  // Graf z połączeniami — nakładka na pustym płótnie niczego nie dowodzi.
+  const project = makeFixtureProject();
+  writeFileSync(
+    join(project, 'architektura.md'),
+    '---\ntagi: [projekt, backend]\n---\n\n# Architektura\n\nOpisuje [[model-danych]] i [[uprawnienia]].\n',
+  );
+  writeFileSync(
+    join(project, 'model-danych.md'),
+    '---\ntagi: backend\n---\n\n# Model danych\n\nTabele SQL, wraca do [[architektura]].\n',
+  );
+  writeFileSync(
+    join(project, 'uprawnienia.md'),
+    '# Uprawnienia\n\nLogowanie i role; zobacz [[model-danych]].\n',
+  );
+  writeFileSync(join(project, 'realtime.md'), '# Realtime\n\nKanały zdarzeń — [[architektura]].\n');
+
+  const app = await launchApp(makeConfigHome(), project);
   const page = await app.firstWindow();
 
   await page.getByTestId('rail-knowledge').click();
-  await expect(page.getByTestId('graph-stats')).toContainText('notatk', { timeout: 15_000 });
+  await expect(page.getByTestId('graph-stats')).toContainText('5 notatek', { timeout: 15_000 });
+  await expect(page.getByTestId('graph-stats')).toContainText('4 połączenia');
 
   // Pięć trybów układa się w dwa rzędy — żaden nie wystaje poza kartę legendy.
   const legend = page.getByTestId('graph-legend');
