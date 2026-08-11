@@ -265,6 +265,18 @@ export const PL = {
   'help.git.title': 'Historia git',
   'help.git.body':
     'Lista commitów z gałęzią i sekcją zmian roboczych. Klik w plik pokazuje diff w Monaco, a propozycje zmian od Claude (openDiff) mają przyciski Zastosuj/Odrzuć.',
+  'help.kontekst.title': 'Dziennik sesji — oszczędzanie kontekstu',
+  'help.kontekst.body':
+    'Każda sesja Claude prowadzona w Suflerze dopisuje przebieg pracy do pliku w katalogu dziennik-sesji/: Twoje polecenia, edytowane pliki i komendy powłoki. Dzięki temu możesz spokojnie użyć /clear — wracasz do wątku, wczytując jeden krótki plik zamiast odtwarzać rozmowę. Przycisk „Streść" w panelu Wiedza prosi Claude o podsumowanie (co zrobiono, co dalej) na górze dziennika. W Ustawieniach włączysz zapis także dla sesji uruchamianych poza aplikacją.',
+  'help.ratunek.title': 'Punkty przywracania',
+  'help.ratunek.body':
+    'Przed każdą turą Claude aplikacja zapisuje migawkę drzewa projektu w osobnym refie gita — bez dotykania Twoich commitów, gałęzi i indeksu. Listę znajdziesz w panelu Historia git; jedno kliknięcie cofa pliki do wybranego stanu, a bieżący stan trafia najpierw do nowej migawki, więc cofnięcie też da się cofnąć.',
+  'help.historia.title': 'Historia pracy',
+  'help.historia.body':
+    'Ikona ◷ w panelu Historia git otwiera oś czasu, na której commity spotykają się z dziennikami sesji, pogrupowane po dniach. Widać, która rozmowa doprowadziła do której zmiany; klik w sesję otwiera jej dziennik.',
+  'help.limity.title': 'Limity planu',
+  'help.limity.body':
+    'Pigułka na pasku tytułu pokazuje zużycie okna 5-godzinnego i tygodnia. Po kliknięciu zobaczysz też prognozę — za ile limit skończy się przy obecnym tempie. Po przekroczeniu 80% aplikacja ostrzeże raz na okno, żeby przypomnieć o przerwie albo /clear.',
   'help.wiedza.title': 'Wiedza i graf',
   'help.wiedza.body':
     'Panel Wiedza zbiera notatki .md projektu i utrzymuje konspekt, który Claude pobiera narzędziem MCP „konspekt". Graf wiedzy łączy notatki wikilinkami [[…]] — kolorowanie po autorze, funkcji, warstwie, tagach i świeżości, do tego szukajka, filtr legendy i ukrywanie notatek bez połączeń.',
@@ -751,6 +763,18 @@ export const EN: Record<StringKey, string> = {
   'help.git.title': 'Git history',
   'help.git.body':
     'The commit list with the branch and a working-changes section. Clicking a file shows a Monaco diff, and change proposals from Claude (openDiff) come with Apply/Reject buttons.',
+  'help.kontekst.title': 'Session log — saving context',
+  'help.kontekst.body':
+    'Every Claude session run inside Sufler appends the course of work to a file in dziennik-sesji/: your prompts, edited files and shell commands. That lets you use /clear freely — you pick up the thread by reading one short file instead of replaying the conversation. The “Summarize” button in the Knowledge panel asks Claude for a recap (what was done, what is next) at the top of the log. Settings can enable the log for sessions started outside the app too.',
+  'help.ratunek.title': 'Restore points',
+  'help.ratunek.body':
+    'Before every Claude turn the app snapshots the project tree into a separate git ref — without touching your commits, branches or index. The list lives in the Git history panel; one click rolls files back, and the current state is saved as a new snapshot first, so undoing can be undone.',
+  'help.historia.title': 'Work history',
+  'help.historia.body':
+    'The ◷ icon in the Git history panel opens a timeline where commits meet session logs, grouped by day. You can see which conversation led to which change; clicking a session opens its log.',
+  'help.limity.title': 'Plan limits',
+  'help.limity.body':
+    'The pill in the title bar shows usage of the 5-hour window and the week. Click it for a forecast — when the limit runs out at the current pace. Above 80% the app warns once per window, as a nudge to take a break or run /clear.',
   'help.wiedza.title': 'Knowledge and graph',
   'help.wiedza.body':
     'The Knowledge panel gathers the project’s .md notes and maintains an outline that Claude fetches via the MCP “konspekt” tool. The knowledge graph links notes with [[wikilinks]] — coloring by author, function, layer, tags and freshness, plus search, legend filters and hiding unlinked notes.',
