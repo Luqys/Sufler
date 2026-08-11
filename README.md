@@ -13,7 +13,7 @@ w jednym oknie — razem z grafem wiedzy, skillami i serwerami MCP.
 
 </div>
 
----
+![Sufler — graf wiedzy, drzewo projektu i terminal w jednym oknie](docs/obrazy/sufler.png)
 
 ## Czym to jest
 
@@ -130,6 +130,8 @@ Logika, którą da się przetestować bez Electrona, mieszka w `src/shared` —
 procesy główny i renderer korzystają z niej wspólnie. Teksty interfejsu idą
 wyłącznie przez słownik `src/shared/i18n.ts` (polski i angielski, typ wymusza
 komplet tłumaczeń).
+
+Zrzut w README odświeża generator: `npx playwright test -c scripts/zrzut.config.ts`.
 
 Szczegóły projektowe i historia kamieni milowych: [docs/SPEC.md](docs/SPEC.md).
 Konwencje pracy z asystentem: [CLAUDE.md](CLAUDE.md).
