@@ -27,6 +27,7 @@ import {
   type SkillCreateInput,
   type SkillCreateResult,
   type GlobalSessionLogResult,
+  type SummaryResult,
   type SkillToggleResult,
   type SkillsSnapshot,
   type TreeChangedEvent,
@@ -95,6 +96,8 @@ const api: WindowApi = {
   getGlobalSessionLog: (): Promise<boolean> => ipcRenderer.invoke(IPC.SessionLogGlobalGet),
   setGlobalSessionLog: (enabled: boolean): Promise<GlobalSessionLogResult> =>
     ipcRenderer.invoke(IPC.SessionLogGlobalSet, enabled),
+  summarizeSessionLog: (root: string, path: string): Promise<SummaryResult> =>
+    ipcRenderer.invoke(IPC.SessionLogSummarize, root, path),
   createAgent: (root: string, input: AgentCreateInput): Promise<SkillCreateResult> =>
     ipcRenderer.invoke(IPC.AgentsCreate, root, input),
   createRule: (root: string, input: RuleCreateInput): Promise<SkillCreateResult> =>

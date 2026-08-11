@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type ReactElement } from 'react';
 import type { KnowledgeFile } from '../../../shared/ipc';
+import { SESSION_LOG_DIR } from '../../../shared/session-log';
 import { tf, tp, useT } from '../i18n';
 import { onKnowledgeChanged } from '../knowledge-events';
 import { useDialogs } from '../ui-dialogs';
@@ -60,6 +61,30 @@ export function KnowledgePanel(): ReactElement {
     void window.api.getWiedzaMcpStatus().then(setMcpStatus);
   }, []);
 
+  const [summarizing, setSummarizing] = useState<string | null>(null);
+
+  const summarize = (path: string): void => {
+    setSummarizing(path);
+    void window.api.summarizeSessionLog(root, path).then((result) => {
+      setSummarizing(null);
+      if (result.ok) {
+        notify(t('knowledge.summarizeOk'), 'success');
+        refresh();
+      } else {
+        notify(
+          t(
+            result.error === 'too-short'
+              ? 'knowledge.summarizeShort'
+              : result.error === 'claude-failed'
+                ? 'knowledge.summarizeFailed'
+                : 'knowledge.summarizeError',
+          ),
+          'error',
+        );
+      }
+    });
+  };
+
   const registerMcp = (): void => {
     void window.api.registerWiedzaMcp().then((result) => {
       notify(result.message, result.ok ? 'success' : 'error');
@@ -115,6 +140,18 @@ export function KnowledgePanel(): ReactElement {
                 {dir && <span className="knowledge-dir">{dir}</span>}
                 <span className="knowledge-name">{name}</span>
               </button>
+              {file.path.startsWith(`${SESSION_LOG_DIR}/`) && (
+                <button
+                  type="button"
+                  className="knowledge-summarize"
+                  data-testid="knowledge-summarize"
+                  disabled={summarizing === file.path}
+                  title={t('knowledge.summarizeHint')}
+                  onClick={() => summarize(file.path)}
+                >
+                  {summarizing === file.path ? t('knowledge.summarizing') : t('knowledge.summarize')}
+                </button>
+              )}
               <span className="knowledge-lines" title={tp('unit.lines', file.lines)}>
                 {file.lines} {t('common.linesAbbr')}
               </span>

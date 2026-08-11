@@ -40,6 +40,7 @@ export const IPC = {
   SessionLogSet: 'session-log:set',
   SessionLogGlobalGet: 'session-log:global-get',
   SessionLogGlobalSet: 'session-log:global-set',
+  SessionLogSummarize: 'session-log:summarize',
   AgentsCreate: 'skills:agent-create',
   RulesCreate: 'skills:rule-create',
   McpReadConfig: 'mcp:read-config',
@@ -195,6 +196,10 @@ export type SkillCreateResult =
   | { ok: true; path: string }
   | { ok: false; error: 'invalid-name' | 'exists' | 'write-failed' };
 
+export type SummaryResult =
+  | { ok: true; summary: string }
+  | { ok: false; error: 'not-a-log' | 'too-short' | 'claude-failed' | 'write-failed' };
+
 export type GlobalSessionLogResult =
   | { ok: true; enabled: boolean; path: string }
   | { ok: false; error: 'settings-unreadable' | 'write-failed' };
@@ -294,6 +299,8 @@ export interface WindowApi {
   /** Dziennik także dla sesji `claude` poza Suflerem (hooki w ~/.claude/settings.json). */
   getGlobalSessionLog(): Promise<boolean>;
   setGlobalSessionLog(enabled: boolean): Promise<GlobalSessionLogResult>;
+  /** Streszcza dziennik przez `claude -p` i wstawia sekcję Podsumowanie. */
+  summarizeSessionLog(root: string, path: string): Promise<SummaryResult>;
   /** Kreator: nowy plik subagenta w <root>/.claude/agents. */
   createAgent(root: string, input: AgentCreateInput): Promise<SkillCreateResult>;
   /** Kreator: nowy plik reguły w <root>/.claude/rules. */

@@ -62,6 +62,7 @@ import type { AgentCreateInput, RuleCreateInput, SkillCreateInput } from '../sha
 import { closeSkillsWatcher, watchSkillsSources } from './skills-watcher';
 import { isSessionLogEnabled, setSessionLogEnabled } from './session-log';
 import { isGlobalSessionLogEnabled, setGlobalSessionLogEnabled } from './session-log-global';
+import { summarizeSessionLog } from './session-summary';
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -235,6 +236,9 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.SessionLogGlobalGet, () => isGlobalSessionLogEnabled());
   ipcMain.handle(IPC.SessionLogGlobalSet, (_event, enabled: boolean) =>
     setGlobalSessionLogEnabled(enabled),
+  );
+  ipcMain.handle(IPC.SessionLogSummarize, (_event, root: string, path: string) =>
+    summarizeSessionLog(root, path),
   );
   ipcMain.handle(IPC.AgentsCreate, (_event, root: string, input: AgentCreateInput) =>
     createAgent(root, input),

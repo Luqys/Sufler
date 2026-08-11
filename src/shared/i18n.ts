@@ -84,6 +84,14 @@ export const PL = {
   'settings.changeProject': 'Zmień folder projektu…',
   'settings.config': 'Konfiguracja',
   'settings.configPath': 'Układ i stan aplikacji: ~/.config/sufler/ (layout.json, state.json)',
+  'knowledge.summarize': 'Streść',
+  'knowledge.summarizing': 'Streszczam…',
+  'knowledge.summarizeHint':
+    'Poproś Claude o podsumowanie dziennika (co zrobiono, co dalej) — wynik ląduje na górze pliku. Wywołanie zużywa limit planu.',
+  'knowledge.summarizeOk': 'Podsumowanie dopisane na górze dziennika.',
+  'knowledge.summarizeShort': 'Dziennik jest za krótki na streszczenie.',
+  'knowledge.summarizeFailed': 'Nie udało się uruchomić `claude -p` — sprawdź logowanie i limity.',
+  'knowledge.summarizeError': 'Nie udało się zapisać podsumowania.',
   'settings.sessionLog': 'Dziennik sesji Claude',
   'settings.sessionLogHint':
     'Sufler dopisuje przebieg pracy (polecenia, edytowane pliki, komendy) do pliku .md w katalogu dziennik-sesji/. Po `/clear` wczytaj ten plik, aby wrócić do wątku bez odtwarzania całej rozmowy — to najprostszy sposób na oszczędzanie kontekstu.',
@@ -552,6 +560,14 @@ export const EN: Record<StringKey, string> = {
   'settings.changeProject': 'Change project folder…',
   'settings.config': 'Configuration',
   'settings.configPath': 'Layout and app state: ~/.config/sufler/ (layout.json, state.json)',
+  'knowledge.summarize': 'Summarize',
+  'knowledge.summarizing': 'Summarizing…',
+  'knowledge.summarizeHint':
+    'Ask Claude to summarize the log (what was done, what is next) — the result lands at the top of the file. The call consumes your plan limit.',
+  'knowledge.summarizeOk': 'Summary added at the top of the log.',
+  'knowledge.summarizeShort': 'The log is too short to summarize.',
+  'knowledge.summarizeFailed': 'Could not run `claude -p` — check your login and limits.',
+  'knowledge.summarizeError': 'Could not save the summary.',
   'settings.sessionLog': 'Claude session log',
   'settings.sessionLogHint':
     'Sufler appends the course of work (prompts, edited files, commands) to a .md file in the dziennik-sesji/ folder. After `/clear`, open that file to pick up the thread without replaying the whole conversation — the simplest way to save context.',

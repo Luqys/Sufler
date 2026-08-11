@@ -3629,3 +3629,26 @@ body.dragging-horizontal .splitter.horizontal::after {
 .titlebar-actions {
   gap: 3px;
 }
+
+/* M54: przycisk streszczenia przy dzienniku sesji */
+
+.knowledge-summarize {
+  flex: none;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+
+.knowledge-summarize:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.knowledge-summarize:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
