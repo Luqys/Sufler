@@ -3,6 +3,11 @@
 const { chmodSync, existsSync } = require('node:fs');
 const { join } = require('node:path');
 
+// Na Windows node-pty nie używa spawn-helpera — skrypt nie ma tam nic do roboty.
+if (process.platform !== 'darwin') {
+  process.exit(0);
+}
+
 const roots = [
   join(__dirname, '..', 'node_modules', 'node-pty', 'prebuilds', 'darwin-arm64'),
   join(__dirname, '..', 'node_modules', 'node-pty', 'prebuilds', 'darwin-x64'),

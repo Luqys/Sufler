@@ -5,6 +5,9 @@ directories:
 files:
   - out/**
   - package.json
+# Uwaga przy budowaniu z worktree: electron-builder nie rozwiązuje zależności
+# przez dowiązanie symboliczne node_modules i po cichu pomija moduły natywne.
+# Paczkę składaj w katalogu z prawdziwym node_modules (klon + npm ci).
 # node-pty: moduł natywny — bez przebudowy (prebuildy N-API dla arm64 i x64
 # leżą w pakiecie), rozpakowany z asar, bo ładuje spawn-helper z dysku.
 npmRebuild: false
@@ -23,3 +26,22 @@ mac:
         - x64
 dmg:
   artifactName: ${productName}-${version}-${arch}.${ext}
+win:
+  icon: build/icon.png
+  # node-pty ma prebuildy N-API dla win32-x64 i win32-arm64, więc paczka
+  # powstaje bez kompilacji natywnej na maszynie budującej.
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - arm64
+    - target: portable
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  artifactName: ${productName}-Setup-${version}-${arch}.${ext}
+portable:
+  artifactName: ${productName}-${version}-${arch}-portable.${ext}

@@ -14,8 +14,10 @@
     "lint": "eslint .",
     "test": "vitest run",
     "e2e": "electron-vite build && playwright test",
-    "dist": "electron-vite build && electron-builder --mac",
-    "postinstall": "node scripts/fix-node-pty.js"
+    "dist": "electron-vite build && electron-builder --mac --win",
+    "postinstall": "node scripts/fix-node-pty.js",
+    "dist:mac": "electron-vite build && electron-builder --mac",
+    "dist:win": "electron-vite build && electron-builder --win"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.2.0",
@@ -56,5 +58,10 @@
     "node-pty": "^1.1.0",
     "zod": "^4.4.3",
     "ws": "^8.21.3"
+  },
+  "homepage": "https://sufler.dev/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Luqys/Sufler.git"
   }
 }

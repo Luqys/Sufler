@@ -70,7 +70,14 @@ motywy jasny, ciemny i matrixowy, interfejs po polsku i angielsku.
 - [Claude Code](https://claude.com/claude-code) w `PATH` (sesje Claude i limity planu)
 - `git` i `ripgrep` — dla panelu historii i wyszukiwania
 
-## Uruchomienie
+## Instalacja
+
+Gotowe paczki dla macOS (`.dmg`) i Windows (instalator `.exe` oraz wersja
+przenośna) czekają w [Releases](https://github.com/Luqys/Sufler/releases).
+Krok po kroku, razem z obejściem ostrzeżeń systemowych, opisuje
+**[INSTRUKCJA.md](INSTRUKCJA.md)**.
+
+Ze źródeł:
 
 ```bash
 git clone https://github.com/Luqys/Sufler.git
@@ -82,18 +89,16 @@ npm run dev
 Aplikacja startuje z ekranem wyboru folderu projektu. Wskaż katalog, w którym
 pracujesz z Claude Code.
 
-## Budowanie paczki
+## Budowanie paczek
 
 ```bash
-npm run dist
+npm run dist:mac    # .dmg dla arm64 i x64
+npm run dist:win    # instalator .exe (x64, arm64) i wersja przenośna
 ```
 
-Produkuje `.dmg` dla arm64 i x64 w `dist/`. Wersja bez podpisu — po instalacji
-zdejmij kwarantannę:
-
-```bash
-xattr -dr com.apple.quarantine /Applications/Sufler.app
-```
+Paczkę dla danego systemu buduje się na tym systemie. Wydanie oznaczone tagiem
+(`git tag v0.1.0 && git push --tags`) buduje oba warianty automatem
+z `.github/workflows/release.yml`.
 
 ## Rozwój
 
@@ -116,6 +121,9 @@ src/shared     typy i czysta logika współdzielona, testowana jednostkowo
 src/renderer   interfejs w React
 tests          testy jednostkowe (vitest)
 e2e            scenariusze Playwright
+build          ikony aplikacji wraz ze źródłami wektorowymi
+docs           specyfikacja i decyzje projektowe
+.github        automaty CI i wydań
 ```
 
 Logika, którą da się przetestować bez Electrona, mieszka w `src/shared` —
@@ -123,10 +131,10 @@ procesy główny i renderer korzystają z niej wspólnie. Teksty interfejsu idą
 wyłącznie przez słownik `src/shared/i18n.ts` (polski i angielski, typ wymusza
 komplet tłumaczeń).
 
-Szczegóły projektowe i historia kamieni milowych: [SPEC.md](SPEC.md).
+Szczegóły projektowe i historia kamieni milowych: [docs/SPEC.md](docs/SPEC.md).
 Konwencje pracy z asystentem: [CLAUDE.md](CLAUDE.md).
 
 ## Licencja
 
-Projekt otwarty, rozwijany przez [N3O System](https://sufler.dev/).
-Zbudowany na Electronie, React i TypeScripcie jako wsparcie dla Claude Code.
+[MIT](LICENSE) — rozwijane przez [N3O System](https://sufler.dev/).
+Zbudowane na Electronie, React i TypeScripcie jako wsparcie dla Claude Code.
