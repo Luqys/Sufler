@@ -47,6 +47,24 @@ test('zapisany jasny motyw wygrywa z ciemnym ustawieniem systemu', async () => {
   await app.close();
 });
 
+test('przycisk motywu przełącza zapisany ciemny na jasny i z powrotem', async () => {
+  // Regresja: przy zapisanym trybie dark/light nasłuch systemowy milczy,
+  // więc przycisk musi sam ustawić data-theme — nie tylko zapisać wybór.
+  const app = await launchApp(configWithTheme('dark'), makeFixtureProject());
+  const page = await app.firstWindow();
+  await expect(page.getByTestId('workbench')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+
+  await page.getByTestId('theme-quick-toggle').click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await page.screenshot({ path: 'e2e-artifacts/m58-przelacznik-po-kliku.png' });
+
+  await page.getByTestId('theme-quick-toggle').click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+
+  await app.close();
+});
+
 test('motyw Matrix po restarcie zachowuje ciemną bazę i zieloną paletę', async () => {
   const app = await launchApp(configWithTheme('matrix'), makeFixtureProject());
   const page = await app.firstWindow();

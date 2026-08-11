@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { ACCENTS, type AccentId } from '../../../shared/appearance';
-import { applyAccent, applyThemeFlavor, FLAVOR_EVENT, isDarkTheme } from '../appearance-client';
+import { applyAccent, applyAppearance, FLAVOR_EVENT, isDarkTheme } from '../appearance-client';
 import { useT } from '../i18n';
 
 const ICON_SUN = (
@@ -54,9 +54,11 @@ export function ThemeToggle(): ReactElement {
   // Klik wychodzi też z trybu Matrix (to wariant ciemnego → przełącza na jasny).
   const toggleTheme = (): void => {
     void window.api.getAppearance().then((appearance) => {
-      const mode = dark ? 'light' : 'dark';
-      applyThemeFlavor(mode);
-      void window.api.setAppearance({ ...appearance, mode });
+      // Pełne zastosowanie lokalne jak w SettingsView: paleta wisi na
+      // data-theme, a nasłuch systemowy milczy poza trybem „Systemowy".
+      const next = { ...appearance, mode: dark ? ('light' as const) : ('dark' as const) };
+      applyAppearance(next);
+      void window.api.setAppearance(next);
     });
   };
 
