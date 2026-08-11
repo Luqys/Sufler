@@ -1,32 +1,39 @@
 # Jak uruchomić Sufler
 
-Krótki przewodnik od zera do działającej aplikacji. Jeśli chcesz tylko
-zainstalować gotową paczkę, zacznij od sekcji [Gotowa
-aplikacja](#gotowa-aplikacja). Jeśli chcesz uruchomić kod źródłowy albo coś
-w nim zmienić — od [Uruchomienie ze źródeł](#uruchomienie-ze-źródeł).
+Krótki przewodnik od pobrania paczki do działającej aplikacji.
 
 ---
 
-## Gotowa aplikacja
+## Instalacja
 
 Paczki instalacyjne znajdziesz w zakładce **Releases** na
-[GitHubie](https://github.com/Luqys/Sufler/releases).
+[GitHubie](https://github.com/Luqys/Sufler/releases/latest).
 
 ### macOS
 
 1. Pobierz plik `Sufler-<wersja>-arm64.dmg` (Apple Silicon: M1–M4)
-   albo `-x64.dmg` (starsze Maki na Intelu).
-2. Otwórz `.dmg` i przeciągnij Sufler do katalogu **Programy**.
-3. Aplikacja nie jest podpisana certyfikatem Apple, więc przy pierwszym
-   uruchomieniu system ją zablokuje. Zdejmij kwarantannę jedną komendą
-   w Terminalu:
+   albo `-x64.dmg` (starsze Maki na Intelu). Menu  → *Ten Mac* podpowie,
+   który procesor masz.
+2. Otwórz `.dmg` i przeciągnij Sufler do katalogu **Programy**. W oknie
+   obrazu leży też ta sama instrukcja w wersji tekstowej.
+3. Aplikacja nie ma płatnego podpisu Apple Developer ID, więc przy pierwszym
+   uruchomieniu system poprosi o potwierdzenie:
+
+   - kliknij ikonę Sufler prawym przyciskiem (albo `Ctrl` + klik) →
+     **Otwórz** → w oknie ostrzeżenia jeszcze raz **Otwórz**;
+   - jeśli okno nie daje przycisku „Otwórz" (macOS Sequoia i nowsze):
+     zamknij je, wejdź w *Ustawienia systemowe → Prywatność i ochrona*,
+     przewiń na dół do komunikatu o zablokowanym Suflerze i kliknij
+     **Otwórz mimo to**.
+
+   Potwierdza się to raz — kolejne uruchomienia są zwykłym kliknięciem.
+
+4. Gdyby system dalej odmawiał (komunikat „aplikacja jest uszkodzona"),
+   zdejmij kwarantannę jedną komendą w Terminalu:
 
    ```bash
    xattr -dr com.apple.quarantine /Applications/Sufler.app
    ```
-
-   Alternatywnie: kliknij aplikację prawym przyciskiem → **Otwórz** →
-   potwierdź **Otwórz** w oknie ostrzeżenia.
 
 ### Windows
 
@@ -56,56 +63,10 @@ graf wiedzy i panele, tylko bez sesji asystenta.
 
 ---
 
-## Uruchomienie ze źródeł
-
-### 1. Wymagania
-
-- [Node.js](https://nodejs.org/) w wersji 20 lub nowszej
-  (sprawdź: `node --version`)
-- `git`
-
-### 2. Pobranie i instalacja
-
-```bash
-git clone https://github.com/Luqys/Sufler.git
-cd Sufler
-npm install
-```
-
-Instalacja pobiera Electron i Monaco, więc pierwszy raz potrafi potrwać
-kilka minut.
-
-### 3. Start
-
-```bash
-npm run dev
-```
-
-Otworzy się okno z ekranem powitalnym. Wskaż folder projektu, nad którym
-pracujesz — ten sam, w którym uruchamiasz Claude Code.
-
-Tryb deweloperski odświeża interfejs po zapisaniu pliku. Zmiany w procesie
-głównym (katalog `src/main`) wymagają restartu — zatrzymaj `Ctrl+C` i uruchom
-ponownie.
-
-### 4. Własna paczka instalacyjna
-
-```bash
-npm run dist:mac    # .dmg dla arm64 i x64
-npm run dist:win    # instalator .exe i wersja przenośna
-```
-
-Gotowe pliki lądują w katalogu `dist/`. Paczkę dla danego systemu buduje się
-na tym systemie — `.dmg` na macOS, `.exe` na Windowsie. Automat w
-`.github/workflows/release.yml` robi jedno i drugie po oznaczeniu wydania
-tagiem (`git tag v0.1.0 && git push --tags`).
-
----
-
 ## Pierwsze kroki w aplikacji
 
 1. **Otwórz projekt** — ekran powitalny albo zębatka ⚙ → *Zmień folder
-   projektu*.
+   projektu*. Lista ostatnich projektów pokazuje ikonę każdego z nich.
 2. **Uruchom sesję Claude** — przycisk `+` w prawym albo dolnym doku →
    *Sesja Claude*. Obok, w tej samej zakładce, możesz otworzyć zwykły terminal.
 3. **Zajrzyj do samouczka** — przycisk `?` na pasku tytułu opisuje wszystkie
@@ -141,10 +102,9 @@ po przekroczeniu limitu zapytań aplikacja sama odczeka kilka minut.
 **Panel historii jest pusty.** Folder projektu nie jest repozytorium git —
 uruchom w nim `git init`, albo otwórz inny katalog.
 
-**Terminal nie startuje na macOS (`posix_spawnp failed`).** Prebuilt node-pty
-stracił bit wykonywalności. Napraw: `npm run postinstall`.
+**macOS: „aplikacja jest uszkodzona".** Kwarantanna po pobraniu z sieci.
+Zdejmij ją komendą z sekcji [Instalacja](#macos).
 
 ---
 
 Pełny opis funkcji: [README.md](README.md).
-Założenia projektowe: [docs/SPEC.md](docs/SPEC.md).

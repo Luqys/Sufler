@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="build/icon-src/icon-macos-inset.svg" width="120" alt="Sufler">
+<img src="docs/obrazy/sufler-ikona.svg" width="120" alt="Sufler">
 
 # Sufler
 
@@ -9,11 +9,44 @@
 Środowisko pracy z Claude Code: edytor, prawdziwe terminale i sesje Claude
 w jednym oknie — razem z grafem wiedzy, skillami i serwerami MCP.
 
-[sufler.dev](https://sufler.dev/) · macOS i Windows · open source
+[sufler.dev](https://sufler.dev/) · macOS i Windows
+
+### ⬇ [Pobierz najnowszą wersję](https://github.com/Luqys/Sufler/releases/latest)
 
 </div>
 
 ![Sufler — graf wiedzy, drzewo projektu i terminal w jednym oknie](docs/obrazy/sufler.png)
+
+## Co pobrać
+
+Wszystkie paczki leżą w [Releases](https://github.com/Luqys/Sufler/releases/latest).
+
+| System | Plik |
+|---|---|
+| macOS (M1–M4) | `Sufler-<wersja>-arm64.dmg` |
+| macOS (Intel) | `Sufler-<wersja>-x64.dmg` |
+| Windows | `Sufler-Setup-<wersja>-x64.exe` |
+| Windows (ARM) | `Sufler-Setup-<wersja>-arm64.exe` |
+| Windows bez instalacji | `Sufler-<wersja>-x64-portable.exe` |
+
+Menu  → *Ten Mac* pokazuje, czy masz procesor Apple, czy Intela.
+
+## Instalacja
+
+**macOS.** Otwórz `.dmg` i przeciągnij Sufler do katalogu **Programy**.
+Aplikacja nie ma płatnego podpisu Apple Developer ID, więc przy pierwszym
+uruchomieniu system poprosi o potwierdzenie: kliknij ikonę prawym przyciskiem
+→ **Otwórz** → jeszcze raz **Otwórz**. Jeśli okno nie daje przycisku „Otwórz"
+(macOS Sequoia i nowsze), zajrzyj do *Ustawienia systemowe → Prywatność
+i ochrona* i kliknij **Otwórz mimo to**. Robi się to raz.
+
+**Windows.** Uruchom instalator. SmartScreen może ostrzec o nieznanym
+wydawcy — **Więcej informacji** → **Uruchom mimo to**. Wersja `-portable.exe`
+działa bez instalacji.
+
+Ta sama instrukcja czeka w oknie każdego `.dmg`. Krok po kroku, razem
+z pierwszymi krokami w aplikacji i rozwiązywaniem problemów:
+**[INSTRUKCJA.md](INSTRUKCJA.md)**.
 
 ## Czym to jest
 
@@ -66,70 +99,12 @@ motywy jasny, ciemny i matrixowy, interfejs po polsku i angielsku.
 ## Wymagania
 
 - macOS albo Windows
-- [Node.js](https://nodejs.org/) 20+
-- [Claude Code](https://claude.com/claude-code) w `PATH` (sesje Claude i limity planu)
-- `git` i `ripgrep` — dla panelu historii i wyszukiwania
+- [Claude Code](https://claude.com/claude-code) w `PATH` — sesje Claude
+  i wskaźnik limitów planu
+- `git` i `ripgrep` — panel historii, punkty przywracania i wyszukiwanie
 
-## Instalacja
-
-Gotowe paczki dla macOS (`.dmg`) i Windows (instalator `.exe` oraz wersja
-przenośna) czekają w [Releases](https://github.com/Luqys/Sufler/releases).
-Krok po kroku, razem z obejściem ostrzeżeń systemowych, opisuje
-**[INSTRUKCJA.md](INSTRUKCJA.md)**.
-
-Ze źródeł:
-
-```bash
-git clone https://github.com/Luqys/Sufler.git
-cd Sufler
-npm install
-npm run dev
-```
-
-Aplikacja startuje z ekranem wyboru folderu projektu. Wskaż katalog, w którym
-pracujesz z Claude Code.
-
-## Budowanie paczek
-
-```bash
-npm run dist:mac    # .dmg dla arm64 i x64
-npm run dist:win    # instalator .exe (x64, arm64) i wersja przenośna
-```
-
-Paczkę dla danego systemu buduje się na tym systemie. Wydanie oznaczone tagiem
-(`git tag v0.1.0 && git push --tags`) buduje oba warianty automatem
-z `.github/workflows/release.yml`.
-
-## Rozwój
-
-| Komenda | Do czego |
-|---|---|
-| `npm run dev` | aplikacja w trybie deweloperskim (HMR) |
-| `npm run typecheck` | TypeScript bez emisji |
-| `npm run lint` | ESLint |
-| `npm run build` | produkcyjny build procesów głównego i renderera |
-
-Zmiana jest gotowa, gdy wszystkie komendy są zielone.
-
-### Struktura
-
-```
-src/main       proces główny Electrona — okna, IPC, git, MCP, hooki
-src/preload    most contextBridge (window.api)
-src/shared     typy i czysta logika współdzielona, testowana jednostkowo
-src/renderer   interfejs w React
-build          ikony aplikacji wraz ze źródłami wektorowymi
-docs           specyfikacja i decyzje projektowe
-.github        automaty CI i wydań
-```
-
-Logika, którą da się przetestować bez Electrona, mieszka w `src/shared` —
-procesy główny i renderer korzystają z niej wspólnie. Teksty interfejsu idą
-wyłącznie przez słownik `src/shared/i18n.ts` (polski i angielski, typ wymusza
-komplet tłumaczeń).
-
-Szczegóły projektowe i historia kamieni milowych: [docs/SPEC.md](docs/SPEC.md).
-Konwencje pracy z asystentem: [CLAUDE.md](CLAUDE.md).
+Bez Claude Code aplikacja też się uruchomi: dostaniesz edytor, terminale, graf
+wiedzy i panele, tylko bez sesji asystenta.
 
 ## Licencja
 
