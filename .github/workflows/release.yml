@@ -30,6 +30,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: ${{ matrix.komenda }}
+        env:
+          # Bundlowanie Monaco przekracza domyślny limit sterty Node na runnerze.
+          NODE_OPTIONS: --max-old-space-size=6144
       - name: Instalatory do wydania
         uses: softprops/action-gh-release@v2
         with:
