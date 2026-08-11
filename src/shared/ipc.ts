@@ -38,6 +38,8 @@ export const IPC = {
   AgentsToggle: 'skills:agent-toggle',
   SessionLogGet: 'session-log:get',
   SessionLogSet: 'session-log:set',
+  SessionLogGlobalGet: 'session-log:global-get',
+  SessionLogGlobalSet: 'session-log:global-set',
   AgentsCreate: 'skills:agent-create',
   RulesCreate: 'skills:rule-create',
   McpReadConfig: 'mcp:read-config',
@@ -193,6 +195,10 @@ export type SkillCreateResult =
   | { ok: true; path: string }
   | { ok: false; error: 'invalid-name' | 'exists' | 'write-failed' };
 
+export type GlobalSessionLogResult =
+  | { ok: true; enabled: boolean; path: string }
+  | { ok: false; error: 'settings-unreadable' | 'write-failed' };
+
 export type SkillToggleResult =
   | { ok: true; enabled: boolean }
   | { ok: false; error: 'settings-unreadable' | 'write-failed' };
@@ -285,6 +291,9 @@ export interface WindowApi {
   /** Dziennik sesji Claude (M52) — automatyczny zapis przebiegu pracy do .md. */
   getSessionLogEnabled(): Promise<boolean>;
   setSessionLogEnabled(enabled: boolean): Promise<boolean>;
+  /** Dziennik także dla sesji `claude` poza Suflerem (hooki w ~/.claude/settings.json). */
+  getGlobalSessionLog(): Promise<boolean>;
+  setGlobalSessionLog(enabled: boolean): Promise<GlobalSessionLogResult>;
   /** Kreator: nowy plik subagenta w <root>/.claude/agents. */
   createAgent(root: string, input: AgentCreateInput): Promise<SkillCreateResult>;
   /** Kreator: nowy plik reguły w <root>/.claude/rules. */

@@ -3616,3 +3616,16 @@ body.dragging-horizontal .splitter.horizontal::after {
   background: #fff;
   opacity: 1;
 }
+
+/* M53: większe przyciski paska tytułu — zębatka i samouczek były za małe */
+
+.titlebar-btn {
+  width: 32px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.titlebar-actions {
+  gap: 3px;
+}

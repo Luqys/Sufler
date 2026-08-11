@@ -88,6 +88,9 @@ export const PL = {
   'settings.sessionLogHint':
     'Sufler dopisuje przebieg pracy (polecenia, edytowane pliki, komendy) do pliku .md w katalogu dziennik-sesji/. Po `/clear` wczytaj ten plik, aby wrócić do wątku bez odtwarzania całej rozmowy — to najprostszy sposób na oszczędzanie kontekstu.',
   'settings.sessionLogSwitch': 'Zapisuj dziennik sesji',
+  'settings.sessionLogGlobal': 'Także dla sesji poza Suflerem',
+  'settings.sessionLogGlobalHint':
+    'Instaluje skrypt w ~/.claude i wpina go w globalne hooki Claude Code, więc dziennik powstaje również dla sesji uruchamianych w zwykłym terminalu. Twoje pozostałe hooki zostają nietknięte.',
   'settings.obsidianTitle': 'Obsidian — notatka dzienna',
   'settings.obsidianIntro':
     'Opcjonalne. Wymaga pluginu Local REST API uruchomionego w Obsidianie.',
@@ -553,6 +556,9 @@ export const EN: Record<StringKey, string> = {
   'settings.sessionLogHint':
     'Sufler appends the course of work (prompts, edited files, commands) to a .md file in the dziennik-sesji/ folder. After `/clear`, open that file to pick up the thread without replaying the whole conversation — the simplest way to save context.',
   'settings.sessionLogSwitch': 'Record the session log',
+  'settings.sessionLogGlobal': 'Also for sessions outside Sufler',
+  'settings.sessionLogGlobalHint':
+    'Installs a script in ~/.claude and wires it into the global Claude Code hooks, so the log is written for sessions started in a plain terminal too. Your other hooks stay untouched.',
   'settings.obsidianTitle': 'Obsidian — daily note',
   'settings.obsidianIntro': 'Optional. Requires the Local REST API plugin running in Obsidian.',
   'settings.obsidianApiKey': 'API key (Local REST API plugin)',

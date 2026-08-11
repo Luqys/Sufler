@@ -18,11 +18,13 @@ export function SettingsView(): ReactElement {
   const [appearance, setAppearanceState] = useState<Appearance>(DEFAULT_APPEARANCE);
   const [obsidian, setObsidian] = useState<ObsidianRestConfig>({});
   const [sessionLog, setSessionLog] = useState(true);
+  const [globalLog, setGlobalLog] = useState(false);
 
   useEffect(() => {
     void window.api.getAppearance().then(setAppearanceState);
     void window.api.getObsidianConfig().then(setObsidian);
     void window.api.getSessionLogEnabled().then(setSessionLog);
+    void window.api.getGlobalSessionLog().then(setGlobalLog);
   }, []);
 
   const updateObsidian = (patch: Partial<ObsidianRestConfig>): void => {
@@ -122,6 +124,25 @@ export function SettingsView(): ReactElement {
           />
           <span>{t('settings.sessionLogSwitch')}</span>
         </label>
+        <label className="settings-switch">
+          <input
+            type="checkbox"
+            role="switch"
+            data-testid="session-log-global-toggle"
+            checked={globalLog}
+            onChange={(event) => {
+              const next = event.target.checked;
+              setGlobalLog(next);
+              void window.api.setGlobalSessionLog(next).then((result) => {
+                if (!result.ok) {
+                  setGlobalLog(!next);
+                }
+              });
+            }}
+          />
+          <span>{t('settings.sessionLogGlobal')}</span>
+        </label>
+        <p className="settings-hint">{t('settings.sessionLogGlobalHint')}</p>
       </section>
       <section className="settings-section">
         <h3 className="view-title">{t('settings.obsidianTitle')}</h3>
