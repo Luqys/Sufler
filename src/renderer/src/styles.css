@@ -840,23 +840,24 @@ body.dragging-horizontal .splitter.horizontal::after {
   }
 }
 
+/*
+ * M77: znakiem jest ikona aplikacji, więc kafelek nie maluje już własnego tła
+ * w kolorze przewodnim — ikona ma własne. Zostaje tylko miękki cień, żeby
+ * odkleiła się od karty.
+ */
 .welcome-mark {
   position: relative;
   display: grid;
   place-items: center;
   width: 76px;
   height: 76px;
+}
+
+.welcome-mark-logo {
+  width: 76px;
+  height: 76px;
   border-radius: 19px;
-  color: #fff;
-  background: linear-gradient(
-    150deg,
-    color-mix(in srgb, var(--accent) 72%, #fff),
-    var(--accent) 52%,
-    color-mix(in srgb, var(--accent) 78%, #000)
-  );
-  box-shadow:
-    0 10px 30px color-mix(in srgb, var(--accent) 40%, transparent),
-    inset 0 1px 0 rgb(255 255 255 / 0.35);
+  filter: drop-shadow(0 10px 26px color-mix(in srgb, var(--accent) 34%, transparent));
 }
 
 .welcome-logo {
@@ -1579,8 +1580,8 @@ body.dragging-horizontal .splitter.horizontal::after {
   left: 12px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 7px 6px 12px;
+  gap: 8px;
+  padding: 6px 7px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: color-mix(in srgb, var(--panel) 82%, transparent);
@@ -1591,10 +1592,14 @@ body.dragging-horizontal .splitter.horizontal::after {
 }
 
 /* „Przelicz" jako przycisk-duch z glifem odświeżania. */
+/* M77: wszystkie kontrolki paska w jednej metryce (24 px) i z jednym promieniem. */
 .graph-overlay .bar-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
   border: none;
   border-radius: 7px;
-  padding: 3px 9px 3px 7px;
+  padding: 0 9px;
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 10%, transparent);
   transition: background 0.15s ease;
@@ -1613,7 +1618,8 @@ body.dragging-horizontal .splitter.horizontal::after {
 
 .graph-search {
   width: 132px;
-  padding: 3px 8px;
+  height: 24px;
+  padding: 0 9px;
   border: 1px solid var(--border);
   border-radius: 7px;
   background: color-mix(in srgb, var(--bg) 65%, transparent);
@@ -1669,8 +1675,14 @@ body.dragging-horizontal .splitter.horizontal::after {
 }
 
 /* Przełącznik trybu kolorowania (autor / funkcja / warstwa) — segmentowany. */
+/*
+ * M77: pięć trybów w trzykolumnowym rastrze. Przy `display: flex` i `flex: 1`
+ * zawijały się na 3 + 2 i rozciągały do pełnej szerokości, więc drugi rząd
+ * miał przyciski półtora raza szersze od pierwszego.
+ */
 .graph-mode {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 2px;
   padding: 2px;
   border-radius: 8px;
@@ -1678,8 +1690,7 @@ body.dragging-horizontal .splitter.horizontal::after {
 }
 
 .graph-mode-btn {
-  flex: 1;
-  padding: 3.5px 8px;
+  padding: 4px 6px;
   font: inherit;
   font-size: 10.5px;
   font-weight: 500;
@@ -2519,37 +2530,28 @@ body.dragging-horizontal .splitter.horizontal::after {
   color: var(--text-dim);
 }
 
-.usage-bars {
+/* M77: zamiast wykresu dobowego — liczby w dwóch kolumnach. */
+.usage-figures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  margin: 8px 0 2px;
+}
+
+.usage-figure {
   display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  height: 46px;
-  margin: 8px 0 6px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11.5px;
 }
 
-.usage-bar {
-  display: flex;
-  align-items: flex-end;
-  flex: 1;
-  height: 100%;
-  min-width: 4px;
+.usage-figure dt {
+  color: var(--muted);
 }
 
-.usage-bar-fill {
-  width: 100%;
-  border-radius: 2px 2px 0 0;
-  background: color-mix(in srgb, var(--accent, #d97757) 70%, transparent);
-}
-
-/* Dzień bez pracy to kreska tła, nie słupek danych. */
-.usage-bar-fill.empty {
-  background: color-mix(in srgb, var(--text) 12%, transparent);
-}
-
-.usage-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+.usage-figure dd {
+  font-variant-numeric: tabular-nums;
 }
 
 .usage-model {
@@ -2558,6 +2560,11 @@ body.dragging-horizontal .splitter.horizontal::after {
   gap: 6px;
   margin-top: 4px;
   font-size: 11.5px;
+}
+
+.usage-model-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
 }
 
 .usage-model-name {
@@ -3223,6 +3230,7 @@ body.dragging-horizontal .splitter.horizontal::after {
 }
 
 .dock-pane {
+  position: relative;
   flex: 1 1 0;
   min-width: 0;
   min-height: 0;
@@ -3241,6 +3249,39 @@ body.dragging-horizontal .splitter.horizontal::after {
 .dock-pane.drop-target {
   outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
   outline-offset: -2px;
+}
+
+/*
+ * M77: podgląd podziału. Karta upuszczona przy krawędzi panelu tworzy panel
+ * obok, więc jeszcze przed puszczeniem przycisku widać, gdzie wyląduje —
+ * połowa panelu przykryta kolorem przewodnim, jak w edytorach z dokami.
+ */
+.dock-pane[data-drop-zone='before']::after,
+.dock-pane[data-drop-zone='after']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  border-radius: 6px;
+}
+
+/* Dolny dok dzieli się na kolumny (lewo/prawo), prawy na wiersze (góra/dół). */
+.dock-bottom .dock-pane[data-drop-zone='before']::after {
+  right: 50%;
+}
+
+.dock-bottom .dock-pane[data-drop-zone='after']::after {
+  left: 50%;
+}
+
+.dock-right .dock-pane[data-drop-zone='before']::after {
+  bottom: 50%;
+}
+
+.dock-right .dock-pane[data-drop-zone='after']::after {
+  top: 50%;
 }
 
 .dock-header {
@@ -3963,18 +4004,31 @@ body.dragging-horizontal .splitter.horizontal::after {
 /* Nakładka grafu: neutralne przyciski, akcent tylko dla stanu włączonego. */
 .graph-overlay {
   gap: 8px;
-  padding: 6px 8px 6px 14px;
+  padding: 6px 8px;
 }
 
+/*
+ * M77: licznik jest plakietką w tej samej metryce co reszta paska. Wcześniej
+ * był gołym tekstem z kreską po prawej, więc siedział na innej linii bazowej
+ * niż pole szukania i przyciski.
+ */
 .graph-stats {
-  padding-right: 10px;
-  border-right: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
   color: var(--muted);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .graph-overlay .bar-btn {
-  padding: 4px 11px;
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 11px;
   border-radius: 8px;
   color: var(--muted);
   background: transparent;
@@ -3994,7 +4048,8 @@ body.dragging-horizontal .splitter.horizontal::after {
 
 .graph-search {
   width: 150px;
-  padding: 5px 10px;
+  height: 26px;
+  padding: 0 10px;
   border-radius: 8px;
   border-color: color-mix(in srgb, var(--border) 80%, transparent);
   background: color-mix(in srgb, var(--bg) 40%, transparent);
@@ -4320,15 +4375,38 @@ button.worklog-link:hover {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
+/*
+ * M77: lista sesji czyta się wierszami, nie ścianą tekstu — hairline między
+ * wpisami, oddech w środku i widoczny przycisk wznawiania. Wcześniej wpisy
+ * stały na sobie (gap 1px), a „wznów" wyłaniało się dopiero pod kursorem.
+ */
 .session-item {
-  border-radius: 7px;
+  border-radius: 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+}
+
+.session-item:last-child {
+  border-bottom: none;
 }
 
 .session-item.open {
+  position: relative;
   background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-bottom-color: transparent;
+}
+
+.session-item.open::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--accent);
 }
 
 .session-head {
@@ -4343,9 +4421,9 @@ button.worklog-link:hover {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 4px 5px 6px;
+  padding: 8px 4px 8px 8px;
   border: none;
-  border-radius: 7px;
+  border-radius: 8px;
   background: transparent;
   color: var(--text);
   font-family: inherit;
@@ -4371,6 +4449,7 @@ button.worklog-link:hover {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 500;
+  line-height: 1.35;
 }
 
 .session-meta {
@@ -4417,12 +4496,14 @@ button.worklog-link:hover {
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  opacity: 0.6;
+  /* Widoczny od razu — to jedyna droga do wznowienia sesji z listy. */
+  opacity: 0.85;
 }
 
 .session-item:hover .session-resume,
 .session-resume:focus-visible {
   opacity: 1;
+  color: var(--text);
 }
 
 .session-resume:hover {

@@ -3,6 +3,7 @@ import {
   createSessionScanner,
   projectSlug,
   scanSessionLines,
+  sessionLabel,
   sessionTitleFromLines,
   sortSessions,
 } from '../src/shared/claude-sessions';
@@ -172,5 +173,33 @@ describe('sortSessions', () => {
       { id: 'a', title: 'a', mtimeMs: 1, startedMs: 0, branch: 'main', sizeBytes: 12 },
     ];
     expect(sortSessions(entries)[0]?.branch).toBe('main');
+  });
+});
+
+describe('sessionLabel', () => {
+  it('zwykłe polecenie zostaje bez zmian', () => {
+    expect(sessionLabel('Dodaj przycisk zapisu do paska')).toBe('Dodaj przycisk zapisu do paska');
+  });
+
+  it('wklejona ścieżka z początku wypada, zostaje treść', () => {
+    expect(sessionLabel("'/var/folders/g4/tmp/Zrzut ekranu.png' popraw to okno")).toBe(
+      'popraw to okno',
+    );
+    expect(sessionLabel('"/Users/kto/plik.ts" napraw import')).toBe('napraw import');
+    expect(sessionLabel('/Users/kto/projekt/plik.ts dopisz test')).toBe('dopisz test');
+  });
+
+  it('kilka ścieżek pod rząd też wypada', () => {
+    expect(sessionLabel("'/a/b/jeden.png' '/a/b/dwa.png' porównaj oba")).toBe('porównaj oba');
+  });
+
+  it('polecenie będące samą ścieżką pokazuje ostatni element', () => {
+    expect(sessionLabel("'/Users/luqys/Desktop/Projekty/N3O_kontakt'")).toBe('N3O_kontakt');
+    expect(sessionLabel('/Users/luqys/Desktop/Projekty/N3O_PANEL/n3o-panel')).toBe('n3o-panel');
+  });
+
+  it('scala białe znaki i radzi sobie z pustym wejściem', () => {
+    expect(sessionLabel('  dwa   odstępy \n trzy ')).toBe('dwa odstępy trzy');
+    expect(sessionLabel('   ')).toBe('');
   });
 });

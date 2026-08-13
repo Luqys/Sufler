@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties, type ReactElement } from 'react';
+import logoUrl from '../assets/logo.png';
 import type { StringKey } from '../../../shared/i18n';
 import { baseName } from '../../../shared/paths';
 import { projectHue, projectMonogram } from '../../../shared/project-icon';
@@ -27,23 +28,11 @@ const ICON_NEW = (
   </svg>
 );
 
-/** Znak Suflera: dymek podpowiedzi z zachętą wiersza poleceń, w kolorze akcentu. */
-const ICON_MARK = (
-  <svg
-    width="40"
-    height="40"
-    viewBox="0 0 48 48"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.6"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M15 10h18a7 7 0 0 1 7 7v9a7 7 0 0 1-7 7H23l-8 6.5V33a7 7 0 0 1-7-7v-9a7 7 0 0 1 7-7Z" />
-    <path d="m16.5 17.5 5.5 4.75-5.5 4.75" />
-    <path d="M25.5 27h6" />
-  </svg>
-);
+/**
+ * Znak na ekranie startowym to IKONA APLIKACJI (M77) — ta sama, którą widać
+ * w Docku i w Finderze. Wcześniej stał tu osobny rysunek dymka, więc start
+ * wyglądał jak inny program niż ten w pasku.
+ */
 
 /**
  * Ekran startowy: przy każdym uruchomieniu użytkownik wybiera folder roboczy.
@@ -173,7 +162,9 @@ export function WelcomeScreen({ onPicked }: WelcomeScreenProps): ReactElement {
         <div className="welcome-card">
           <div className="welcome-hero">
             <span className="welcome-mark-halo" aria-hidden>
-              <span className="welcome-mark">{ICON_MARK}</span>
+              <span className="welcome-mark">
+                <img src={logoUrl} alt="" className="welcome-mark-logo" data-testid="welcome-logo" />
+              </span>
             </span>
             <div className="welcome-logo">Sufler</div>
             <span className="welcome-tagline">

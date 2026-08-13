@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState, type ReactElement } from 'react';
-import type {
-  ClaudeSessionDetails,
-  ClaudeSessionSummary,
+import {
+  sessionLabel,
+  type ClaudeSessionDetails,
+  type ClaudeSessionSummary,
 } from '../../../shared/claude-sessions';
 import { tf, tp, useT } from '../i18n';
 import { clockTime, compactDateTime, fullDateTime, relativeTime } from '../relative-time';
@@ -190,7 +191,7 @@ export function SessionsPanel(): ReactElement {
                 >
                   <span className="session-main">
                     <span className="session-title" title={session.title}>
-                      {session.title}
+                      {sessionLabel(session.title)}
                     </span>
                     <span className="session-meta">
                       <span className="session-when" title={fullDateTime(session.mtimeMs)}>

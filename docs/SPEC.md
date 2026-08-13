@@ -199,10 +199,11 @@ git log --all --oneline | grep -oE '^[0-9a-f]+ M[0-9]+' | grep -oE 'M[0-9]+' | s
 
 Stan na 2026-08-13: zajęte ciągiem M0–M63, gałęzie `m65-dystrybucja`
 i `m66-poprawki-zgloszenia`, M67 (panel „Sesje"), M68 (slash-komendy),
-M69 (commit z aplikacji), M74 (paleta komend), M75 (pasek ikon) oraz M76
-(ekran startowy tworzy folder) — dwa ostatnie ze zgłoszeń z pracy
-z aplikacją. Wolne: M64 (luka w środku, zostawić), M70–M73 (propozycje
-z tabeli poniżej) i M77 w górę.
+M69 (commit z aplikacji), M70 (edytor hooków), M73 (historia zużycia),
+M74 (paleta komend), M75 (pasek ikon), M76 (ekran startowy tworzy folder)
+oraz M77 (szlif UI i podział przeciągnięciem) — trzy ostatnie ze zgłoszeń
+z pracy z aplikacją. Wolne: M64 (luka w środku, zostawić), M71–M72
+(propozycje z tabeli poniżej) i M78 w górę.
 
 **Numer w tabeli poniżej jest propozycją, nie rezerwacją.** Sesja startująca kamień
 bierze pierwszy wolny numer z komendy wyżej i poprawia tu wiersz. Inaczej backlog
@@ -276,6 +277,36 @@ Warstwa danych to ta sama, co w M34 (`src/shared/claude-sessions.ts`,
 linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
+
+### M77 — szlif interfejsu i podział doku przeciągnięciem (zrobione)
+
+Pięć zgłoszeń z pracy z aplikacją, w jednym kamieniu.
+
+1. **Znak na ekranie startowym to ikona aplikacji** (`src/renderer/src/assets/logo.png`,
+   skalowana z `build/icon.png`), a nie osobny rysunek dymka — start przestał
+   wyglądać jak inny program niż ten w Docku.
+2. **Panel Sesje bez wykresu dobowego.** Słupki z M73 zajmowały górę panelu
+   i nie mówiły nic o pracy; zostaje suma i rozbicie na modele liczbami,
+   domyślnie zwinięte.
+3. **Czytelne etykiety sesji** (`sessionLabel` w `src/shared/claude-sessions.ts`):
+   pierwsze polecenie często zaczyna się od wklejonej ścieżki, więc lista była
+   rzędem `'/var/folders/g4/czjdmg…`. Ścieżki z początku wypadają, zostaje treść
+   polecenia; gdy polecenie było samą ścieżką — jej ostatni element. Do tego
+   hairline między wpisami, oddech w wierszu i widoczny od razu przycisk wznawiania.
+4. **Nakładka grafu w jednej metryce**: licznik jako plakietka 26 px, tyle samo
+   pole szukania i przyciski (wcześniej licznik był gołym tekstem na innej linii
+   bazowej). Pięć trybów w trzykolumnowym rastrze — przy `flex: 1` zawijały się
+   na 3 + 2 i drugi rząd miał przyciski półtora raza szersze.
+5. **Podział doku przeciągnięciem karty do krawędzi panelu** — to, co dotąd
+   dawał tylko przycisk. Oś zależy od doku (SPEC wyżej): dolny dzieli się na
+   kolumny, więc liczy się pozycja w poziomie, prawy na wiersze — w pionie.
+   Strefa krawędzi to 25% szerokości/wysokości; panel węższy niż 120 px nie
+   dzieli się wcale. Podczas przeciągania połowa panelu podświetla się kolorem
+   przewodnim, więc widać wynik przed puszczeniem przycisku.
+
+Czysta logika stref w `src/shared/dock-drop.ts`, przenoszenie karty do nowego
+panelu w `moveTabToNewPane` (`src/shared/dock-tabs.ts`) — w odróżnieniu od
+`splitPane` działa też dla karty z innego panelu i z drugiego doku.
 
 ### M76 — ekran startowy tworzy folder roboczy (zrobione)
 

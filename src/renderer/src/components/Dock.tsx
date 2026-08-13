@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type DragEvent, type ReactElement } from 'react';
 import type { ClaudeSessionEntry } from '../../../shared/claude-sessions';
+import { dropZoneFor, type DropZone } from '../../../shared/dock-drop';
 import type { DockId, DockPane, TabKind } from '../../../shared/dock-tabs';
 import { useDocks } from '../docks';
 import { getLocale, useT } from '../i18n';
@@ -162,10 +163,20 @@ interface PaneViewProps {
 
 /** Jeden panel doku: własny pasek zakładek, [+], podział i terminal aktywnej karty. */
 function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactElement {
-  const { addTab, activateTab, closeTab, moveTab, splitTab, detachTab, lastPrompts } = useDocks();
+  const {
+    addTab,
+    activateTab,
+    closeTab,
+    moveTab,
+    moveTabToNewPane,
+    splitTab,
+    detachTab,
+    lastPrompts,
+  } = useDocks();
   const { notify } = useDialogs();
   const t = useT();
-  const [dropHover, setDropHover] = useState(false);
+  /** null = brak przeciągania nad tym panelem; inaczej strefa upuszczenia. */
+  const [dropZone, setDropZone] = useState<DropZone | null>(null);
 
   const activeTab = pane.tabs.find((tab) => tab.id === pane.activeId) ?? null;
   const first = paneIndex === 0;
@@ -192,12 +203,22 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
     );
   };
 
+  /** Strefa upuszczenia z pozycji kursora nad panelem (środek albo krawędź). */
+  const zoneFrom = (event: DragEvent<HTMLElement>): DropZone => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    return dropZoneFor(
+      dockId,
+      { x: rect.left, y: rect.top, width: rect.width, height: rect.height },
+      { x: event.clientX, y: event.clientY },
+    );
+  };
+
   const onDragOver = (event: DragEvent<HTMLElement>): void => {
     if (event.dataTransfer.types.includes(DND_MIME)) {
       event.preventDefault();
       event.stopPropagation();
       event.dataTransfer.dropEffect = 'move';
-      setDropHover(true);
+      setDropZone(zoneFrom(event));
     }
   };
 
@@ -206,17 +227,24 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
     if (tabId) {
       event.preventDefault();
       event.stopPropagation();
-      moveTab(tabId, dockId, pane.id);
+      const zone = zoneFrom(event);
+      // Krawędź = nowy panel obok (dwie sesje obok siebie), środek = wejście do panelu.
+      if (zone === 'center') {
+        moveTab(tabId, dockId, pane.id);
+      } else {
+        moveTabToNewPane(tabId, dockId, pane.id, zone);
+      }
     }
-    setDropHover(false);
+    setDropZone(null);
   };
 
   return (
     <div
-      className={`dock-pane${dropHover ? ' drop-target' : ''}`}
+      className={`dock-pane${dropZone !== null ? ' drop-target' : ''}`}
       data-testid={`${dockId}-pane-${paneIndex}`}
+      data-drop-zone={dropZone ?? undefined}
       onDragOver={onDragOver}
-      onDragLeave={() => setDropHover(false)}
+      onDragLeave={() => setDropZone(null)}
       onDrop={onDrop}
     >
       <header className="dock-header">

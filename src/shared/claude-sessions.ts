@@ -252,6 +252,35 @@ export function sessionTitleFromLines(lines: string[]): string | null {
   return scanSessionLines(lines).title;
 }
 
+/**
+ * Etykieta sesji do wyświetlenia (M77). Pierwsze polecenie często zaczyna się
+ * od wklejonej ścieżki (zrzut ekranu, plik), więc lista sesji pokazywała rzędy
+ * nieczytelnych `'/var/folders/g4/czjdmg…`. Ścieżki z początku wypadają, zostaje
+ * treść polecenia; gdy polecenie było SAMĄ ścieżką, zostaje jej ostatni
+ * element. Czysta logika — testowana jednostkowo.
+ */
+export function sessionLabel(title: string): string {
+  const collapse = (text: string): string => text.replace(/\s+/g, ' ').trim();
+  let rest = collapse(title);
+  let lastPath: string | null = null;
+  // Ścieżki w apostrofach/cudzysłowach oraz gołe ścieżki bez spacji.
+  const leading = /^(?:'([^']*\/[^']*)'|"([^"]*\/[^"]*)"|(\/\S*\/\S*))\s*/;
+  let match = leading.exec(rest);
+  while (match) {
+    lastPath = match[1] ?? match[2] ?? match[3] ?? lastPath;
+    rest = rest.slice(match[0].length).trim();
+    match = leading.exec(rest);
+  }
+  if (rest !== '') {
+    return rest;
+  }
+  if (lastPath) {
+    const segments = lastPath.split('/').filter((segment) => segment !== '');
+    return segments[segments.length - 1] ?? lastPath;
+  }
+  return collapse(title);
+}
+
 /** Sortowanie od najświeższej + limit — lista ma być menu, nie archiwum. */
 export function sortSessions<T extends ClaudeSessionEntry>(entries: T[], limit = 20): T[] {
   return [...entries].sort((a, b) => b.mtimeMs - a.mtimeMs).slice(0, limit);

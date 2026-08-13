@@ -19,6 +19,7 @@ import {
   findTab,
   insertPaneAfter as insertPaneAfterState,
   moveTab as moveTabState,
+  moveTabToNewPane as moveTabToNewPaneState,
   splitPane as splitPaneState,
   updateTab as updateTabState,
   type DockId,
@@ -47,6 +48,13 @@ interface DocksValue {
   activateTab(dock: DockId, paneId: string, id: string): void;
   closeTab(id: string): void;
   moveTab(id: string, targetDock: DockId, targetPaneId?: string): void;
+  /** Upuszczenie przy krawędzi panelu: karta jedzie do NOWEGO panelu obok (M77). */
+  moveTabToNewPane(
+    id: string,
+    dock: DockId,
+    anchorPaneId: string,
+    side: 'before' | 'after',
+  ): void;
   /** Wydziela zakładkę do nowego panelu obok (podział ekranu doku). */
   splitTab(id: string): void;
   /** Wyciąga kartę do osobnego okna (proces i scrollback zostają). */
@@ -185,6 +193,14 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
     [applyDocks],
   );
 
+  const moveTabToNewPane = useCallback(
+    (id: string, dock: DockId, anchorPaneId: string, side: 'before' | 'after') =>
+      applyDocks((state) =>
+        moveTabToNewPaneState(state, id, dock, anchorPaneId, side, `pane-${++nextPaneNumber}`),
+      ),
+    [applyDocks],
+  );
+
   const splitTab = useCallback(
     (id: string) => applyDocks((state) => splitPaneState(state, id, `pane-${++nextPaneNumber}`)),
     [applyDocks],
@@ -279,6 +295,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
         activateTab,
         closeTab,
         moveTab,
+        moveTabToNewPane,
         splitTab,
         detachTab,
         insertToActiveClaude,

@@ -67,8 +67,9 @@ test('M73: panel Sesje pokazuje zużycie tokenów z transkryptów', async () => 
   // 120 + 4500 + 30 000 + 900 000 + 40 + 800 = 935 460 → zapis skrócony.
   await expect(page.getByTestId('usage-total')).toContainText('935');
 
-  // Wykres ma słupek na każdy z czternastu dni, także pusty.
-  await expect(page.getByTestId('usage-bar')).toHaveCount(14);
+  // M77: wykresu dobowego nie ma — suma jest zwinięta, liczby po rozwinięciu.
+  await expect(page.getByTestId('usage-bar')).toHaveCount(0);
+  await usage.locator('summary').click();
 
   // Rozbicie na modele — oba modele z transkryptów.
   const models = page.getByTestId('usage-model');

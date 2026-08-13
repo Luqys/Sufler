@@ -1,14 +1,10 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import {
-  lastDays,
   totalTokens,
   type UsageScan,
   type UsageTotals,
 } from '../../../shared/usage-history';
-import { getLocale, tf, useT } from '../i18n';
-
-/** Ile dni pokazuje wykres — dwa tygodnie mieszczą się w szerokości panelu. */
-const DAYS = 14;
+import { getLocale, useT } from '../i18n';
 
 function formatTokens(value: number): string {
   return new Intl.NumberFormat(getLocale(), {
@@ -17,17 +13,10 @@ function formatTokens(value: number): string {
   }).format(value);
 }
 
-function dayLabel(date: string): string {
-  const parsed = Date.parse(`${date}T12:00:00`);
-  return Number.isNaN(parsed)
-    ? date
-    : new Date(parsed).toLocaleDateString(getLocale(), { day: 'numeric', month: 'short' });
-}
-
 /**
- * Historia zużycia projektu (M73): suma tokenów z transkryptów, wykres
- * ostatnich dwóch tygodni i rozbicie na modele. Liczone na żądanie — pliki
- * transkryptów bywają wielomegabajtowe.
+ * Zużycie tokenów projektu (M73, uproszczone w M77): suma z transkryptów
+ * i rozbicie na modele, zwinięte pod jednym wierszem. Liczone na żądanie —
+ * pliki transkryptów bywają wielomegabajtowe.
  */
 export function UsageHistory({ root, reloadKey }: { root: string; reloadKey: number }): ReactElement | null {
   const t = useT();
@@ -54,8 +43,6 @@ export function UsageHistory({ root, reloadKey }: { root: string; reloadKey: num
     return null;
   }
 
-  const days = lastDays(scan, new Date().toISOString(), DAYS);
-  const peak = Math.max(...days.map((day) => totalTokens(day.totals)), 1);
   const parts: Array<[string, keyof UsageTotals]> = [
     [t('usage.input'), 'input'],
     [t('usage.output'), 'output'],
@@ -63,48 +50,31 @@ export function UsageHistory({ root, reloadKey }: { root: string; reloadKey: num
     [t('usage.cacheRead'), 'cacheRead'],
   ];
 
+  // M77: bez wykresu dziennego i bez plakietek — słupki nic nie mówiły o pracy,
+  // a zabierały górę panelu Sesje. Zostaje suma i rozbicie liczbami, domyślnie
+  // zwinięte: kto potrzebuje, rozwija jednym kliknięciem.
   return (
-    <details className="usage-history" data-testid="usage-history" open>
+    <details className="usage-history" data-testid="usage-history">
       <summary>
         {t('usage.history')}{' '}
         <span className="group-count" data-testid="usage-total">
           {formatTokens(totalTokens(scan.totals))}
         </span>
       </summary>
-      <div className="usage-bars" data-testid="usage-bars">
-        {days.map((day) => {
-          const total = totalTokens(day.totals);
-          return (
-            <span
-              key={day.date}
-              className="usage-bar"
-              data-testid="usage-bar"
-              title={tf('usage.dayTitle', {
-                day: dayLabel(day.date),
-                tokens: formatTokens(total),
-              })}
-            >
-              <span
-                className={`usage-bar-fill${total === 0 ? ' empty' : ''}`}
-                style={{ height: `${Math.max(2, Math.round((total / peak) * 100))}%` }}
-              />
-            </span>
-          );
-        })}
-      </div>
-      <div className="usage-legend">
+      <dl className="usage-figures" data-testid="usage-figures">
         {parts.map(([label, key]) => (
-          <span key={key} className="badge" title={label}>
-            {label}: {formatTokens(scan.totals[key])}
-          </span>
+          <div key={key} className="usage-figure">
+            <dt>{label}</dt>
+            <dd>{formatTokens(scan.totals[key])}</dd>
+          </div>
         ))}
-      </div>
+      </dl>
       {scan.byModel.map((entry) => (
         <div key={entry.model} className="usage-model" data-testid="usage-model">
           <span className="usage-model-name" title={entry.model}>
             {entry.model}
           </span>
-          <span className="badge">{formatTokens(totalTokens(entry.totals))}</span>
+          <span className="usage-model-value">{formatTokens(totalTokens(entry.totals))}</span>
         </div>
       ))}
     </details>

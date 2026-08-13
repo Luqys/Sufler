@@ -182,6 +182,38 @@ export function splitPane(state: DocksState, tabId: string, newPaneId: string): 
 }
 
 /**
+ * Przenosi zakładkę do NOWEGO panelu obok wskazanego (M77): upuszczenie karty
+ * przy krawędzi panelu dzieli dok. W odróżnieniu od `splitPane` działa też dla
+ * karty z innego panelu albo z drugiego doku i nie wymaga dwóch zakładek —
+ * decyduje miejsce upuszczenia, nie liczba kart. Panel, z którego karta była
+ * ostatnią, znika (`closeTab` sprząta puste panele).
+ */
+export function moveTabToNewPane(
+  state: DocksState,
+  tabId: string,
+  dock: DockId,
+  anchorPaneId: string,
+  side: 'before' | 'after',
+  newPaneId: string,
+): DocksState {
+  const found = findTab(state, tabId);
+  if (!found || state[dock].panes.every((pane) => pane.id !== anchorPaneId)) {
+    return state;
+  }
+  const sourcePane = state[found.dock].panes.find((pane) => pane.id === found.paneId);
+  // Jedyna karta w panelu nie ma po co wyjeżdżać na jego własną krawędź.
+  if (sourcePane?.id === anchorPaneId && sourcePane.tabs.length < 2) {
+    return state;
+  }
+  const without = closeTab(state, tabId);
+  const panes = [...without[dock].panes];
+  const anchorIndex = panes.findIndex((pane) => pane.id === anchorPaneId);
+  const at = anchorIndex === -1 ? panes.length : anchorIndex + (side === 'after' ? 1 : 0);
+  panes.splice(at, 0, { id: newPaneId, tabs: [found.tab], activeId: found.tab.id });
+  return replacePanes(without, dock, panes);
+}
+
+/**
  * Wstawia nowy, pusty panel tuż za wskazanym — podział przestrzeni doku
  * pod świeżą sesję. Bez limitu: każdy panel można dzielić dalej.
  */
