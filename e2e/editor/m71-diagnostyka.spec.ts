@@ -84,12 +84,9 @@ test('M71: pasek diagnostyki liczy błędy z tsc i eslint, a klik skacze do lini
   await items.first().click();
   await expect(page.getByTestId('tab-active')).toContainText('app.ts');
 
-  // Plik otwarty PO sprawdzeniu też dostaje podkreślenia — model powstał później.
-  const markers = await page.evaluate(() =>
-    (globalThis as { monaco?: { editor: { getModelMarkers(f: object): unknown[] } } }).monaco
-      ?.editor.getModelMarkers({ owner: 'sufler-diagnostics' }).length ?? -1,
-  );
-  expect(markers).toBeGreaterThan(0);
+  // Plik otwarty PO sprawdzeniu też dostaje podkreślenia — model powstaje
+  // dopiero przy otwarciu, więc sprawdzamy to, co widzi człowiek: falkę Monaco.
+  await expect(page.locator('.squiggly-error').first()).toBeVisible({ timeout: 10_000 });
 
   await page.screenshot({ path: 'e2e-artifacts/m71-diagnostyka-skok.png' });
   await app.close();

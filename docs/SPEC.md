@@ -220,7 +220,7 @@ cztery komendy zielone plus zrzut ekranu ze scenariusza e2e.
 | ~~M68~~ | ~~Slash-komendy z `.claude/commands` jako czwarta grupa panelu skilli~~ (zrobione) | test jedn.: `tests/commands.test.ts`; e2e: `e2e/m68-komendy.spec.ts` |
 | ~~M69~~ | ~~Commit z aplikacji — wybór plików i wiadomość obok istniejącego `DiffView`~~ (zrobione) | test jedn.: `tests/git-commit.test.ts`; e2e: `e2e/m69-commit.spec.ts` |
 | ~~M70~~ | ~~Edytor hooków w Ustawieniach — te same warstwy co `skillOverrides`~~ (zrobione) | test jedn.: `tests/hooks-config.test.ts`; e2e: `e2e/m70-hooki.spec.ts` |
-| M71 | Diagnostyka bez LSP — `tsc` i `eslint` w pasku, klik skacze do linii | test jedn.: parser wyjścia obu narzędzi → `{plik, linia, kolumna, treść}`; e2e: błąd składni pokazuje się w pasku i otwiera plik na właściwej linii |
+| ~~M71~~ | ~~Diagnostyka bez LSP — `tsc` i `eslint` w pasku, klik skacze do linii~~ (zrobione) | test jedn.: `tests/editor/diagnostics.test.ts`; e2e: `e2e/editor/m71-diagnostyka.spec.ts` |
 | M72 | Worktree'y — kilka sesji Claude na jednym zadaniu, porównanie i scalenie | test jedn.: mapowanie karta → worktree w `layout.json`; e2e: utworzenie worktree'a daje kartę z własnym `cwd`, usunięcie sprząta katalog |
 | ~~M73~~ | ~~Historia zużycia z transkryptów `.jsonl`~~ (zrobione) | test jedn.: `tests/usage-history.test.ts`; e2e: `e2e/m73-zuzycie.spec.ts` |
 | ~~M74~~ | ~~Paleta komend `Cmd+K` — panele, akcje doków, motywy~~ (zrobione) | test jedn.: `tests/command-palette.test.ts`; e2e: `e2e/m74-paleta.spec.ts` |
@@ -532,13 +532,27 @@ miał jak dodać inaczej niż ręczną edycją JSON-a. Ustawienia mają teraz se
   sprząta pustą grupę, puste zdarzenie i pustą mapę `hooks`.
 - Logika w `src/shared/hooks-config.ts`, zapis w `src/main/hooks-config.ts`.
 
-### M71 — diagnostyka bez LSP
+### M71 — diagnostyka bez LSP (zrobione)
 
 Edytor bez podkreślonych błędów jest notatnikiem. Pełne LSP zostaje poza zakresem
-(patrz niżej); tańszy substytut daje większość zysku:
+(patrz niżej); tańszy substytut daje większość zysku. Pod edytorem jest pasek
+z przyciskiem „Sprawdź projekt", licznikami błędów i ostrzeżeń oraz listą,
+z której klik otwiera plik na właściwej linii; otwarte bufory dostają falki Monaco.
 
-- `tsc --watch --pretty false` i `eslint --format json` jako procesy w tle,
-  uruchamiane **na żądanie**, nie zawsze — na dużym repo to realny koszt CPU.
+- `tsc --noEmit --pretty false` i `eslint . --format json` uruchamiane
+  **na żądanie**, jednym przebiegiem. Trybu `--watch` świadomie nie ma: na dużym
+  repo to stały koszt CPU, a pasek i tak odpowiada wtedy, kiedy człowiek pyta.
+- Binarki biorą się z `node_modules/.bin` projektu, nie z globalnej instalacji —
+  wersja ma się zgadzać z repozytorium. Brak narzędzia jest **powiedziany wprost**
+  („eslint nie wystartował"), zamiast udawać czysty projekt.
+- Niezerowy kod wyjścia obu narzędzi to normalna droga, gdy znajdą błędy — liczy
+  się stdout, nie status.
+- Podkreślenia malują się też na plikach otwartych PO przebiegu (model Monaco
+  powstaje dopiero przy otwarciu, więc jednorazowe malowanie pomijało dokładnie
+  te pliki, do których skacze się z listy).
+- Komendy da się podmienić przez `VISUALN3O_DIAG_TSC` i `VISUALN3O_DIAG_ESLINT` —
+  e2e podstawia atrapy z zamrożonym wyjściem zamiast ciągnąć toolchain do
+  katalogu tymczasowego.
 - Parser w `src/shared/diagnostics.ts`, testy na zamrożonych fixture'ach wyjścia obu
   narzędzi. Format `tsc` zmienia się między wersjami — ten sam reżim co parser `mcp list`.
 - Wynik jako `monaco.editor.setModelMarkers` plus licznik w pasku pod edytorem.
