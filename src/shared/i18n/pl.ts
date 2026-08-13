@@ -571,6 +571,8 @@ export const PL = {
   // Podgląd przeglądarki
   'preview.copied': 'Brak sesji Claude — odniesienie skopiowano do schowka.',
   'preview.go': 'Otwórz',
+  'preview.back': 'Wstecz (Alt+←)',
+  'preview.forward': 'Dalej (Alt+→)',
   'preview.reload': 'Przeładuj stronę',
   'preview.pickTitle':
     'Kliknij element na stronie, aby wstawić odniesienie do sesji Claude (Esc anuluje)',

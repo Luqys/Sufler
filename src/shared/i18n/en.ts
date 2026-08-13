@@ -544,6 +544,8 @@ export const EN: Record<StringKey, string> = {
 
   'preview.copied': 'No Claude session — the reference was copied to the clipboard.',
   'preview.go': 'Open',
+  'preview.back': 'Back (Alt+←)',
+  'preview.forward': 'Forward (Alt+→)',
   'preview.reload': 'Reload page',
   'preview.pickTitle':
     'Click an element on the page to insert a reference into the Claude session (Esc cancels)',

@@ -9,6 +9,14 @@ interface WebviewElement extends HTMLElement {
   send(channel: string, ...args: unknown[]): void;
   reload(): void;
   getURL(): string;
+  /**
+   * Historia przeglądania idzie przez offsety, a nie przez `goBack()`/
+   * `canGoBack()`: te w Electronie 43 są na <webview> martwe — zostały po
+   * usuniętych metodach WebContents, nie rzucają, po prostu nic nie robią
+   * (`canGoBack()` zawsze false, `goBack()` bez efektu). `goToOffset` działa.
+   */
+  canGoToOffset(offset: number): boolean;
+  goToOffset(offset: number): void;
 }
 
 interface WebviewIpcMessageEvent extends Event {
@@ -33,6 +41,8 @@ export function BrowserPreview({ path }: { path: string }): ReactElement {
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
   const [preloadPath, setPreloadPath] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
+  const [canBack, setCanBack] = useState(false);
+  const [canForward, setCanForward] = useState(false);
   const webviewRef = useRef<WebviewElement | null>(null);
 
   useEffect(() => {
@@ -52,6 +62,27 @@ export function BrowserPreview({ path }: { path: string }): ReactElement {
     [insertToActiveClaude, notify],
   );
 
+  /**
+   * Stan strzałek czytamy z historii gościa po każdej nawigacji. `canGoBack`
+   * rzuca, dopóki webview nie jest podpięty do DOM-u i gotowy — stąd try.
+   */
+  const syncHistory = useCallback((node: WebviewElement) => {
+    try {
+      setCanBack(node.canGoToOffset(-1));
+      setCanForward(node.canGoToOffset(1));
+    } catch {
+      setCanBack(false);
+      setCanForward(false);
+    }
+  }, []);
+
+  const navigate = useCallback((offset: number) => {
+    const webview = webviewRef.current;
+    if (webview?.canGoToOffset(offset)) {
+      webview.goToOffset(offset);
+    }
+  }, []);
+
   const attachWebview = useCallback(
     (node: HTMLElement | null) => {
       webviewRef.current = node as WebviewElement | null;
@@ -64,17 +95,27 @@ export function BrowserPreview({ path }: { path: string }): ReactElement {
           handlePicked(message.args[0] as PickedElement);
         } else if (message.channel === 'vn3o:pick-cancelled') {
           setPicking(false);
+        } else if (message.channel === 'vn3o:nav') {
+          // Alt+strzałka wciśnięta wewnątrz strony — klawiatura gościa
+          // nie dociera do hosta, więc skrót wraca przez IPC (preload).
+          navigate(message.args[0] === 1 ? 1 : -1);
         }
       });
-      node.addEventListener('did-navigate', () => {
-        const url = (node as WebviewElement).getURL();
+      const onNavigated = (): void => {
+        const webview = node as WebviewElement;
+        const url = webview.getURL();
         if (url) {
           lastUrls.set(path, url);
           setAddress(url);
         }
-      });
+        syncHistory(webview);
+      };
+      node.addEventListener('did-navigate', onNavigated);
+      // Nawigacja bez przeładowania (pushState, kotwice) — SPA to codzienność.
+      node.addEventListener('did-navigate-in-page', onNavigated);
+      node.addEventListener('dom-ready', () => syncHistory(node as WebviewElement));
     },
-    [handlePicked, path],
+    [handlePicked, navigate, path, syncHistory],
   );
 
   const load = (): void => {
@@ -105,6 +146,28 @@ export function BrowserPreview({ path }: { path: string }): ReactElement {
   return (
     <div className="browser-preview" data-testid="browser-preview">
       <div className="preview-toolbar">
+        <button
+          type="button"
+          className="bar-btn preview-nav"
+          data-testid="preview-back"
+          title={t('preview.back')}
+          aria-label={t('preview.back')}
+          onClick={() => navigate(-1)}
+          disabled={!canBack}
+        >
+          ←
+        </button>
+        <button
+          type="button"
+          className="bar-btn preview-nav"
+          data-testid="preview-forward"
+          title={t('preview.forward')}
+          aria-label={t('preview.forward')}
+          onClick={() => navigate(1)}
+          disabled={!canForward}
+        >
+          →
+        </button>
         <input
           type="text"
           className="preview-address"

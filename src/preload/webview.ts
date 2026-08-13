@@ -1,9 +1,10 @@
 import { ipcRenderer } from 'electron';
 
 /**
- * Preload gościa <webview> podglądu przeglądarki: tryb wskazywania elementu.
- * Host wysyła 'vn3o:start-pick' / 'vn3o:stop-pick'; wybór wraca przez
- * sendToHost('vn3o:picked', info) albo 'vn3o:pick-cancelled'.
+ * Preload gościa <webview> podglądu przeglądarki: tryb wskazywania elementu
+ * i skróty nawigacji. Host wysyła 'vn3o:start-pick' / 'vn3o:stop-pick'; wybór
+ * wraca przez sendToHost('vn3o:picked', info) albo 'vn3o:pick-cancelled',
+ * a Alt+strzałka przez sendToHost('vn3o:nav', -1 | 1).
  */
 
 interface PickedElementInfo {
@@ -133,5 +134,24 @@ function stopPicking(): void {
   }
 }
 
+/**
+ * Klawiatura strony nie dociera do hosta, więc Alt+←/→ obsługujemy tutaj
+ * i odsyłamy do podglądu — inaczej skrót działałby tylko z paskiem adresu
+ * pod kursorem, czyli praktycznie nigdy podczas przeglądania.
+ */
+function onNavigationKey(event: KeyboardEvent): void {
+  if (!event.altKey || event.ctrlKey || event.metaKey) {
+    return;
+  }
+  if (event.key === 'ArrowLeft') {
+    event.preventDefault();
+    ipcRenderer.sendToHost('vn3o:nav', -1);
+  } else if (event.key === 'ArrowRight') {
+    event.preventDefault();
+    ipcRenderer.sendToHost('vn3o:nav', 1);
+  }
+}
+
 ipcRenderer.on('vn3o:start-pick', startPicking);
 ipcRenderer.on('vn3o:stop-pick', () => stopPicking());
+window.addEventListener('keydown', onNavigationKey, true);

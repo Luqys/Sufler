@@ -598,6 +598,18 @@
   background: var(--panel);
 }
 
+/* Strzałki historii: kwadratowe, bez odstępu między sobą — jedna para. */
+.preview-nav {
+  width: 24px;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.preview-nav + .preview-nav {
+  margin-left: -4px;
+}
+
 .preview-address {
   flex: 1;
   min-width: 0;
