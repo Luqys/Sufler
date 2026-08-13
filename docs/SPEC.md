@@ -187,15 +187,135 @@ załącza zrzut ekranu aplikacji w stanie po wykonaniu scenariusza e2e.
 Każdy kamień w osobnej sesji Claude Code, na osobnym branchu (`claude --worktree`).
 Między kamieniami `/clear`.
 
+## Kamienie milowe po v1 (M67+)
+
+Tabela wyżej zamyka v1. Kamienie M10–M63 nie trafiły do niej wcale — dopisywały się
+do sekcji tematycznych albo do niczego. Skutek: **numeracja żyje w `git log`, nie tutaj**.
+Zanim weźmiesz numer, sprawdź:
+
+```
+git log --all --oneline | grep -oE '^[0-9a-f]+ M[0-9]+' | grep -oE 'M[0-9]+' | sort -u -t M -k2 -n
+```
+
+Stan na 2026-08-13: zajęte ciągiem M0–M63 plus gałęzie `m65-dystrybucja`
+i `m66-poprawki-zgloszenia`. Wolne: M64 (luka w środku, zostawić) i M67 w górę.
+
+Poniższa lista jest różnicą wobec **tipa łańcucha**, nie wobec `main` — `main` stoi na
+M29 i nie zawiera trzydziestu kilku kamieni. Wszystko, co oczywiste, jest już zrobione:
+deterministyczny status z hooków (M35, M44), punkty przywracania (M55), oś czasu pracy
+(M56), dziennik sesji (M52–M54), wznawianie sesji (M34), warstwa 3 Obsidiana (M36),
+`Cmd+P` (M37), serwer `ide` (`src/main/ide-server.ts`), widok diffa (`DiffView.tsx`).
+
+Zasady bez zmian: osobna sesja, osobna gałąź `m<numer>-<nazwa>`, `/clear` pomiędzy,
+cztery komendy zielone plus zrzut ekranu ze scenariusza e2e.
+
+| # | Zakres | Sprawdzenie |
+|---|---|---|
+| M67 | Slash-komendy z `.claude/commands` jako czwarta grupa panelu skilli | test jedn.: parser frontmattera komendy, kolejność warstw projekt/osobiste; e2e: dodanie `.md` w `commands/` pojawia się bez restartu |
+| M68 | Commit z aplikacji — wybór plików i wiadomość obok istniejącego `DiffView` | test jedn.: budowa listy do commita z `git status --porcelain`; e2e: zmiana pliku → zaznaczenie → commit → plik znika z listy, `git log` ma wpis |
+| M69 | Edytor hooków w Ustawieniach — te same warstwy co `skillOverrides` | test jedn.: zapis/kasowanie wpisu w trzech warstwach `settings.json`; e2e: dodanie hooka przez UI zapisuje się do `settings.local.json` |
+| M70 | Diagnostyka bez LSP — `tsc` i `eslint` w pasku, klik skacze do linii | test jedn.: parser wyjścia obu narzędzi → `{plik, linia, kolumna, treść}`; e2e: błąd składni pokazuje się w pasku i otwiera plik na właściwej linii |
+| M71 | Worktree'y — kilka sesji Claude na jednym zadaniu, porównanie i scalenie | test jedn.: mapowanie karta → worktree w `layout.json`; e2e: utworzenie worktree'a daje kartę z własnym `cwd`, usunięcie sprząta katalog |
+| M72 | Historia zużycia i kosztów z transkryptów `.jsonl` | test jedn.: sumowanie tokenów i kosztu na fixture'owych `.jsonl`; e2e: panel pokazuje sumy dla podstawionego katalogu projektów |
+| M73 | Paleta komend `Cmd+K` — panele, akcje doków, motywy, skille | test jedn.: ranking dopasowań rozmytych; e2e: `Cmd+K` + fraza otwiera właściwy panel |
+
+Kolejność sensowna, nie obowiązkowa: M67 i M68 są tanie i domykają rzeczy zaczęte
+(panel skilli, `DiffView`). M70 i M71 to jedyne dwa duże kamienie na tej liście.
+
+### M67 — slash-komendy w panelu
+
+Panel zna skille, subagentów i reguły; komendy z `.claude/commands/*.md` (oraz
+`~/.claude/commands/*.md`) są czwartym rodzajem tego samego pliku z frontmatterem
+i jedynym, którego brakuje. Ten sam parser (`src/shared/frontmatter.ts`), ten sam
+watcher, to samo `Cmd+klik` wstawiające `/nazwa` do aktywnej sesji.
+
+Pola frontmattera do pokazania: `description`, `argument-hint`, `model`,
+`allowed-tools`. Komenda bez `description` — sama nazwa, bez wiersza opisu.
+
+### M68 — commit z aplikacji
+
+`DiffView` pokazuje zmianę, ale zatwierdzić ją trzeba w terminalu. Domknięcie pętli:
+lista zmienionych plików z zaznaczaniem, pole wiadomości, przycisk commita.
+
+- Bez stage'owania po kawałkach (`git apply --cached` na hunkach) — to osobna
+  mechanika i osobny kamień, jeśli w ogóle. Zaznaczenie jest per plik.
+- Bez `push` — świadomie. Wypychanie zostaje w terminalu.
+- Autor commita bierzemy z konfiguracji gita repozytorium, aplikacja nie ustawia własnego.
+
+### M69 — edytor hooków
+
+Hooki są dziś wstrzykiwane przez Suflera dla własnych potrzeb; użytkownik swoich
+nie ma jak dodać inaczej niż ręczną edycją JSON-a.
+
+- Warstwy identyczne jak przy `skillOverrides`: `.claude/settings.local.json` >
+  `.claude/settings.json` > `~/.claude/settings.json`. Ta sama zasada zapisu do
+  najmocniejszej warstwy, która już ma wpis.
+- Zdarzenia (sprawdzone w binarce CLI 2.1.229, tak jak kontrakt `skillOverrides`):
+  `PreToolUse`, `PostToolUse`, `Notification`, `Stop`, `SubagentStop`,
+  `UserPromptSubmit`, `SessionStart`, `SessionEnd`, `PreCompact`.
+- Payload na stdin hooka, przydatny w podpowiedziach UI: `hook_event_name`,
+  `session_id`, `transcript_path`, `cwd`, `tool_name`, `tool_input`, `tool_response`,
+  `permission_mode`, `stop_hook_active`.
+- **Hooki własne Suflera nie pojawiają się na tej liście** — idą osobną drogą przez
+  `claude --settings '<JSON>'` (flaga przyjmuje ciąg JSON, nie tylko ścieżkę) i nie są
+  częścią konfiguracji użytkownika. Wymieszanie obu źródeł skończy się tym, że ktoś
+  skasuje z UI hooka, od którego zależy status kart.
+
+### M70 — diagnostyka bez LSP
+
+Edytor bez podkreślonych błędów jest notatnikiem. Pełne LSP zostaje poza zakresem
+(patrz niżej); tańszy substytut daje większość zysku:
+
+- `tsc --watch --pretty false` i `eslint --format json` jako procesy w tle,
+  uruchamiane **na żądanie**, nie zawsze — na dużym repo to realny koszt CPU.
+- Parser w `src/shared/diagnostics.ts`, testy na zamrożonych fixture'ach wyjścia obu
+  narzędzi. Format `tsc` zmienia się między wersjami — ten sam reżim co parser `mcp list`.
+- Wynik jako `monaco.editor.setModelMarkers` plus licznik w pasku pod edytorem.
+- **To jest granica zakresu.** Jeśli w trakcie pojawi się pokusa autouzupełniania
+  albo „idź do definicji", to sygnał z sekcji „Cel", a nie materiał na kolejny kamień.
+
+### M71 — worktree'y
+
+Praca kilkoma sesjami naraz odbywa się dziś ręcznie, poza aplikacją.
+
+- Sufler sam robi `git worktree add` i otwiera kartę z `cwd` na nowym katalogu.
+  Nie używać `claude --worktree`: wtedy katalog wybiera CLI, a drzewo plików
+  i panel Git nie wiedzą o nowym korzeniu.
+- Widok porównawczy: diff worktree ↔ gałąź bazowa przez istniejący `DiffView`.
+- „Scal ten" = `git merge --no-ff` do gałęzi bazowej. Konflikt kończy się komunikatem
+  i pozostawieniem stanu do ręcznego rozwiązania — żadnej automatyki na konfliktach.
+- Usunięcie karty pyta, czy sprzątnąć worktree (`git worktree remove`); domyślnie nie,
+  bo tam mogą być niescommitowane zmiany.
+
+### M72 — historia zużycia
+
+`UsageIndicator` pokazuje stan chwilowy, M57 dokłada prognozę. Brakuje przeszłości:
+transkrypty w `~/.claude/projects/<slug>/*.jsonl` mają zużycie każdej tury.
+
+- Sumowanie per sesja, per dzień i per projekt; wykres w panelu, nie na pasku.
+- Fixture'y `.jsonl` w `tests/` — nie czytać prawdziwego katalogu użytkownika w testach.
+- Katalog projektów nadpisywalny zmienną środowiskową, jak reszta ścieżek w e2e.
+
+### M73 — paleta komend
+
+`Cmd+P` otwiera pliki (M37). `Cmd+K` otwiera resztę: panele, przełączniki doków,
+motywy i akcenty, skille, komendy z M67. Przy tylu przełącznikach na pasku tytułu
+klikanie przestało się skalować.
+
 ## Poza zakresem v1 (świadome decyzje)
 
 - **LSP** — `monaco-languageclient` istnieje, ale zarządzanie cyklem życia serwerów
   językowych i mapowaniem dokumentów to osobny projekt. Do rozważenia po M7 jako M8,
   najpierw dla jednego języka (TypeScript).
+  *Rozstrzygnięcie: zostaje poza zakresem na stałe. Diagnostykę daje M70 przez
+  `tsc` i `eslint`, bez cyklu życia serwerów językowych.*
 - **Natywny czat zamiast pty** — przez `claude -p --output-format stream-json --verbose`
   dostajesz strumień JSON (jeden obiekt na linię, zaczynając od zdarzenia init),
   który można renderować własnym UI z prawdziwymi diffami zamiast tekstu w terminalu.
   Duży zysk wizualny, duży koszt. Dopiero gdy v1 działa i używasz go codziennie.
+  *Rozstrzygnięcie: sprawdzone i odrzucone. Czat powstał, okazał się drugim
+  interfejsem wejścia obok terminala i został usunięty w M28. Zysk wizualny bez tego
+  kosztu dają M56 (oś czasu pracy) i `DiffView`. Nie wracać do tematu.*
 - **Serwer `ide`** — rozszerzenie VS Code wystawia lokalny serwer MCP nazwany `ide`,
   do którego CLI podłącza się automatycznie; to dzięki niemu `claude` w terminalu
   otwiera diffy w natywnym viewerze edytora i widzi zaznaczony tekst. Serwer nasłuchuje
@@ -204,6 +324,10 @@ Między kamieniami `/clear`.
   `X-Claude-Code-Ide-Authorization`. Twoja aplikacja mogłaby zaimplementować ten
   protokół i podszyć się pod IDE. Traktować jako eksperyment, nie fundament —
   to szczegół implementacyjny, który może się zmienić bez ostrzeżenia.
+  *Rozstrzygnięcie: zrobione — `src/main/ide-server.ts` i `src/shared/ide-protocol.ts`.
+  Nagłówek `X-Claude-Code-Ide-Authorization` i zmienna `CLAUDE_CODE_SSE_PORT` nadal są
+  w binarce CLI 2.1.229, ale nadal nie są niczyim API — przy aktualizacji CLI to
+  pierwsze miejsce do sprawdzenia.*
 
 ## Integracja z Obsidianem
 
@@ -249,7 +373,7 @@ Poza serwerem MCP plugin wystawia zwykły REST, przydatny do warstwy 3:
 (`targetType: "heading"`, `operation: "append"`) dopisuje treść pod konkretnym
 nagłówkiem bez przepisywania pliku.
 
-### Warstwa 3 — klej UX (poza v1, do rozważenia po M9)
+### Warstwa 3 — klej UX (zrobione w M36)
 
 - Deep link `obsidian://open?vault=<nazwa>&file=<ścieżka>` — `Cmd+klik` na notatce
   w drzewie otwiera ją w prawdziwym Obsidianie zamiast w Monaco.
