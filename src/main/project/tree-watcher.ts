@@ -8,7 +8,7 @@ const watched = new Set<string>();
 
 /**
  * Obserwacja TYLKO rozwiniętych katalogów drzewa (depth 0) — ryzyko nr 3
- * ze SPEC.md zabrania rekurencyjnego watchowania całego projektu.
+ * projekt zabrania rekurencyjnego watchowania całego drzewa.
  */
 export function setWatchedTreeDirs(win: BrowserWindow, rawDirs: string[]): void {
   /*

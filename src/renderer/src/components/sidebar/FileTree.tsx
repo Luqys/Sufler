@@ -106,7 +106,7 @@ export function FileTree(): ReactElement {
     refreshGitStatus();
   }, [load, refreshGitStatus, root]);
 
-  // Obserwujemy wyłącznie korzeń + rozwinięte katalogi (ryzyko nr 3 ze SPEC.md).
+  // Obserwujemy wyłącznie korzeń + rozwinięte katalogi (znane ryzyko: duże repo).
   useEffect(() => {
     void window.api.watchTreeDirs([root, ...expanded]);
   }, [root, expanded]);

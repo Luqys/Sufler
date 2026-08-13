@@ -6,7 +6,7 @@ import type { DockId } from './dock-tabs';
  * przyciskiem — więc „przeciągnij w prawo i miej dwie sesje obok siebie"
  * nie działało.
  *
- * Oś zależy od doku (SPEC.md): dolny dzieli się na kolumny, więc liczy się
+ * Oś zależy od doku (zasada projektu): dolny dzieli się na kolumny, więc liczy się
  * pozycja w poziomie; prawy na wiersze, więc w pionie. Czysta logika bez DOM —
  * testowana jednostkowo.
  */

@@ -1,5 +1,5 @@
 /**
- * Heurystyka statusu sesji Claude na strumieniu wyjściowym pty (v1 wg SPEC.md).
+ * Heurystyka statusu sesji Claude na strumieniu wyjściowym pty (v1 wg zasada projektu).
  * Sygnały z TUI Claude Code:
  *  - „esc to interrupt" — trwa praca,
  *  - „? for shortcuts" — bezczynny prompt (praca skończona),

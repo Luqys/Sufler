@@ -116,7 +116,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
           return;
         }
         const id = `tab-${nextTabNumber++}`;
-        // Wskaźnik statusu (SPEC.md): heurystyka na strumieniu wyjściowym pty,
+        // Wskaźnik statusu: heurystyka na strumieniu wyjściowym pty,
         // tylko dla zakładek `claude`.
         const doWpisania = options?.insert ?? null;
         let wpisane = doWpisania === null;

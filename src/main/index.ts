@@ -105,7 +105,7 @@ function createWindow(): void {
     title: 'Sufler',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 14, y: 11 },
-    // Vibrancy sidebara (SPEC.md, M9) — tło okna musi zostać przezroczyste,
+    // Vibrancy sidebara (M9) — tło okna musi zostać przezroczyste,
     // półprzezroczyste warstwy maluje CSS.
     vibrancy: 'sidebar',
     visualEffectState: 'followWindow',

@@ -1,6 +1,6 @@
 /**
  * Diagnostyka projektu bez LSP (M71). Pełne `monaco-languageclient` zostaje
- * poza zakresem (patrz docs/SPEC.md — to granica „nie klonujemy VS Code"),
+ * poza zakresem — to granica „nie klonujemy VS Code" —
  * ale edytor bez podkreślonych błędów jest notatnikiem. Tańszy substytut:
  * uruchamiamy `tsc` i `eslint` na żądanie i pokazujemy ich wynik.
  *

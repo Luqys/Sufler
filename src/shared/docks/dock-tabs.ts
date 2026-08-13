@@ -1,5 +1,5 @@
 /**
- * Model Dock/Pane/Tab — centralna abstrakcja aplikacji (SPEC.md).
+ * Model Dock/Pane/Tab — centralna abstrakcja aplikacji (zasada projektu).
  * Dok składa się z paneli (dolny: kolumny, prawy: wiersze), panel z zakładek.
  * Czysta logika bez zależności — testowana jednostkowo.
  */

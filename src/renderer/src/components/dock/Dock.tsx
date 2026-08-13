@@ -380,7 +380,7 @@ interface DockProps {
 }
 
 /**
- * Wspólny komponent obu doków (SPEC.md): dolny dzieli się na kolumny,
+ * Wspólny komponent obu doków: dolny dzieli się na kolumny,
  * prawy na wiersze. Zakładki `terminal` i `claude` różnią się wyłącznie
  * komendą startową pty.
  */

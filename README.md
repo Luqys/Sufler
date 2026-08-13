@@ -94,8 +94,9 @@ motywy jasny, ciemny i matrixowy, interfejs po polsku i angielsku.
 
 Gotowe paczki dla macOS (`.dmg`) i Windows (instalator `.exe` oraz wersja
 przenośna) czekają w [Releases](https://github.com/Luqys/Sufler/releases).
-Krok po kroku, razem z obejściem ostrzeżeń systemowych, opisuje
-**[INSTRUKCJA.md](INSTRUKCJA.md)**.
+Paczka macOS jest podpisana ad-hoc, więc przy pierwszym uruchomieniu system
+poprosi o potwierdzenie — plik `START TUTAJ` w obrazie `.dmg` prowadzi krok
+po kroku.
 
 Ze źródeł:
 
@@ -164,8 +165,9 @@ przestaje działać w motywie ciemnym i matrixowym.
 
 Zrzut w README odświeża generator: `npx playwright test -c scripts/zrzut.config.ts`.
 
-Szczegóły projektowe i historia kamieni milowych: [docs/SPEC.md](docs/SPEC.md).
-Konwencje pracy z asystentem: [CLAUDE.md](CLAUDE.md).
+Decyzje projektowe i powody, dla których coś wygląda tak, a nie inaczej, są
+w komentarzach przy kodzie i w opisach commitów. Konwencje pracy z asystentem:
+[CLAUDE.md](CLAUDE.md).
 
 ## Licencja
 

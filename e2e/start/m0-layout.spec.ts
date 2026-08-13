@@ -97,21 +97,33 @@ test('rozmiary paneli po przeciągnięciu splitterów przeżywają restart aplik
   // renderowania (git status) za nami.
   await expect(page.getByTestId('file-tree').getByText('README.md')).toBeVisible();
 
-  await dragUntil(page, 'splitter-sidebar', 'sidebar', 'width', 320, 1); // 240 -> 320
-  await dragUntil(page, 'splitter-right', 'right-dock', 'width', 430, -1); // 360 -> 430
-  await dragUntil(page, 'splitter-bottom', 'bottom-dock', 'height', 280, -1); // 220 -> 280
+  /*
+   * Cele liczone z FAKTYCZNEGO rozmiaru okna, nie wpisane na sztywno. Układ
+   * przycina panele do wolnego miejsca (min. 320 px na środek, 160 px na
+   * edytor), więc 320/430/280 mieściło się na moim ekranie, ale nie na
+   * mniejszym ekranie runnera CI — i test padał na samym środowisku,
+   * nie na regresji.
+   */
+  const okno = await page.getByTestId('workbench').boundingBox();
+  const celSidebar = Math.round(Math.min(320, okno!.width * 0.22));
+  const celPrawy = Math.round(Math.min(430, okno!.width * 0.3));
+  const celDolny = Math.round(Math.min(280, okno!.height * 0.35));
 
-  expect((await panelSize(page, 'sidebar')).width).toBe(320);
-  expect((await panelSize(page, 'right-dock')).width).toBe(430);
-  expect((await panelSize(page, 'bottom-dock')).height).toBe(280);
+  await dragUntil(page, 'splitter-sidebar', 'sidebar', 'width', celSidebar, 1);
+  await dragUntil(page, 'splitter-right', 'right-dock', 'width', celPrawy, -1);
+  await dragUntil(page, 'splitter-bottom', 'bottom-dock', 'height', celDolny, -1);
+
+  expect((await panelSize(page, 'sidebar')).width).toBe(celSidebar);
+  expect((await panelSize(page, 'right-dock')).width).toBe(celPrawy);
+  expect((await panelSize(page, 'bottom-dock')).height).toBe(celDolny);
 
   await expect
     .poll(() => readLayoutFile(layoutFile), { timeout: 10_000 })
     .toEqual({
       version: 1,
-      sidebarWidth: 320,
-      rightDockWidth: 430,
-      bottomDockHeight: 280,
+      sidebarWidth: celSidebar,
+      rightDockWidth: celPrawy,
+      bottomDockHeight: celDolny,
       sidebarVisible: true,
       rightDockVisible: true,
       bottomDockVisible: true,
@@ -123,9 +135,11 @@ test('rozmiary paneli po przeciągnięciu splitterów przeżywają restart aplik
   app = await launchApp(configHome, project);
   page = await openWorkbench(app);
 
-  expect((await panelSize(page, 'sidebar')).width).toBe(320);
-  expect((await panelSize(page, 'right-dock')).width).toBe(430);
-  expect((await panelSize(page, 'bottom-dock')).height).toBe(280);
+  // Sedno testu: po restarcie panele mają DOKŁADNIE te rozmiary, które ustawił
+  // użytkownik — jakiekolwiek by nie były na tym ekranie.
+  expect((await panelSize(page, 'sidebar')).width).toBe(celSidebar);
+  expect((await panelSize(page, 'right-dock')).width).toBe(celPrawy);
+  expect((await panelSize(page, 'bottom-dock')).height).toBe(celDolny);
 
   await page.screenshot({ path: 'e2e-artifacts/m0-po-restarcie.png' });
   await app.close();

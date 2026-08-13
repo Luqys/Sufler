@@ -4,7 +4,7 @@ import { pathDelimiter, type Platform } from '../../shared/system/exec-path';
 const PLATFORM: Platform = process.platform === 'win32' ? 'win32' : 'posix';
 
 /**
- * Ryzyko nr 1 ze SPEC.md: Electron uruchomiony z Findera nie dziedziczy PATH
+ * Znane ryzyko: Electron uruchomiony z Findera nie dziedziczy PATH
  * z ~/.zshrc. Rozwiązujemy raz przy starcie: logowany, interaktywny shell
  * wypisuje swoje środowisko (env -0, wpisy rozdzielone NUL-ami, po markerze —
  * rc-pliki potrafią śmiecić na stdout).

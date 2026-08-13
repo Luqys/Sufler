@@ -1,7 +1,8 @@
 # Sufler
 
-Środowisko pracy z Claude Code (Electron + React + TypeScript). Pełna specyfikacja
-i kamienie milowe: **docs/SPEC.md** — przeczytaj przed rozpoczęciem pracy.
+Środowisko pracy z Claude Code (Electron + React + TypeScript). Kontekst
+decyzji projektowych: opisy commitów (`git log`) i komentarze przy kodzie —
+tam trafia uzasadnienie, nie do osobnego dokumentu.
 
 ## Komendy
 
@@ -41,6 +42,6 @@ nowy plik idzie do katalogu swojego obszaru, nie na płaską stertę.
 
 ## Zasady
 
-- Każdy kamień milowy: osobna sesja, osobna gałąź (`m<numer>-<nazwa>`), `/clear` pomiędzy (szczegóły w docs/SPEC.md).
+- Każdy kamień milowy: osobna sesja, osobna gałąź (`m<numer>-<nazwa>`), `/clear` pomiędzy (osobna sesja, `/clear` pomiędzy).
 - Teksty UI wyłącznie przez słownik i18n (`src/shared/i18n.ts`, PL i EN — typ wymusza komplet tłumaczeń; w rendererze hook `useT` + `tf`/`tp` z `src/renderer/src/i18n.ts`). Polski jest domyślny, angielski przełącza się w Ustawieniach.
 - Oba doki to ten sam komponent `Dock`; zakładki `terminal` i `claude` różnią się wyłącznie komendą startową pty.

@@ -27,7 +27,7 @@ function broadcast(channel: string, payload: unknown): void {
 }
 
 /**
- * Kluczowa zasada ze SPEC.md: zakładki `terminal` i `claude` różnią się
+ * Kluczowa zasada projektu: zakładki `terminal` i `claude` różnią się
  * WYŁĄCZNIE komendą startową pseudoterminala.
  */
 const PLATFORM: Platform = process.platform === 'win32' ? 'win32' : 'posix';
@@ -122,7 +122,7 @@ export function killPty(ptyId: number): void {
   sessions.delete(ptyId);
 }
 
-/** Ryzyko nr 2 ze SPEC.md: żadnych osieroconych pty przy zamykaniu aplikacji. */
+/** Znane ryzyko: żadnych osieroconych pty przy zamykaniu aplikacji. */
 export function killAllPtys(): void {
   for (const session of sessions.values()) {
     session.kill();

@@ -60,7 +60,7 @@ function applyTheme(): void {
 window.addEventListener('sufler:flavor', applyTheme);
 applyTheme();
 
-// Frontmatter YAML notatek markdown jako zwijalny region (SPEC.md, Obsidian w. 1).
+// Frontmatter YAML notatek markdown jako zwijalny region (Obsidian, warstwa 1).
 monaco.languages.registerFoldingRangeProvider('markdown', {
   provideFoldingRanges(model) {
     if (model.getLineCount() < 3 || model.getLineContent(1).trim() !== '---') {

@@ -4,7 +4,7 @@ import { stringsFor, type StringKey } from '../../shared/i18n';
 import type { LayoutVisibilityKey } from '../../shared/docks/layout';
 
 /**
- * Natywne menu aplikacji (SPEC.md, M9): standardowe role (w tym Edycja —
+ * Natywne menu aplikacji (M9): standardowe role (w tym Edycja —
  * bez niej nie działają Cmd+C/V w polach tekstowych) plus Ustawienia pod Cmd+,.
  * Przebudowywane przy zmianie języka UI (patrz index.ts, AppearanceSet).
  */

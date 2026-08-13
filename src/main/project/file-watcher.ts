@@ -8,7 +8,7 @@ const watched = new Set<string>();
 /**
  * Deklaratywna lista obserwowanych plików (otwarte zakładki edytora).
  * Obserwujemy wyłącznie pojedyncze pliki, nigdy katalogi rekurencyjnie —
- * patrz „Znane ryzyka" w SPEC.md.
+ * znane ryzyko projektu.
  */
 export function setWatchedFiles(win: BrowserWindow, paths: string[]): void {
   if (!watcher) {

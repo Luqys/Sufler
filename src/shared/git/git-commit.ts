@@ -4,7 +4,7 @@
  * walidacja opisu, uzgodnienie zaznaczenia z aktualnym stanem drzewa
  * i higiena ścieżek przekazywanych gitowi.
  *
- * Świadomie poza zakresem (patrz docs/SPEC.md, M69): stage'owanie po
+ * Świadomie poza zakresem (, M69): stage'owanie po
  * kawałkach i `push`. Zaznaczenie jest per plik, wypychanie zostaje
  * w terminalu.
  */

@@ -8,7 +8,7 @@ import type {
 
 /**
  * Parsery wyjścia `claude mcp …` i plików konfiguracyjnych — celowo w jednym
- * module (SPEC.md): format CLI zmienia się między wersjami, więc zmiana ma
+ * module: format CLI zmienia się między wersjami, więc zmiana ma
  * psuć ten plik i jego testy, a nie całą aplikację.
  *
  * Format `claude mcp list` (przechwycony z wersji rzeczywistej):

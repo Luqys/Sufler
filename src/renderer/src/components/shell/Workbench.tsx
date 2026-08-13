@@ -167,7 +167,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
     [apply],
   );
 
-  // Skróty (SPEC.md): Cmd+B sidebar, Ctrl+` dolny dok, Cmd+Shift+C prawy dok.
+  // Skróty: Cmd+B sidebar, Ctrl+` dolny dok, Cmd+Shift+C prawy dok.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       const key = event.key.toLowerCase();

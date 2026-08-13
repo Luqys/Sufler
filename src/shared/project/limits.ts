@@ -1,7 +1,7 @@
 /**
  * Twarde limity dla dużych repozytoriów (M88). Progi nie są przeczuciem —
  * pochodzą z pomiaru na wygenerowanym repozytorium (25 000 plików, katalog
- * z 20 000 wpisów), zapisanego w docs/SPEC.md:
+ * z 20 000 wpisów):
  *
  * - `git check-ignore` (robione przy KAŻDYM rozwinięciu katalogu):
  *   200 ścieżek → 24 ms, 1000 → 48 ms, 2000 → 87 ms, 5000 → 220 ms,

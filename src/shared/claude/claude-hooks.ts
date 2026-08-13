@@ -1,5 +1,5 @@
 /**
- * Deterministyczny status sesji Claude (M35, SPEC.md „Wskaźnik statusu"):
+ * Deterministyczny status sesji Claude (M35) — wskaźnik statusu karty:
  * zamiast polegać wyłącznie na heurystyce strumienia pty, karty `claude`
  * dostają wygenerowany plik ustawień (flaga `--settings`) z hookami
  * Notification/Stop, które POST-ują do lokalnego endpointu aplikacji.

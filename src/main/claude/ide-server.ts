@@ -1,5 +1,5 @@
 /**
- * Serwer „ide" (SPEC.md, sekcja „Poza zakresem v1"): aplikacja podszywa się
+ * Serwer „ide" (decyzja projektowa): aplikacja podszywa się
  * pod IDE dla Claude Code CLI. WebSocket + JSON-RPC/MCP na loopbacku, token
  * w lock file'u `~/.claude/ide/<port>.lock`, autoryzacja nagłówkiem
  * `x-claude-code-ide-authorization`. CLI uruchomione w naszych zakładkach

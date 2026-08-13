@@ -14,6 +14,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      # Aplikacja szuka plików ripgrepem; na czystym runnerze nie ma ani `rg`,
+      # ani Claude Code (z którego binarki korzystamy jako zapasu lokalnie).
+      # Bez tego m7-git-search i m37-cmdp padają na samym środowisku.
+      - run: brew install ripgrep
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
