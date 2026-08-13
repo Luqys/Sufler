@@ -18,6 +18,7 @@ import type { UsageScan } from './claude/usage-history';
 import type { DiagnosticsResult } from './editor/diagnostics';
 import type { Worktree } from './git/worktrees';
 import type { BranchDiff } from './git/branch-diff';
+import type { FileDiff } from './git/hunks';
 import type { SessionHits } from './claude/transcript-search';
 import type { SkillOverrideState } from './skills/skills';
 
@@ -103,6 +104,8 @@ export const IPC = {
   IdeStatusGet: 'ide:status',
   GitShowFile: 'git:show-file',
   GitCommit: 'git:commit',
+  GitFileHunks: 'git:file-hunks',
+  GitCommitHunks: 'git:commit-hunks',
   UsageHistoryGet: 'usage:history',
   DiagnosticsRun: 'diagnostics:run',
   TranscriptSearch: 'claude-sessions:search',
@@ -315,6 +318,12 @@ export interface ClaudeMdEntry {
   lines: number;
 }
 
+/** Wybór fragmentów jednego pliku; pusta lista hunków = cały plik (M85). */
+export interface HunkSelection {
+  path: string;
+  hunks: number[];
+}
+
 /** Wynik operacji na worktree (M72). */
 export type WorktreeWriteResult =
   | { ok: true; path: string }
@@ -494,6 +503,9 @@ export interface WindowApi {
   runDiagnostics(root: string): Promise<DiagnosticsResult>;
   /** Zużycie tokenów policzone z transkryptów projektu (M73). */
   getUsageHistory(root: string): Promise<UsageScan>;
+  /** Hunki pliku wobec HEAD — commit po kawałkach (M85). */
+  getFileHunks(root: string, path: string): Promise<FileDiff | null>;
+  commitHunks(root: string, selections: HunkSelection[], message: string): Promise<GitCommitResult>;
   /** Hooki Claude Code z trzech warstw settings (M70). */
   listHooks(root: string): Promise<HookListEntry[]>;
   addHook(root: string, entry: HookEntry): Promise<HookWriteResult>;

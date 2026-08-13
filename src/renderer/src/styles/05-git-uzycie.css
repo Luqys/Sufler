@@ -878,3 +878,58 @@
   opacity: 0.45;
   cursor: default;
 }
+
+/* Commit po kawałkach (M85) — fragmenty pod wierszem pliku */
+.git-hunks-toggle {
+  flex: none;
+  padding: 0 5px;
+  font-size: 11px;
+}
+
+.git-hunks {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 2px 0 4px 22px;
+  padding-left: 6px;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.git-hunk {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.git-hunk input {
+  accent-color: var(--accent);
+  cursor: pointer;
+  margin: 0;
+}
+
+.git-hunk-stats {
+  flex: none;
+  display: inline-flex;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.git-hunk-stats .added {
+  color: #16a34a;
+}
+
+.git-hunk-stats .removed {
+  color: #dc2626;
+}
+
+.git-hunk-preview {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-dim);
+  font-family: var(--mono, ui-monospace, monospace);
+}

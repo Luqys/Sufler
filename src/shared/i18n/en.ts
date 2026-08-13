@@ -238,6 +238,9 @@ export const EN: Record<StringKey, string> = {
   // Commit from the app (M69) — pick files, describe, commit
   'git.selectAll': 'All',
   'git.selectFile': 'Select for commit: {path}',
+  'git.hunksToggle': 'Show this file’s hunks (commit in parts)',
+  'git.hunksLoading': 'Reading hunks…',
+  'git.hunksNone': 'This file cannot be split into hunks.',
   'git.commitPlaceholder': 'Describe the change…',
   'git.commit': 'Commit ({count})',
   'git.commitHint': 'Select files and write a description to commit.',

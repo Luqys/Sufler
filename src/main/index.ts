@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 import type { TabKind } from '../shared/docks/dock-tabs';
 import type { LayoutVisibilityKey } from '../shared/docks/layout';
 import type { HookEntry } from '../shared/skills/hooks-config';
-import type { HookLayer } from '../shared/ipc';
+import type { HookLayer, HunkSelection } from '../shared/ipc';
 import { IPC } from '../shared/ipc';
 import { applyAppearanceAtBoot, getAppearance, setAppearance } from './window/appearance';
 import { listClaudeSessions, readClaudeSessionDetails } from './claude/claude-sessions';
@@ -26,6 +26,7 @@ import { runDiagnostics } from './project/diagnostics';
 import { addWorktree, listWorktrees, mergeWorktree, removeWorktree } from './git/worktrees';
 import { searchTranscripts } from './claude/transcript-search';
 import { diffAgainstBase } from './git/branch-diff';
+import { commitHunks, readFileHunks } from './git/hunk-commit';
 import { runGitShowFile } from './git/git-show';
 import { runGitStatus } from './git/git-status';
 import { startIdeServer, stopIdeServer, updateIdeWorkspaceFolders } from './claude/ide-server';
@@ -356,6 +357,14 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.DiagnosticsRun, (_event, root: string) => runDiagnostics(root));
   ipcMain.handle(IPC.TranscriptSearch, (_event, root: string, query: string) =>
     searchTranscripts(root, query),
+  );
+  ipcMain.handle(IPC.GitFileHunks, (_event, root: string, path: string) =>
+    readFileHunks(root, path),
+  );
+  ipcMain.handle(
+    IPC.GitCommitHunks,
+    (_event, root: string, selections: HunkSelection[], message: string) =>
+      commitHunks(root, selections, message),
   );
   ipcMain.handle(IPC.WorktreeList, (_event, root: string) => listWorktrees(root));
   ipcMain.handle(IPC.WorktreeDiff, (_event, root: string, branch: string, base: string) =>

@@ -7,6 +7,7 @@ import {
   commitSubject,
   plannedPaths,
 } from '../../../../shared/git/git-commit';
+import { hunkPreview, hunkStats, type FileDiff } from '../../../../shared/git/hunks';
 import type {
   GitCommit,
   GitCommitFile,
@@ -205,6 +206,9 @@ export function GitPanel(): ReactElement {
   const [result, setResult] = useState<GitLogResult | null>(null);
   const [changes, setChanges] = useState<GitStatusFile[]>([]);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+  /** Rozwinięte hunki plików (M85) i wybrane w nich fragmenty. */
+  const [hunks, setHunks] = useState<ReadonlyMap<string, FileDiff | 'loading' | 'none'>>(new Map());
+  const [picks, setPicks] = useState<ReadonlyMap<string, ReadonlySet<number>>>(new Map());
   const [message, setMessage] = useState('');
   const [committing, setCommitting] = useState(false);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
@@ -262,6 +266,10 @@ export function GitPanel(): ReactElement {
   };
 
   const planned = plannedPaths(changes, selected);
+  const pickedCount = [...picks.values()].reduce((sum, set) => sum + set.size, 0);
+  const canCommitAnything =
+    canCommit(changes, selected, message) ||
+    (pickedCount > 0 && commitSubject(message).trim() !== '');
   const allSelected = changes.length > 0 && changes.every((file) => selected.has(file.path));
 
   const toggleFile = (path: string): void => {
@@ -276,25 +284,95 @@ export function GitPanel(): ReactElement {
     });
   };
 
+  /** Rozwija fragmenty pliku; drugi klik zwija i czyści wybór. */
+  const toggleHunks = (path: string): void => {
+    if (hunks.has(path)) {
+      setHunks((prev) => {
+        const next = new Map(prev);
+        next.delete(path);
+        return next;
+      });
+      setPicks((prev) => {
+        const next = new Map(prev);
+        next.delete(path);
+        return next;
+      });
+      return;
+    }
+    setHunks((prev) => new Map(prev).set(path, 'loading'));
+    void window.api.getFileHunks(rootRef.current, path).then((file) => {
+      setHunks((prev) => new Map(prev).set(path, file ?? 'none'));
+    });
+  };
+
+  const toggleHunk = (path: string, index: number): void => {
+    setPicks((prev) => {
+      const next = new Map(prev);
+      const current = new Set(next.get(path) ?? []);
+      if (current.has(index)) {
+        current.delete(index);
+      } else {
+        current.add(index);
+      }
+      if (current.size === 0) {
+        next.delete(path);
+      } else {
+        next.set(path, current);
+      }
+      return next;
+    });
+    // Fragment zaznaczony osobno wyklucza zaznaczenie całego pliku — inaczej
+    // commit wziąłby i tak całą zawartość.
+    setSelected((prev) => {
+      if (!prev.has(path)) {
+        return prev;
+      }
+      const next = new Set(prev);
+      next.delete(path);
+      return next;
+    });
+  };
+
   const toggleAll = (): void => {
     setSelected(allSelected ? new Set() : new Set(changes.map((file) => file.path)));
   };
 
   /** Zatwierdza wyłącznie zaznaczone ścieżki; reszta indeksu zostaje nietknięta. */
   const commit = (): void => {
-    if (committing || !canCommit(changes, selected, message)) {
+    if (committing || !canCommitAnything) {
       return;
     }
     setCommitting(true);
     const subject = commitSubject(message);
-    void window.api
-      .gitCommit(rootRef.current, plannedPaths(changes, selected), message)
+    const paths = plannedPaths(changes, selected);
+    /*
+     * Dwie drogi. Same całe pliki → M69: `git commit -- <ścieżki>`, działa też
+     * w repozytorium bez HEAD. Cokolwiek zaznaczone po kawałku → M85: commit
+     * przez tymczasowy indeks, bo tylko tak da się zatwierdzić część pliku.
+     */
+    const request =
+      picks.size > 0
+        ? window.api.commitHunks(
+            rootRef.current,
+            [
+              ...paths.map((path) => ({ path, hunks: [] })),
+              ...[...picks.entries()].map(([path, chosen]) => ({
+                path,
+                hunks: [...chosen].sort((a, b) => a - b),
+              })),
+            ],
+            message,
+          )
+        : window.api.gitCommit(rootRef.current, paths, message);
+    void request
       .then((commitResult) => {
         setCommitting(false);
         if (commitResult.ok) {
           notify(tf('git.commitDone', { hash: commitResult.shortHash, subject }), 'success');
           setMessage('');
           setSelected(new Set());
+          setPicks(new Map());
+          setHunks(new Map());
         } else {
           notify(t(commitErrorKey(commitResult.error)), 'error');
         }
@@ -355,7 +433,8 @@ export function GitPanel(): ReactElement {
             </label>
           </div>
           {changes.map((file) => (
-            <div key={file.path} className="git-change-row">
+            <div key={file.path} className="git-change-item">
+            <div className="git-change-row">
               <input
                 type="checkbox"
                 className="git-change-check"
@@ -380,6 +459,57 @@ export function GitPanel(): ReactElement {
                 </span>
                 <span className="git-file-path">{file.path}</span>
               </button>
+              {file.state === 'modified' && (
+                <button
+                  type="button"
+                  className="bar-btn git-hunks-toggle"
+                  data-testid="git-hunks-toggle"
+                  title={t('git.hunksToggle')}
+                  onClick={() => toggleHunks(file.path)}
+                >
+                  ±
+                </button>
+              )}
+            </div>
+            {(() => {
+              const loaded = hunks.get(file.path);
+              if (loaded === undefined) {
+                return null;
+              }
+              if (loaded === 'loading') {
+                return <div className="tree-note">{t('git.hunksLoading')}</div>;
+              }
+              if (loaded === 'none' || loaded.binary || loaded.hunks.length === 0) {
+                return (
+                  <div className="tree-note" data-testid="git-hunks-none">
+                    {t('git.hunksNone')}
+                  </div>
+                );
+              }
+              const chosen = picks.get(file.path) ?? new Set<number>();
+              return (
+                <div className="git-hunks" data-testid="git-hunks">
+                  {loaded.hunks.map((hunk, index) => {
+                    const stats = hunkStats(hunk);
+                    return (
+                      <label key={hunk.header} className="git-hunk" data-testid="git-hunk">
+                        <input
+                          type="checkbox"
+                          data-testid="git-hunk-check"
+                          checked={chosen.has(index)}
+                          onChange={() => toggleHunk(file.path, index)}
+                        />
+                        <span className="git-hunk-stats">
+                          <span className="added">+{stats.added}</span>
+                          <span className="removed">−{stats.removed}</span>
+                        </span>
+                        <span className="git-hunk-preview">{hunkPreview(hunk)}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              );
+            })()}
             </div>
           ))}
           <div className="git-commit-box">
@@ -395,11 +525,13 @@ export function GitPanel(): ReactElement {
               type="button"
               className="bar-btn git-commit-btn"
               data-testid="git-commit-btn"
-              disabled={committing || !canCommit(changes, selected, message)}
+              disabled={committing || !canCommitAnything}
               title={t('git.commitHint')}
               onClick={commit}
             >
-              {committing ? t('git.commitWorking') : tf('git.commit', { count: planned.length })}
+              {committing
+                ? t('git.commitWorking')
+                : tf('git.commit', { count: planned.length + picks.size })}
             </button>
           </div>
         </div>

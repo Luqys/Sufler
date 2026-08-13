@@ -255,6 +255,9 @@ export const PL = {
   // Commit z aplikacji (M69) — zaznaczenie plików, opis, zatwierdzenie
   'git.selectAll': 'Wszystkie',
   'git.selectFile': 'Zaznacz do commita: {path}',
+  'git.hunksToggle': 'Pokaż fragmenty tego pliku (commit po kawałkach)',
+  'git.hunksLoading': 'Czytam fragmenty…',
+  'git.hunksNone': 'Tego pliku nie da się podzielić na fragmenty.',
   'git.commitPlaceholder': 'Opis zmiany…',
   'git.commit': 'Zatwierdź ({count})',
   'git.commitHint': 'Zaznacz pliki i napisz opis, żeby zatwierdzić.',

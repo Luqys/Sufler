@@ -193,7 +193,7 @@ bo numer wziął panel „Sesje".
 |---|---|---|
 | ~~M83~~ | ~~Wyszukiwanie w treści transkryptów sesji, nie tylko w tytułach~~ (zrobione) | test jedn.: `tests/claude/transcript-search.test.ts`; e2e: `e2e/panele/m83-szukanie-rozmow.spec.ts` |
 | M84 | Diagnostyka po zapisie — opcjonalna, dławiona, z filtrem listy problemów | test jedn.: dławik i scalanie wyników kolejnych przebiegów; e2e: `Cmd+S` odświeża pasek bez klikania „Sprawdź projekt" |
-| M85 | Commit po kawałkach — zaznaczanie fragmentów w `DiffView` | test jedn.: budowa łatki dla wybranych hunków (`git apply --cached`); e2e: zatwierdzenie jednego z dwóch fragmentów pliku zostawia drugi w drzewie |
+| ~~M85~~ | ~~Commit po kawałkach — zaznaczanie fragmentów pliku~~ (zrobione) | test jedn.: `tests/git/hunks.test.ts`, `tests/git/hunk-commit.test.ts`; e2e: `e2e/panele/m85-fragmenty.spec.ts` |
 | ~~M86~~ | ~~Diff worktree ↔ gałąź bazowa — dokończenie M72~~ (zrobione) | test jedn.: `tests/git/branch-diff.test.ts`; e2e: `e2e/panele/m86-worktree-diff.spec.ts` |
 | M87 | Przełącznik projektów w palecie `Cmd+K` z ostatnimi korzeniami i ikonami | test jedn.: ranking ostatnich projektów; e2e: paleta przełącza projekt bez restartu aplikacji |
 | M88 | Wydajność na dużym repozytorium — pomiar i twarde limity | test jedn.: limity obserwatora i wyników; e2e: repo z 5000 plików nie blokuje drzewa ani szukania |
@@ -301,6 +301,32 @@ w pustkę, zanim powstanie pole wejściowe.
 Scenariusz e2e sprawdza BAJTY, które poszły do pty (atrapa `claude` zapisuje
 całe wejście przez `tee`), a nie to, co pokazał terminal — dzięki temu test
 łapie różnicę między „widać na ekranie" a „sesja dostała".
+
+### M85 — commit po kawałkach (zrobione)
+
+W M69 zaznaczenie było per plik, a stage'owanie fragmentów zapisałem jako
+„osobną mechanikę, jeśli w ogóle". Tym razem uzasadnienie się obroniło: to
+naprawdę osobna mechanika, bo commit części pliku wymaga commitowania indeksu,
+a aplikacja ma zasadę, że nie rusza indeksu pod palcami pracującego człowieka.
+
+- Rozwiązanie: **tymczasowy indeks**, tą samą techniką co punkty przywracania
+  (M55) — `GIT_INDEX_FILE` → `read-tree HEAD` → łatki wybranych hunków
+  (`git apply --cached`) → `write-tree` → `commit-tree` → `update-ref HEAD`.
+  HEAD dostaje dokładnie zaznaczone fragmenty, drzewo robocze zostaje nietknięte,
+  a cudze zastage'owane pliki zostają w indeksie.
+- **Jedno ustępstwo wymuszone testem:** po takim commicie indeks użytkownika
+  trzeba zrównać z nowym HEAD **dla zatwierdzonych ścieżek**. Bez tego trzyma
+  treść sprzed commita i `git status` pokazuje zmianę w obie strony (odwrotny
+  diff w indeksie). Test pilnuje, że pliki zastage'owane osobno zostają nietknięte.
+- Składając łatkę, przeliczamy początek strony „po" o pominięte hunki. Bez tego
+  `git apply` odrzuca wszystko od drugiego fragmentu — test nakłada sam drugi hunk.
+- Hunki liczymy wobec **HEAD**, nie wobec indeksu: łatka ma się nakładać na
+  zawartość, od której startuje tymczasowy indeks.
+- Zaznaczenie fragmentu automatycznie odznacza cały plik — inaczej commit wziąłby
+  i tak całą zawartość, a zaznaczenie kawałków byłoby ozdobą.
+- Pliki nieśledzone i binarne nie mają przycisku fragmentów; nie ma czego dzielić.
+- Droga z M69 (`git commit -- <ścieżki>`) zostaje dla samych całych plików —
+  działa też w repozytorium bez HEAD, gdzie nie ma z czego zbudować indeksu.
 
 ### M83 — szukanie w treści rozmów (zrobione)
 
