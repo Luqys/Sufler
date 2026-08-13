@@ -294,6 +294,37 @@ kilkunastu przebiegów, czyli około godziny pracy maszyny. Po to jednak jest:
 serię może puścić ktokolwiek i kiedykolwiek, a wynik będzie rozkładem, nie
 anegdotą.
 
+### M94 — fundamenty wyglądu: hierarchia zamiast obwódek (zrobione)
+
+Zgłoszenie czterema zrzutami: „dużo elementów w aplikacji nie wygląda dobrze".
+Zamiast poprawiać pięć miejsc, równoległy audyt pięciu obszarów (dialogi, MCP,
+skille, paski grafu, diagnostyka) wskazał **jedną przyczynę**: `.bar-btn` —
+klasa bazowa całej aplikacji (21 plików) — miała obwódkę w kolorze akcentu.
+Każdy przycisk krzyczał tak samo, a plakietki z taką samą obwódką udawały
+klikalne.
+
+- **Trzy poziomy przycisku**: `.btn-primary` (jedna akcja na rząd, wypełnienie
+  akcentem), `.bar-btn` (cichy, tło dopiero pod kursorem), akcja destrukcyjna
+  przez `--danger`. Dialog przestał pożyczać klasę z ekranu startowego.
+- **Kolory stanu jako tokeny** (`--danger`, `--warn`, `--ok`, `--text-dim`)
+  w czterech blokach motywu; 20 zaszytych hexów wymienionych. Czerwień `#dc2626`
+  w dialogu nie zmieniała się z motywem i biła się z fioletowym akcentem.
+- **`--text-dim` był używany dziesięć razy i nigdy niezdefiniowany** — te teksty
+  po prostu dziedziczyły kolor. Błąd z M80, wykryty dopiero audytem.
+- **Osierocone deklaracje w `08-szlify.css`** (`flex: 1; min-width: 0;` między
+  regułami) powodowały, że parser odrzucał **całą** regułę `.session-clock`.
+  Też z M80.
+- **Jeden pierścień fokusu** dla całej aplikacji przez `:where()` (zerowa
+  specyficzność, więc nie zbija istniejących nadpisań); pola tekstowe dostają
+  obwódkę w akcencie zamiast pierścienia.
+- **Plakietki to informacja, nie przycisk**: bez obwódki, na `--panel-alt`.
+- Pasek skilli: trzy pełne etykiety nigdy nie mieściły się w 190 px („+ Nowy
+  skill" łamał się na trzy wiersze, pozostałe ucinały do „+ N…"). Została jedna
+  akcja z etykietą i dwie ikonowe z podpowiedzią; identyfikatory testowe bez zmian.
+- Scenariusz sprawdza wygląd **stylami obliczonymi**, nie zrzutem do oceny okiem:
+  waga czcionki akcji głównej, zerowa szerokość obwódki akcji cichych, brak
+  obwódki plakietki, wypełnienie przycisku zatwierdzenia i jednowierszowa etykieta.
+
 ### M93 — historia git znów widoczna (zrobione)
 
 Zgłoszenie ze zrzutu: w projekcie z 87 commitami i kilkudziesięcioma zmienionymi

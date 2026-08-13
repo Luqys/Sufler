@@ -442,7 +442,7 @@ export const EN: Record<StringKey, string> = {
   'skills.commandPersonal': 'personal',
   'skills.claudeMd': 'CLAUDE.md files',
   'skills.claudeMdHint': 'A long CLAUDE.md means bloated context — Claude starts losing instructions.',
-  'skills.new': '+ New skill',
+  'skills.new': '+ Skill',
   'skills.toggleTitle':
     'Enable/disable the skill — saves skillOverrides in .claude/settings.local.json (this project only)',
   'skills.toggleUnreadable': 'Toggle failed: .claude/settings.local.json contains invalid JSON.',

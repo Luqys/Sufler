@@ -146,7 +146,7 @@ export function AgentCreateDialog({ onClose, onSubmit }: Props): ReactElement {
           </button>
           <button
             type="button"
-            className="welcome-open confirm-accept"
+            className="confirm-accept"
             data-testid="agent-create-submit"
             disabled={busy}
             onClick={submit}

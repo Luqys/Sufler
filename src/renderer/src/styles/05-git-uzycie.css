@@ -96,7 +96,7 @@
 
 .usage-session-bar.limit-critical i,
 .usage-pill-bar.limit-critical i {
-  background: #ef4444;
+  background: var(--danger);
 }
 
 /* --- Wybór akcentu (long-press na przełączniku motywu) --- */
@@ -332,11 +332,11 @@
 }
 
 .git-status-M {
-  background: #d97706;
+  background: var(--warn);
 }
 
 .git-status-D {
-  background: #dc2626;
+  background: var(--danger);
 }
 
 .git-status-R,
@@ -954,7 +954,7 @@
 }
 
 .git-hunk-stats .removed {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .git-hunk-preview {

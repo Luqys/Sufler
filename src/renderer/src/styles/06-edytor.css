@@ -195,19 +195,55 @@
   min-width: 0;
 }
 
+/*
+ * M94: HIERARCHIA przycisków. `.bar-btn` jest klasą bazową całej aplikacji
+ * (21 plików) i miała obwódkę w kolorze akcentu — przez to KAŻDY przycisk
+ * krzyczał tak samo: trzy „+ Nowy…" w panelu skilli, plakietki, akcje doków
+ * i przyciski dialogów wyglądały jak akcja główna. Teraz baza jest cicha,
+ * a wyróżnienie dostaje wyłącznie jedna akcja w rzędzie (`.btn-primary`).
+ */
 .bar-btn {
   flex: none;
-  padding: 3px 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  border-radius: 5px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
   background: transparent;
-  color: var(--text);
-  font-size: 12px;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11.5px;
   cursor: pointer;
 }
 
 .bar-btn:hover {
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
+}
+
+/* Akcja główna — jedna na rząd/panel/kartę. */
+.btn-primary {
+  flex: none;
+  height: 26px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+.btn-primary:disabled,
+.bar-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .monaco-host {
@@ -454,7 +490,7 @@
 }
 
 .search-error {
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .search-results {
@@ -570,12 +606,12 @@
 }
 
 .diagnostics-count.has {
-  color: #dc2626;
+  color: var(--danger);
   font-weight: 600;
 }
 
 .diagnostics-count.warn.has {
-  color: #d97706;
+  color: var(--warn);
 }
 
 .diagnostics-clean {
@@ -583,7 +619,7 @@
 }
 
 .diagnostics-failed {
-  color: #d97706;
+  color: var(--warn);
 }
 
 .diagnostics-list {
@@ -613,11 +649,11 @@
 
 /* Pasek koloru przy błędzie — ostrzeżenia zostają spokojne. */
 .diagnostics-item.error .diagnostics-where {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .diagnostics-item.warning .diagnostics-where {
-  color: #d97706;
+  color: var(--warn);
 }
 
 .diagnostics-where {

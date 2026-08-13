@@ -188,14 +188,56 @@
   gap: 8px;
 }
 
+/*
+ * M94: przycisk zatwierdzenia w dialogu ma własny, pełny wygląd. Wcześniej
+ * pożyczał klasę `welcome-open` z ekranu startowego i dokładał zaszytą czerwień
+ * — stąd „Zamknij" wypełniony #dc2626 z jasną obwódką obok „Anuluj"
+ * z obwódką w akcencie: dwa konkurujące sposoby wyróżnienia w jednym rzędzie.
+ */
 .confirm-accept {
-  align-self: auto;
-  padding: 6px 14px;
+  height: 28px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
   font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirm-accept:hover {
+  background: color-mix(in srgb, var(--accent) 88%, #000);
 }
 
 .confirm-accept.danger {
-  background: #dc2626;
+  background: var(--danger);
+}
+
+.confirm-accept:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Anuluj jest cichy: bez obwódki, tło dopiero pod kursorem. */
+.confirm-actions .bar-btn {
+  height: 28px;
+  padding: 0 14px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+.confirm-actions .bar-btn:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
+}
+
+/* Rytm pionowy niesie `gap` kontenera — marginesy nagłówka się z nim sumowały. */
+.confirm-title,
+.confirm-message {
+  margin: 0;
 }
 
 .toast-stack {
@@ -221,11 +263,11 @@
 }
 
 .toast-success {
-  border-color: color-mix(in srgb, #22c55e 45%, transparent);
+  border-color: color-mix(in srgb, var(--ok) 45%, transparent);
 }
 
 .toast-error {
-  border-color: color-mix(in srgb, #ef4444 50%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 50%, transparent);
 }
 
 /* --- Odczepione okno terminala --- */

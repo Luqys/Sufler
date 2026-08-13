@@ -112,7 +112,7 @@ export function RuleCreateDialog({ onClose, onSubmit }: Props): ReactElement {
           </button>
           <button
             type="button"
-            className="welcome-open confirm-accept"
+            className="confirm-accept"
             data-testid="rule-create-submit"
             disabled={busy}
             onClick={submit}

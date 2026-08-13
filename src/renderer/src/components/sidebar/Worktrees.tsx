@@ -251,7 +251,7 @@ export function Worktrees({ root }: { root: string }): ReactElement | null {
         />
         <button
           type="button"
-          className="bar-btn worktree-new"
+          className="btn-primary worktree-new"
           data-testid="worktree-new"
           disabled={creating || validateWorktreeName(name.trim()) !== null}
           title={t('worktree.newHint')}

@@ -16,6 +16,20 @@ import { AgentCreateDialog } from '../dialogs/AgentCreateDialog';
 import { RuleCreateDialog } from '../dialogs/RuleCreateDialog';
 import { SkillCreateDialog } from '../dialogs/SkillCreateDialog';
 
+const ICON_AGENT = (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+    <circle cx="8" cy="5.2" r="2.6" />
+    <path d="M3.2 13.4c.6-2.4 2.5-3.7 4.8-3.7s4.2 1.3 4.8 3.7" />
+  </svg>
+);
+
+const ICON_RULE = (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+    <path d="M4 2.2h8v11.6H4z" />
+    <path d="M6.2 5.6h3.6M6.2 8h3.6M6.2 10.4h2.2" />
+  </svg>
+);
+
 interface RowToggle {
   checked: boolean;
   label: string;
@@ -240,30 +254,38 @@ export function SkillsPanel(): ReactElement {
       <div className="skills-toolbar">
         <button
           type="button"
-          className="bar-btn"
+          className="btn-primary"
           data-testid="skills-new"
           title={t('skills.create.hint')}
           onClick={() => setCreating('skill')}
         >
           {t('skills.new')}
         </button>
+        {/*
+          * M94: trzy pełne etykiety nie mieszczą się w pasku bocznym — „+ Nowy
+          * skill" łamał się na trzy wiersze, a pozostałe były ucięte do „+ N…".
+          * Akcja główna zostaje z etykietą, dwie rzadsze schodzą do ikon
+          * z podpowiedzią; identyfikatory testowe bez zmian.
+          */}
         <button
           type="button"
-          className="bar-btn"
+          className="tree-toolbtn"
           data-testid="agents-new"
           title={t('agents.create.hint')}
+          aria-label={t('skills.newAgent')}
           onClick={() => setCreating('agent')}
         >
-          {t('skills.newAgent')}
+          {ICON_AGENT}
         </button>
         <button
           type="button"
-          className="bar-btn"
+          className="tree-toolbtn"
           data-testid="rules-new"
           title={t('rules.create.hint')}
+          aria-label={t('skills.newRule')}
           onClick={() => setCreating('rule')}
         >
-          {t('skills.newRule')}
+          {ICON_RULE}
         </button>
       </div>
       <Group title={t('skills.project')} count={snapshot.projectSkills.length}>

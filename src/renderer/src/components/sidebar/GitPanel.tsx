@@ -525,7 +525,7 @@ export function GitPanel(): ReactElement {
             />
             <button
               type="button"
-              className="bar-btn git-commit-btn"
+              className="btn-primary git-commit-btn"
               data-testid="git-commit-btn"
               disabled={committing || !canCommitAnything}
               title={t('git.commitHint')}

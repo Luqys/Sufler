@@ -465,7 +465,7 @@ export const PL = {
   'skills.commandPersonal': 'osobista',
   'skills.claudeMd': 'Pliki CLAUDE.md',
   'skills.claudeMdHint': 'Długi CLAUDE.md to rozdmuchany kontekst — Claude gubi wtedy instrukcje.',
-  'skills.new': '+ Nowy skill',
+  'skills.new': '+ Skill',
   'skills.toggleTitle':
     'Włącz/wyłącz skill — zapis skillOverrides w .claude/settings.local.json (tylko ten projekt)',
   'skills.toggleUnreadable':

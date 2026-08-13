@@ -21,6 +21,23 @@
   --git-modified: #a1690b;
   --git-untracked: #388a34;
   --card-highlight: rgb(255 255 255 / 0.65);
+  /*
+   * M94: kolory STANU jako tokeny. Wcześniej siedziały zaszyte w 35 miejscach
+   * (#dc2626, #d97706, #16a34a…), przez co nie zmieniały się z motywem i biły
+   * się z akcentem — czerwony przycisk „Zamknij" przy fioletowym akcencie.
+   * `--warn`/`--ok` celowo powtarzają barwy gitowe: druga zieleń w tym samym
+   * pasku bocznym byłaby nowym odcieniem bez powodu.
+   */
+  --danger: #c0392b;
+  --warn: #a1690b;
+  --ok: #388a34;
+  /* Używane w 10 miejscach od M80 i NIGDY niezdefiniowane — teksty dziedziczyły kolor. */
+  --text-dim: #9a9aa2;
+  /* Jedna skala promieni: plakietka / wiersz / kontrolka / karta i dialog. */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 14px;
 }
 
 /* Kolory przewodnie (tryb motywu załatwia nativeTheme → prefers-color-scheme). */
@@ -49,6 +66,10 @@
     --git-modified: #e2c08d;
     --git-untracked: #73c991;
     --card-highlight: rgb(255 255 255 / 0.07);
+    --danger: #f87171;
+    --warn: #e2c08d;
+    --ok: #73c991;
+    --text-dim: #a0a0a8;
   }
   :root[data-accent='blue'] {
     --accent: #60a5fa;
@@ -78,6 +99,10 @@
   --git-untracked: #73c991;
   --card-highlight: rgb(255 255 255 / 0.07);
   --term-bg: #1b1c21;
+  --danger: #f87171;
+  --warn: #e2c08d;
+  --ok: #73c991;
+  --text-dim: #a0a0a8;
 }
 
 :root[data-theme='dark'][data-accent='blue'] {
@@ -111,6 +136,10 @@
   --git-modified: #b8e63e;
   --git-untracked: #3ee673;
   --card-highlight: rgb(0 230 83 / 0.12);
+  --danger: #ff5f5f;
+  --warn: #b8e63e;
+  --ok: #3ee673;
+  --text-dim: #4f9a63;
 }
 
 /* Vibrancy psułoby czerń — w Matrixie okno i sidebar są kryte. */
@@ -211,4 +240,27 @@ body.dragging-horizontal {
   display: grid;
   min-width: 0;
   min-height: 0;
+}
+
+/*
+ * M94: JEDEN pierścień fokusu na całą aplikację. Wcześniej każdy panel miał
+ * własny wariant albo systemowy niebieski outline, który w ciemnym motywie
+ * wyglądał jak błąd. `:where()` ma zerową specyficzność, więc nie zbija
+ * istniejących nadpisań.
+ */
+:where(button, [role='button'], summary, input, select, a):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 65%, transparent);
+  outline-offset: 2px;
+}
+
+/* W wierszach list pierścień idzie do środka, żeby nie ucinał go sąsiad. */
+:is(.mcp-row, .skill-row, .diagnostics-item, .session-row, .git-row):focus-visible {
+  outline-offset: -2px;
+}
+
+/* Pola tekstowe: obwódka w akcencie zamiast pierścienia — mniej hałasu przy pisaniu. */
+:is(.search-input, .graph-search, .diagnostics-filter, .worktree-input, .git-commit-message):focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }

@@ -122,7 +122,7 @@ export function DialogProvider({ children }: { children: ReactNode }): ReactElem
               </button>
               <button
                 type="button"
-                className={`welcome-open confirm-accept${pending.options.danger ? ' danger' : ''}`}
+                className={`confirm-accept${pending.options.danger ? ' danger' : ''}`}
                 data-testid="confirm-accept"
                 onClick={() => settle(true)}
               >
