@@ -40,6 +40,11 @@ interface AddTabOptions {
   paneId?: string;
   /** Podział przestrzeni: nowa sesja ląduje w świeżym panelu tuż za wskazanym. */
   splitAfterPaneId?: string;
+  /**
+   * Tekst wpisany do świeżej sesji, gdy tylko wstanie (M84: przejęcie pracy).
+   * Czekamy na gotowość CLI — wpis przed startem przepadłby w pustce.
+   */
+  insert?: string;
   /** Katalog startowy pty — domyślnie korzeń projektu (worktree'y, M72). */
   cwd?: string;
 }
@@ -106,6 +111,8 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
         const id = `tab-${nextTabNumber++}`;
         // Wskaźnik statusu (SPEC.md): heurystyka na strumieniu wyjściowym pty,
         // tylko dla zakładek `claude`.
+        const doWpisania = options?.insert ?? null;
+        let wpisane = doWpisania === null;
         const onOutput =
           kind === 'claude'
             ? createClaudeStatusTracker((activity) => {
@@ -116,6 +123,13 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
                   }
                   return updateTabState(state, id, { status: activity });
                 });
+                // Przejęcie pracy (M84): świeża sesja dostaje prompt dopiero,
+                // gdy CLI zgłosi gotowość — wpis wysłany wcześniej wpadłby
+                // w pustkę, zanim powstanie pole wejściowe.
+                if (!wpisane && doWpisania !== null && activity !== 'running') {
+                  wpisane = true;
+                  window.api.ptyWrite(result.ptyId, doWpisania);
+                }
               }).push
             : undefined;
         createTerminalInstance(id, result.ptyId, { kind, onOutput });

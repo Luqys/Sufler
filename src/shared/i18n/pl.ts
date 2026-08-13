@@ -711,4 +711,26 @@ export const PL = {
   'worktree.removeMessage': 'Katalog {path} zostanie usunięty. Gałąź zostaje.',
   'worktree.dirty': 'Worktree ma niezapisane zmiany — nie usuwam go.',
   'worktree.removeFailed': 'Nie udało się usunąć worktree\u2019a.',
+  'claudeCtl.title': 'Sterowanie sesją Claude',
+  'claudeCtl.model': 'Model',
+  'claudeCtl.modelOpus': 'Opus',
+  'claudeCtl.modelSonnet': 'Sonnet',
+  'claudeCtl.modelHaiku': 'Haiku',
+  'claudeCtl.effort': 'Głębokość myślenia',
+  'claudeCtl.effortHint': 'Więcej rozumowania przed odpowiedzią — kosztem czasu i tokenów.',
+  'claudeCtl.session': 'Sesja',
+  'claudeCtl.permission': 'Tryb uprawnień',
+  'claudeCtl.permissionHint':
+    'Przełącza cyklicznie (to samo, co shift+tab): pytanie o zgodę → auto-akceptacja → plan.',
+  'claudeCtl.compactHint': 'Ściska kontekst rozmowy, zostawiając ustalenia — gdy sesja spuchnie.',
+  'claudeCtl.clearHint': 'Czyści kontekst do zera. Wątek przepada — wcześniej rozważ przeniesienie.',
+  'claudeCtl.sent': 'Polecenie wysłane do sesji.',
+  'claudeCtl.handover': 'Przenieś rozmowę do nowej sesji',
+  'claudeCtl.handoverBusy': 'Przygotowuję przekazanie…',
+  'claudeCtl.handoverHint':
+    'Świeża sesja z kontekstem: streszcza dziennik bieżącej pracy i otwiera nową kartę, która go czyta.',
+  'claudeCtl.handoverDone': 'Nowa sesja przejmuje pracę z {plik}.',
+  'claudeCtl.handoverNoSummary': 'Nowa sesja dostała {plik} bez streszczenia — kontekst i tak przechodzi.',
+  'claudeCtl.handoverNoLog':
+    'Brak dziennika sesji do przeniesienia — włącz dziennik w Ustawieniach albo wyślij najpierw polecenie.',
 } as const;

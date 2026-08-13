@@ -7,6 +7,7 @@ import { getLocale, useT } from '../../i18n';
 import { getTerminalInstance } from '../../terminals';
 import { useDialogs } from '../../ui-dialogs';
 import { useWorkspace } from '../../workspace';
+import { ClaudeControls } from './ClaudeControls';
 import { TerminalView } from './TerminalView';
 import { isOutsideWindow } from '../../../../shared/docks/detached';
 
@@ -296,6 +297,16 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
           ))}
         </div>
         <div className="dock-add-wrap">
+          {activeTab?.kind === 'claude' && (
+            <ClaudeControls
+              ptyId={activeTab.ptyId}
+              first={first}
+              dockId={dockId}
+              onHandover={(prompt) =>
+                addTab(dockId, 'claude', { paneId: pane.id, insert: prompt })
+              }
+            />
+          )}
           {activeTab?.kind === 'claude' && (
             <button
               type="button"

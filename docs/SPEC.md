@@ -275,6 +275,33 @@ wniesionych przez tę gałąź; klik w plik otwiera zwykłą zakładkę diffa.
   od „nic jeszcze nie wniosła" (pusta lista). Wspólny komunikat kłamałby
   uspokajająco w razie awarii.
 
+### M84 — sterowanie sesją Claude z paska karty (zrobione)
+
+Zgłoszenie: „chcę wycisnąć z Claude wszystko" plus przycisk przenoszący
+rozmowę. Karta `claude` ma teraz w pasku przycisk otwierający panel sterowania.
+
+**Wartości wzięte z CLI, nie zgadnięte** (`claude --help`, wersja 2.1.231,
+sprawdzone też w binarce): `/model`, `/effort` (low, medium, high, xhigh, max),
+`/compact`, `/clear`, `/mcp`, `/login`. Tryb uprawnień jako jedyny NIE ma
+komendy — CLI przełącza go wyłącznie cyklicznie shift+tabem, więc przycisk
+wysyła `CSI Z` (`\u001b[Z`). Każda komenda idzie do pty TEJ karty razem
+z Enterem; bez niego wpis zawisłby w polu wejściowym.
+
+**Przeniesienie rozmowy do nowej sesji z kontekstem.** Świeża sesja startuje
+pusta, więc kontekst niesie dziennik sesji (M52) ze streszczeniem (M54):
+przycisk bierze najświeższy dziennik projektu, streszcza go i otwiera nową
+kartę z poleceniem „przeczytaj @dziennik-sesji/…, streść w trzech zdaniach, na
+czym stanęliśmy, i czekaj — nie zaczynaj pracy sam". Brak dziennika kończy się
+komunikatem, a nie pustą sesją z obietnicą kontekstu.
+
+Prompt wjeżdża dopiero, gdy CLI zgłosi gotowość — nasłuch na strumieniu pty
+tą samą heurystyką, co wskaźnik statusu (M4). Wpis wysłany wcześniej wpadłby
+w pustkę, zanim powstanie pole wejściowe.
+
+Scenariusz e2e sprawdza BAJTY, które poszły do pty (atrapa `claude` zapisuje
+całe wejście przez `tee`), a nie to, co pokazał terminal — dzięki temu test
+łapie różnicę między „widać na ekranie" a „sesja dostała".
+
 ### M83 — szukanie w treści rozmów (zrobione)
 
 Filtr w panelu „Sesje" (M80) zawężał tytuły i gałęzie, czyli pierwsze polecenie

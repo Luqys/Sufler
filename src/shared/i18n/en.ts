@@ -678,4 +678,26 @@ export const EN: Record<StringKey, string> = {
   'worktree.removeMessage': 'Directory {path} will be removed. The branch stays.',
   'worktree.dirty': 'The worktree has uncommitted changes — leaving it alone.',
   'worktree.removeFailed': 'Could not remove the worktree.',
+  'claudeCtl.title': 'Claude session controls',
+  'claudeCtl.model': 'Model',
+  'claudeCtl.modelOpus': 'Opus',
+  'claudeCtl.modelSonnet': 'Sonnet',
+  'claudeCtl.modelHaiku': 'Haiku',
+  'claudeCtl.effort': 'Thinking depth',
+  'claudeCtl.effortHint': 'More reasoning before answering — at the cost of time and tokens.',
+  'claudeCtl.session': 'Session',
+  'claudeCtl.permission': 'Permission mode',
+  'claudeCtl.permissionHint':
+    'Cycles through modes (same as shift+tab): ask for approval → auto-accept → plan.',
+  'claudeCtl.compactHint': 'Compresses the conversation, keeping decisions — for when a session grows.',
+  'claudeCtl.clearHint': 'Wipes the context. The thread is gone — consider handing it over first.',
+  'claudeCtl.sent': 'Command sent to the session.',
+  'claudeCtl.handover': 'Hand the conversation to a new session',
+  'claudeCtl.handoverBusy': 'Preparing the handover…',
+  'claudeCtl.handoverHint':
+    'A fresh session with context: summarises the current work log and opens a new tab that reads it.',
+  'claudeCtl.handoverDone': 'The new session takes over from {plik}.',
+  'claudeCtl.handoverNoSummary': 'The new session got {plik} without a summary — context still carries over.',
+  'claudeCtl.handoverNoLog':
+    'No session log to hand over — enable the log in Settings or send a prompt first.',
 };

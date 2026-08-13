@@ -488,3 +488,53 @@
   color: var(--muted);
   align-self: center;
 }
+
+/* --- M84: sterowanie sesją Claude z paska karty --- */
+
+.claude-controls {
+  width: 268px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.claude-controls-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.claude-controls-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.claude-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+/* Przyciski poleceń: wąskie, w jednej metryce, żeby rząd nie skakał. */
+.claude-controls-row .bar-btn {
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 7px;
+  font-size: 11.5px;
+}
+
+.claude-controls-handover {
+  width: 100%;
+  padding: 9px 10px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.claude-controls-handover:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
