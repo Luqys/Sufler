@@ -2,7 +2,7 @@ import { useState, type DragEvent, type ReactElement } from 'react';
 import { isDiffPath } from '../../../shared/diff-tabs';
 import type { EditorGroup } from '../../../shared/editor-groups';
 import { baseName } from '../../../shared/paths';
-import { BROWSER_PREVIEW_PATH, KNOWLEDGE_GRAPH_PATH } from '../../../shared/preview';
+import { isBrowserPreviewPath, KNOWLEDGE_GRAPH_PATH } from '../../../shared/preview';
 import { useT } from '../i18n';
 import { useWorkspace } from '../workspace';
 import { fileIconFor } from './file-icons';
@@ -54,7 +54,7 @@ function tabIcon(path: string): ReactElement {
   if (path === KNOWLEDGE_GRAPH_PATH) {
     return ICON_GRAPH;
   }
-  if (path === BROWSER_PREVIEW_PATH) {
+  if (isBrowserPreviewPath(path)) {
     return ICON_GLOBE_SMALL;
   }
   if (isDiffPath(path)) {

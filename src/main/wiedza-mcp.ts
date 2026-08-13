@@ -207,6 +207,28 @@ function buildMcp(): McpServer {
 
 let httpServer: Server | null = null;
 let startError: string | null = null;
+/** Zatrzymany na życzenie (zamykanie aplikacji) — wtedy nie ponawiamy startu. */
+let stopped = false;
+let startAttempts = 0;
+let retryTimer: NodeJS.Timeout | null = null;
+
+/** Ile razy próbujemy zająć port i co ile — port bywa jeszcze trzymany przez zamykaną instancję. */
+const START_RETRIES = 5;
+const RETRY_DELAY_MS = 700;
+
+/**
+ * Panel Wiedza czytał status raz, przy montowaniu — a `listen()` jest
+ * asynchroniczny, więc sekcja MCP potrafiła zostać na „uruchamianie" do końca
+ * życia okna (zgłoszenie „ta sekcja nie zawsze działa"). Teraz każda zmiana
+ * stanu leci do okien.
+ */
+function broadcastStatus(): void {
+  for (const win of BrowserWindow.getAllWindows()) {
+    if (!win.isDestroyed()) {
+      win.webContents.send(IPC.WiedzaMcpChanged);
+    }
+  }
+}
 
 async function handleRequest(request: IncomingMessage, response: ServerResponse): Promise<void> {
   if (!request.url?.startsWith('/mcp')) {
@@ -235,19 +257,32 @@ async function handleRequest(request: IncomingMessage, response: ServerResponse)
 }
 
 export function startWiedzaMcp(): void {
+  stopped = false;
+  startAttempts += 1;
   const port = wiedzaMcpPort();
-  httpServer = createServer((request, response) => {
+  const server = createServer((request, response) => {
     handleRequest(request, response).catch(() => {
       if (!response.headersSent) {
         response.writeHead(500).end();
       }
     });
   });
-  httpServer.on('error', (error) => {
+  httpServer = server;
+  server.on('error', (error) => {
     startError = String((error as NodeJS.ErrnoException).code ?? error);
     httpServer = null;
+    broadcastStatus();
+    // Zajęty port to zwykle poprzednia instancja w trakcie zamykania —
+    // kilka podejść wystarcza, żeby serwer wstał bez restartu aplikacji.
+    if (!stopped && startAttempts < START_RETRIES) {
+      retryTimer = setTimeout(startWiedzaMcp, RETRY_DELAY_MS);
+      retryTimer.unref?.();
+    }
   });
-  httpServer.listen(port, '127.0.0.1');
+  server.listen(port, '127.0.0.1', () => {
+    startError = null;
+    broadcastStatus();
+  });
 }
 
 export function getWiedzaMcpStatus(): { running: boolean; url: string; error: string | null } {
@@ -259,6 +294,11 @@ export function getWiedzaMcpStatus(): { running: boolean; url: string; error: st
 }
 
 export function stopWiedzaMcp(): void {
+  stopped = true;
+  if (retryTimer) {
+    clearTimeout(retryTimer);
+    retryTimer = null;
+  }
   httpServer?.close();
   httpServer = null;
 }

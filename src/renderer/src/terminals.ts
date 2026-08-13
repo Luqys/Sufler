@@ -2,7 +2,10 @@ import { FitAddon } from '@xterm/addon-fit';
 import { SerializeAddon } from '@xterm/addon-serialize';
 import { Terminal, type ITheme } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
+import type { TabKind } from '../../shared/dock-tabs';
 import { quotePathForPrompt } from '../../shared/media';
+import { createWheelNormalizer } from '../../shared/scroll';
+import { CLAUDE_NEWLINE, isClaudeNewline } from '../../shared/terminal-keys';
 import { FLAVOR_EVENT, isDarkTheme, isMatrixFlavor } from './appearance-client';
 import { t } from './i18n';
 
@@ -19,6 +22,12 @@ export interface TerminalInstance {
   host: HTMLDivElement;
   ptyId: number;
   /** Dodatkowy odbiorca surowego wyjścia pty (np. heurystyka statusu Claude). */
+  onOutput?: (chunk: string) => void;
+}
+
+export interface CreateTerminalOptions {
+  /** Rodzaj karty — `claude` dostaje Shift+Enter jako nową linię. */
+  kind?: TabKind;
   onOutput?: (chunk: string) => void;
 }
 
@@ -137,8 +146,9 @@ window.api.onPtyExit(({ ptyId }) => {
 export function createTerminalInstance(
   tabId: string,
   ptyId: number,
-  onOutput?: (chunk: string) => void,
+  options: CreateTerminalOptions = {},
 ): TerminalInstance {
+  const { kind = 'terminal', onOutput } = options;
   const host = document.createElement('div');
   host.className = 'terminal-host';
   const term = new Terminal({
@@ -157,6 +167,17 @@ export function createTerminalInstance(
   term.loadAddon(serialize);
   term.open(host);
   term.onData((data) => window.api.ptyWrite(ptyId, data));
+  if (kind === 'claude') {
+    // Shift+Enter = nowa linia w poleceniu. W zwykłym terminalu zostawiamy
+    // domyślne zachowanie (Shift+Enter zatwierdza), bo powłoka nie zna ESC+CR.
+    term.attachCustomKeyEventHandler((event) => {
+      if (isClaudeNewline(event)) {
+        window.api.ptyWrite(ptyId, CLAUDE_NEWLINE);
+        return false;
+      }
+      return true;
+    });
+  }
   // Wklejenie obrazka (np. zrzutu ekranu): schowek ma bitmapę bez tekstu —
   // zapisujemy ją do pliku i wklejamy ścieżkę (Claude Code czyta obrazki po
   // ścieżce). Nasłuch w fazie capture wyprzedza własny handler xterm.
@@ -180,6 +201,34 @@ export function createTerminalInstance(
       }
     },
     true,
+  );
+  // Kółko myszy: xterm dzieli grubą deltę (~100 px) przez wysokość celi, więc
+  // jedno kliknięcie skakało o ~6 wierszy, a gładzik sunął po jednym. Stały
+  // krok w wierszach zrównuje tempo; gładzik zostaje pod natywną obsługą
+  // xterma. stopPropagation w fazie przechwytywania — inaczej xterm przewinąłby
+  // bufor po raz drugi.
+  const wheelNormalizer = createWheelNormalizer();
+  host.addEventListener(
+    'wheel',
+    (event) => {
+      if (event.ctrlKey || event.metaKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+        return;
+      }
+      const rowsElement = host.querySelector<HTMLElement>('.xterm-rows');
+      const lineHeight =
+        rowsElement && term.rows > 0 ? rowsElement.clientHeight / term.rows : 17;
+      const { device, lines } = wheelNormalizer.normalize(
+        { deltaY: event.deltaY, deltaMode: event.deltaMode, timeStamp: event.timeStamp },
+        { lineHeight, viewport: host.clientHeight },
+      );
+      if (device === 'trackpad') {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      term.scrollLines(lines < 0 ? Math.floor(lines) : Math.ceil(lines));
+    },
+    { capture: true, passive: false },
   );
   const instance: TerminalInstance = { term, fit, serialize, host, ptyId, onOutput };
   instances.set(tabId, instance);

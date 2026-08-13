@@ -83,3 +83,24 @@ done
   writeFileSync(join(dir, 'claude'), script, { mode: 0o755 });
   return dir;
 }
+
+/**
+ * Atrapa `claude`, która pokazuje SUROWE bajty wejścia (`cat -v`): ESC jako
+ * `^[`, CR jako `^M`. Tylko tak da się w teście odróżnić Shift+Enter (nowa
+ * linia, ESC+CR) od zwykłego Entera (CR) — prawdziwe CLI czyta klawisze, nie
+ * linie, więc atrapa czytająca linie zatarłaby różnicę.
+ */
+export function makeRawKeysClaudeBin(): string {
+  const dir = mkdtempSync(join(tmpdir(), 'vn3o-bin-'));
+  const script = `#!/bin/zsh
+echo "── Claude Code (atrapa klawiszy) ──"
+echo "? for shortcuts"
+# Tryb surowy jak w prawdziwym TUI: bajt po bajcie, bez echa i bez zamiany
+# CR na LF (w trybie kanonicznym to ona domyka linię, więc zatarłaby różnicę
+# między Enterem (CR) i Shift+Enterem (ESC+CR)).
+stty raw -echo 2>/dev/null
+exec cat -v
+`;
+  writeFileSync(join(dir, 'claude'), script, { mode: 0o755 });
+  return dir;
+}

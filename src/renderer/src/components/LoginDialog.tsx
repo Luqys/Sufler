@@ -31,7 +31,7 @@ export function LoginDialog({ onClose }: { onClose(): void }): ReactElement {
         return;
       }
       ptyIdRef.current = result.ptyId;
-      createTerminalInstance(tabId, result.ptyId);
+      createTerminalInstance(tabId, result.ptyId, { kind: 'claude' });
       setReady(true);
     });
     return () => {

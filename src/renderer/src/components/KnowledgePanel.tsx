@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type ReactElement } from 'react';
 import type { KnowledgeFile } from '../../../shared/ipc';
 import { SESSION_LOG_DIR } from '../../../shared/session-log';
 import { tf, tp, useT } from '../i18n';
-import { onKnowledgeChanged } from '../knowledge-events';
+import { onKnowledgeChanged, onWiedzaMcpChanged } from '../knowledge-events';
 import { useDialogs } from '../ui-dialogs';
 import { useWorkspace } from '../workspace';
 import { fileIconFor } from './file-icons';
@@ -57,8 +57,15 @@ export function KnowledgePanel(): ReactElement {
     error: string | null;
   } | null>(null);
 
+  // Status czytamy przy montowaniu ORAZ na każdą zmianę z main: `listen()`
+  // jest asynchroniczny, więc pierwszy odczyt trafiał czasem przed startem
+  // serwera i sekcja zostawała na „uruchamianie" (zgłoszenie użytkowników).
   useEffect(() => {
-    void window.api.getWiedzaMcpStatus().then(setMcpStatus);
+    const readStatus = (): void => {
+      void window.api.getWiedzaMcpStatus().then(setMcpStatus);
+    };
+    readStatus();
+    return onWiedzaMcpChanged(readStatus);
   }, []);
 
   const [summarizing, setSummarizing] = useState<string | null>(null);

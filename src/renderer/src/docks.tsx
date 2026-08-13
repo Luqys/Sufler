@@ -53,6 +53,8 @@ interface DocksValue {
   detachTab(id: string): void;
   /** Wpisuje tekst do pty aktywnej sesji Claude (preferuje aktywne zakładki paneli). */
   insertToActiveClaude(text: string): boolean;
+  /** Ostatnie polecenie wysłane w danej karcie (hook UserPromptSubmit) → id karty. */
+  lastPrompts: Record<string, string>;
 }
 
 const DocksContext = createContext<DocksValue | null>(null);
@@ -72,6 +74,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
   const { root } = useWorkspace();
   const { confirmDialog, notify } = useDialogs();
   const [docks, setDocksRaw] = useState<DocksState>(emptyDocksState);
+  const [lastPrompts, setLastPrompts] = useState<Record<string, string>>({});
   const docksRef = useRef(docks);
   // Karty, których status przejęły hooki (M35) — heurystyka pty ich nie dotyka.
   // Bez tego spóźniony chunk wyjścia nadpisywał status ustawiony hookiem (wyścig).
@@ -104,7 +107,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
                 });
               }).push
             : undefined;
-        createTerminalInstance(id, result.ptyId, onOutput);
+        createTerminalInstance(id, result.ptyId, { kind, onOutput });
         applyDocks((state) => {
           let next = state;
           let targetPaneId = options?.paneId;
@@ -147,6 +150,14 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
       const finish = (): void => {
         void window.api.ptyKill(found.tab.ptyId);
         disposeTerminalInstance(id);
+        setLastPrompts((current) => {
+          if (!(id in current)) {
+            return current;
+          }
+          const next = { ...current };
+          delete next[id];
+          return next;
+        });
         applyDocks((state) => closeTabState(state, id));
       };
       if (found.tab.status === 'exited') {
@@ -228,11 +239,19 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
   // przejmuje kartę na wyłączność (hookDrivenRef) — heurystyka strumienia pty
   // zostaje fallbackiem wyłącznie dla sesji bez hooków.
   useEffect(() => {
-    window.api.onClaudeHookEvent(({ ptyId, kind }) => {
+    window.api.onClaudeHookEvent(({ ptyId, kind, prompt }) => {
       const target = allTabs(docksRef.current).find(
         (tab) => tab.ptyId === ptyId && tab.kind === 'claude' && tab.status !== 'exited',
       );
       if (!target) {
+        return;
+      }
+      if (kind === 'prompt') {
+        // Samo polecenie nie mówi nic o statusie karty — zapamiętujemy treść
+        // (przycisk „Kopiuj polecenie") i zostawiamy status w spokoju.
+        if (prompt) {
+          setLastPrompts((current) => ({ ...current, [target.id]: prompt }));
+        }
         return;
       }
       hookDrivenRef.current.add(target.id);
@@ -263,6 +282,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
         splitTab,
         detachTab,
         insertToActiveClaude,
+        lastPrompts,
       }}
     >
       {children}

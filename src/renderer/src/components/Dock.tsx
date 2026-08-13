@@ -3,6 +3,8 @@ import type { ClaudeSessionEntry } from '../../../shared/claude-sessions';
 import type { DockId, DockPane, TabKind } from '../../../shared/dock-tabs';
 import { useDocks } from '../docks';
 import { getLocale, useT } from '../i18n';
+import { getTerminalInstance } from '../terminals';
+import { useDialogs } from '../ui-dialogs';
 import { useWorkspace } from '../workspace';
 import { TerminalView } from './TerminalView';
 import { isOutsideWindow } from '../../../shared/detached';
@@ -43,6 +45,13 @@ const ICON_TAB_TERMINAL = (
   <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#89e051" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
     <path d="M2.5 3.5l4 4-4 4" />
     <path d="M8.5 12h5" />
+  </svg>
+);
+
+const ICON_COPY_PROMPT = (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
+    <rect x="5.4" y="1.9" width="8.2" height="10.2" rx="1.5" />
+    <path d="M10.6 14.1H3.9a1.5 1.5 0 0 1-1.5-1.5V4.4" />
   </svg>
 );
 
@@ -153,12 +162,35 @@ interface PaneViewProps {
 
 /** Jeden panel doku: własny pasek zakładek, [+], podział i terminal aktywnej karty. */
 function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactElement {
-  const { addTab, activateTab, closeTab, moveTab, splitTab, detachTab } = useDocks();
+  const { addTab, activateTab, closeTab, moveTab, splitTab, detachTab, lastPrompts } = useDocks();
+  const { notify } = useDialogs();
   const t = useT();
   const [dropHover, setDropHover] = useState(false);
 
   const activeTab = pane.tabs.find((tab) => tab.id === pane.activeId) ?? null;
   const first = paneIndex === 0;
+
+  /**
+   * Kopiowanie polecenia (zgłoszenie użytkowników): zaznaczenie w terminalu,
+   * a gdy go nie ma — ostatnie polecenie wysłane w tej sesji (hook
+   * UserPromptSubmit). Przydaje się do przepisania promptu po `/clear`
+   * albo do drugiej sesji.
+   */
+  const copyPrompt = (): void => {
+    if (!activeTab) {
+      return;
+    }
+    const selection = getTerminalInstance(activeTab.id)?.term.getSelection().trim() ?? '';
+    const text = selection !== '' ? selection : (lastPrompts[activeTab.id] ?? '');
+    if (text === '') {
+      notify(t('dock.copyPromptEmpty'), 'info');
+      return;
+    }
+    void navigator.clipboard.writeText(text).then(
+      () => notify(t('dock.copyPromptOk'), 'success'),
+      () => notify(t('dock.copyPromptFailed'), 'error'),
+    );
+  };
 
   const onDragOver = (event: DragEvent<HTMLElement>): void => {
     if (event.dataTransfer.types.includes(DND_MIME)) {
@@ -236,6 +268,17 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
           ))}
         </div>
         <div className="dock-add-wrap">
+          {activeTab?.kind === 'claude' && (
+            <button
+              type="button"
+              className="dock-add"
+              data-testid={first ? `${dockId}-copy-prompt` : undefined}
+              title={t('dock.copyPrompt')}
+              onClick={copyPrompt}
+            >
+              {ICON_COPY_PROMPT}
+            </button>
+          )}
           <button
             type="button"
             className="dock-add"

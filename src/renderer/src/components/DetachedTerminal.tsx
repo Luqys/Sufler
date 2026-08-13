@@ -27,7 +27,7 @@ export function DetachedTerminal(): ReactElement {
       }
       document.title = `${info.title} — Sufler`;
       const id = `detached-${ptyId}`;
-      const instance = createTerminalInstance(id, ptyId);
+      const instance = createTerminalInstance(id, ptyId, { kind: info.kind });
       if (info.serialized) {
         instance.term.write(info.serialized);
       }

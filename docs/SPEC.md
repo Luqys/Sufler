@@ -229,6 +229,35 @@ cztery komendy zielone plus zrzut ekranu ze scenariusza e2e.
 Kolejność sensowna, nie obowiązkowa: M68 i M69 są tanie i domykają rzeczy zaczęte
 (panel skilli, `DiffView`). M71 i M72 to jedyne dwa duże kamienie na tej liście.
 
+### M66 — poprawki ze zgłoszeń użytkowników (zrobione)
+
+Pięć rzeczy z listy zgłoszonej przez użytkowników. Wszystkie były błędami, nie
+życzeniami — dlatego jeden kamień, nie pięć.
+
+1. **Shift+Enter w karcie Claude** wysyłał zwykły CR, więc próba złamania
+   polecenia na dwie linie wysyłała je do Claude. xterm dostał własną obsługę
+   klawisza: ESC+CR (`src/shared/terminal-keys.ts`) — dokładnie to wiązanie
+   zakłada `claude /terminal-setup` w iTermie i VS Code. Zwykły terminal
+   zostaje bez zmian, bo powłoka nie zna ESC+CR.
+2. **Kopiowanie polecenia przyciskiem** w pasku karty Claude: zaznaczenie
+   z terminala, a gdy go nie ma — ostatnie wysłane polecenie. Treść bierze się
+   z hooka `UserPromptSubmit`, który i tak przychodził z `ptyId` karty
+   (M35/M52); brakowało tylko przekazania jej do renderera.
+3. **Jednolite tempo przewijania** (`src/shared/scroll.ts`): kółko myszy ma
+   stały krok w wierszach plus łagodne przyspieszenie przy szybkim kręceniu,
+   gładzik zostaje natywny, bo jego tempo to prędkość palca. Osobne wejścia dla
+   trzech mechanizmów przewijania: DOM (`src/renderer/src/wheel.ts`, łapie też
+   paski zakładek — tam pionowe kółko przewija w poziomie), bufor xterm
+   i Monaco.
+4. **Druga przeglądarka** nie powstawała, bo wszystkie podglądy miały jedną
+   pseudo-ścieżkę `vn3o://preview`, a pasek zakładek deduplikuje po ścieżce —
+   drugie kliknięcie tylko aktywowało istniejącą kartę. Kolejne podglądy dostają
+   `vn3o://preview/<n>` i własny, pamiętany adres.
+5. **Sekcja MCP w panelu Wiedza** czytała status raz, przy montowaniu, a
+   `listen()` jest asynchroniczny — panel potrafił zostać na „uruchamianie" do
+   końca życia okna. Teraz main rozgłasza zmianę stanu, a zajęty port (szybki
+   restart aplikacji) jest ponawiany kilka razy zamiast gasnąć na stałe.
+
 ### M68 — slash-komendy w panelu
 
 Panel zna skille, subagentów i reguły; komendy z `.claude/commands/*.md` (oraz

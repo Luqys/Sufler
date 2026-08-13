@@ -3,6 +3,7 @@ import type { RevealTarget } from '../workspace';
 import { getModel } from '../editor/models';
 import { t } from '../i18n';
 import { frontmatterRange, monaco } from '../monaco-setup';
+import { createWheelNormalizer } from '../../../shared/scroll';
 import { useDialogs } from '../ui-dialogs';
 
 /** Pozycje kursora/scrolla per plik — przetrwają przełączanie zakładek. */
@@ -66,6 +67,26 @@ export function MonacoEditor({ path, reveal }: MonacoEditorProps): ReactElement 
         });
       },
     });
+    // Kółko myszy tym samym krokiem, co reszta aplikacji: Monaco przewija
+    // wprost deltą zdarzenia (~100 px = ~6 linii), gładzik zostaje natywny.
+    // Nasłuch w fazie przechwytywania na hoście wyprzedza obsługę Monaco.
+    const wheelNormalizer = createWheelNormalizer();
+    const onWheel = (event: WheelEvent): void => {
+      if (event.ctrlKey || event.metaKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+        return;
+      }
+      const { device, pixels } = wheelNormalizer.normalize(
+        { deltaY: event.deltaY, deltaMode: event.deltaMode, timeStamp: event.timeStamp },
+        { lineHeight: editor.getOption(monaco.editor.EditorOption.lineHeight), viewport: host.clientHeight },
+      );
+      if (device === 'trackpad') {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      editor.setScrollTop(editor.getScrollTop() + pixels);
+    };
+    host.addEventListener('wheel', onWheel, { capture: true, passive: false });
     // Serwer „ide": zaznaczenie w edytorze trafia do cache w main i jako
     // notyfikacja selection_changed do podłączonych sesji Claude.
     let selectionTimer: number | null = null;
@@ -98,6 +119,7 @@ export function MonacoEditor({ path, reveal }: MonacoEditorProps): ReactElement 
     });
     return () => {
       selectionSub.dispose();
+      host.removeEventListener('wheel', onWheel, { capture: true });
       if (selectionTimer !== null) {
         window.clearTimeout(selectionTimer);
       }

@@ -4,7 +4,11 @@ import { App } from './App';
 import { DetachedApp } from './DetachedApp';
 import { DetachedTerminal } from './components/DetachedTerminal';
 import { parseDetachedTarget } from '../../shared/detached';
+import { installWheelScroll } from './wheel';
 import './styles.css';
+
+// Jednolite tempo przewijania w każdym oknie (główne, odczepione panele/terminale).
+installWheelScroll();
 
 const root = document.getElementById('root');
 const isDetachedTerminal =

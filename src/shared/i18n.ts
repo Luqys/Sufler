@@ -50,6 +50,10 @@ export const PL = {
   'dock.notifDone': 'Claude skończył pracę',
   'dock.notifAttention': 'Claude czeka na zgodę',
   'dock.notifBody': 'Karta „{title}" — wróć do Suflera.',
+  'dock.copyPrompt': 'Kopiuj polecenie: zaznaczenie, a bez niego ostatni prompt tej sesji',
+  'dock.copyPromptOk': 'Polecenie skopiowane do schowka.',
+  'dock.copyPromptEmpty': 'Nie ma czego kopiować — zaznacz tekst albo wyślij polecenie.',
+  'dock.copyPromptFailed': 'Nie udało się skopiować do schowka.',
 
   // Zakładki edytora i obszar edytora
   'tabs.split': 'Podziel przestrzeń roboczą — nowa grupa edytora obok',
@@ -564,6 +568,10 @@ export const EN: Record<StringKey, string> = {
   'dock.notifDone': 'Claude finished working',
   'dock.notifAttention': 'Claude is waiting for approval',
   'dock.notifBody': 'Tab “{title}” — come back to Sufler.',
+  'dock.copyPrompt': 'Copy prompt: the selection, or the session’s last prompt when nothing is selected',
+  'dock.copyPromptOk': 'Prompt copied to the clipboard.',
+  'dock.copyPromptEmpty': 'Nothing to copy — select some text or send a prompt first.',
+  'dock.copyPromptFailed': 'Could not copy to the clipboard.',
 
   'tabs.split': 'Split the workspace — a new editor group alongside',
   'tabs.preview': 'Browser preview (localhost) with element picking mode',

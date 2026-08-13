@@ -34,9 +34,10 @@ import type { IdeBridgeRequestPayload, ReadFileError, WatchEvent } from '../../s
 import { isImagePath } from '../../shared/media';
 import { baseName } from '../../shared/paths';
 import {
-  BROWSER_PREVIEW_PATH,
+  browserPreviewIndex,
   HELP_PATH,
   KNOWLEDGE_GRAPH_PATH,
+  nextBrowserPreviewPath,
   SETTINGS_PATH,
   WORKLOG_PATH,
 } from '../../shared/preview';
@@ -451,10 +452,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     window.api.onWatchEvent(handleWatchEvent);
   }, [handleWatchEvent]);
 
+  // Każde kliknięcie otwiera NOWY podgląd (kolejny wolny numer), a nie
+  // aktywuje istniejącego — użytkownicy zgłaszali, że drugiej przeglądarki
+  // nie da się otworzyć. Numer bierzemy ze wszystkich grup, żeby podgląd
+  // z drugiej grupy nie „zajął" numeru po cichu.
   const openBrowserPreview = useCallback(() => {
-    applyGroups((state) =>
-      openTabInActiveGroup(state, BROWSER_PREVIEW_PATH, t('tabs.previewTitle'), true),
-    );
+    applyGroups((state) => {
+      const path = nextBrowserPreviewPath(
+        state.groups.flatMap((group) => group.tabs.map((tab) => tab.path)),
+      );
+      const index = browserPreviewIndex(path);
+      const title =
+        index === 1 ? t('tabs.previewTitle') : `${t('tabs.previewTitle')} ${index}`;
+      return openTabInActiveGroup(state, path, title, true);
+    });
   }, [applyGroups]);
 
   const openDiffTab = useCallback(

@@ -22,6 +22,7 @@ import {
   HOOK_ENDPOINT_PATH,
 } from '../shared/claude-hooks';
 import { appendSessionLog } from './session-log';
+import { parseSessionLogPayload } from '../shared/session-log';
 import {
   buildLockFileContent,
   handleIdeRpcMessage,
@@ -260,10 +261,14 @@ function handleHookRequest(request: IncomingMessage, response: ServerResponse): 
     if (event.kind === 'prompt' || event.kind === 'tool' || event.kind === 'stop') {
       void appendSessionLog(event.kind, body);
     }
-    if (event.kind === 'notification' || event.kind === 'stop') {
+    // Polecenie idzie do renderera z treścią — karta Claude oferuje je pod
+    // przyciskiem kopiowania (przepisanie promptu do innej sesji, po /clear).
+    const prompt =
+      event.kind === 'prompt' ? parseSessionLogPayload('prompt', body)?.prompt : undefined;
+    if (event.kind === 'notification' || event.kind === 'stop' || prompt) {
       for (const win of BrowserWindow.getAllWindows()) {
         if (!win.isDestroyed()) {
-          win.webContents.send(IPC.ClaudeHookEvent, event);
+          win.webContents.send(IPC.ClaudeHookEvent, prompt ? { ...event, prompt } : event);
         }
       }
     }

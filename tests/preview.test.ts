@@ -1,5 +1,46 @@
 import { describe, expect, it } from 'vitest';
-import { formatElementReference, normalizeUrl } from '../src/shared/preview';
+import {
+  BROWSER_PREVIEW_PATH,
+  browserPreviewIndex,
+  browserPreviewPath,
+  formatElementReference,
+  isBrowserPreviewPath,
+  nextBrowserPreviewPath,
+  normalizeUrl,
+} from '../src/shared/preview';
+
+describe('ścieżki podglądu przeglądarki', () => {
+  it('pierwszy podgląd zachowuje historyczną ścieżkę', () => {
+    expect(browserPreviewPath(1)).toBe(BROWSER_PREVIEW_PATH);
+    expect(browserPreviewPath(0)).toBe(BROWSER_PREVIEW_PATH);
+    expect(browserPreviewPath(2)).toBe(`${BROWSER_PREVIEW_PATH}/2`);
+  });
+
+  it('rozpoznaje własne ścieżki i odczytuje numer', () => {
+    expect(isBrowserPreviewPath(BROWSER_PREVIEW_PATH)).toBe(true);
+    expect(isBrowserPreviewPath(`${BROWSER_PREVIEW_PATH}/7`)).toBe(true);
+    expect(isBrowserPreviewPath('vn3o://graph')).toBe(false);
+    expect(isBrowserPreviewPath('/projekt/plik.ts')).toBe(false);
+    expect(browserPreviewIndex(BROWSER_PREVIEW_PATH)).toBe(1);
+    expect(browserPreviewIndex(`${BROWSER_PREVIEW_PATH}/7`)).toBe(7);
+    expect(browserPreviewIndex(`${BROWSER_PREVIEW_PATH}/nic`)).toBe(1);
+  });
+
+  it('kolejne kliknięcie daje kolejny wolny numer', () => {
+    expect(nextBrowserPreviewPath([])).toBe(BROWSER_PREVIEW_PATH);
+    expect(nextBrowserPreviewPath([BROWSER_PREVIEW_PATH])).toBe(`${BROWSER_PREVIEW_PATH}/2`);
+    expect(
+      nextBrowserPreviewPath([BROWSER_PREVIEW_PATH, `${BROWSER_PREVIEW_PATH}/2`, '/plik.ts']),
+    ).toBe(`${BROWSER_PREVIEW_PATH}/3`);
+  });
+
+  it('zamknięty podgląd zwalnia swój numer', () => {
+    expect(nextBrowserPreviewPath([`${BROWSER_PREVIEW_PATH}/2`])).toBe(BROWSER_PREVIEW_PATH);
+    expect(nextBrowserPreviewPath([BROWSER_PREVIEW_PATH, `${BROWSER_PREVIEW_PATH}/3`])).toBe(
+      `${BROWSER_PREVIEW_PATH}/2`,
+    );
+  });
+});
 
 describe('normalizeUrl', () => {
   it('dodaje http:// gdy brak schematu', () => {

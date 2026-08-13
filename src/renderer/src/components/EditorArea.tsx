@@ -4,8 +4,8 @@ import type { EditorGroup } from '../../../shared/editor-groups';
 import { isDiffPath } from '../../../shared/diff-tabs';
 import { isImagePath } from '../../../shared/media';
 import {
-  BROWSER_PREVIEW_PATH,
   HELP_PATH,
+  isBrowserPreviewPath,
   KNOWLEDGE_GRAPH_PATH,
   SETTINGS_PATH,
   WORKLOG_PATH,
@@ -38,8 +38,9 @@ function GroupContent({ group, focused }: { group: EditorGroup; focused: boolean
     );
   }
 
-  if (activePath === BROWSER_PREVIEW_PATH) {
-    return <BrowserPreview />;
+  if (isBrowserPreviewPath(activePath)) {
+    // Klucz = ścieżka: każdy podgląd ma własny webview i własny adres.
+    return <BrowserPreview key={activePath} path={activePath} />;
   }
 
   if (activePath === KNOWLEDGE_GRAPH_PATH) {

@@ -16,14 +16,20 @@ interface WebviewIpcMessageEvent extends Event {
   args: unknown[];
 }
 
-/** Adres przeżywa zamknięcie i ponowne otwarcie zakładki podglądu. */
-let lastUrl = 'http://localhost:3000';
+const DEFAULT_URL = 'http://localhost:3000';
 
-export function BrowserPreview(): ReactElement {
+/**
+ * Adres przeżywa zamknięcie i ponowne otwarcie zakładki podglądu — osobno
+ * dla każdej karty, bo podglądów może być kilka (np. localhost:3000 obok
+ * localhost:5173).
+ */
+const lastUrls = new Map<string, string>();
+
+export function BrowserPreview({ path }: { path: string }): ReactElement {
   const t = useT();
   const { insertToActiveClaude } = useDocks();
   const { notify } = useDialogs();
-  const [address, setAddress] = useState(lastUrl);
+  const [address, setAddress] = useState(lastUrls.get(path) ?? DEFAULT_URL);
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
   const [preloadPath, setPreloadPath] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
@@ -63,12 +69,12 @@ export function BrowserPreview(): ReactElement {
       node.addEventListener('did-navigate', () => {
         const url = (node as WebviewElement).getURL();
         if (url) {
-          lastUrl = url;
+          lastUrls.set(path, url);
           setAddress(url);
         }
       });
     },
-    [handlePicked],
+    [handlePicked, path],
   );
 
   const load = (): void => {
@@ -76,7 +82,7 @@ export function BrowserPreview(): ReactElement {
     if (url === '') {
       return;
     }
-    lastUrl = url;
+    lastUrls.set(path, url);
     setAddress(url);
     setCurrentUrl(url);
     setPicking(false);

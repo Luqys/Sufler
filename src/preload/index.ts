@@ -175,6 +175,9 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.WiedzaMcpStatus),
   registerWiedzaMcp: (): Promise<{ ok: boolean; message: string }> =>
     ipcRenderer.invoke(IPC.WiedzaMcpRegister),
+  onWiedzaMcpChanged: (listener: () => void): void => {
+    ipcRenderer.on(IPC.WiedzaMcpChanged, () => listener());
+  },
   saveClipboardImage: (): Promise<SaveClipboardImageResult> =>
     ipcRenderer.invoke(IPC.ClipboardSaveImage),
   pathForFile: (file: File): string => webUtils.getPathForFile(file),

@@ -9,8 +9,46 @@ export interface PickedElement {
   url: string;
 }
 
-/** Pseudo-ścieżka zakładki podglądu w pasku zakładek edytora. */
+/** Pseudo-ścieżka pierwszej zakładki podglądu w pasku zakładek edytora. */
 export const BROWSER_PREVIEW_PATH = 'vn3o://preview';
+
+/**
+ * Kolejne podglądy dostają własną ścieżkę. Pasek zakładek deduplikuje po
+ * ścieżce, więc dopóki wszystkie podglądy miały tę samą, przycisk „otwórz
+ * podgląd" tylko aktywował istniejącą kartę — druga przeglądarka nie
+ * powstawała (zgłoszenie użytkowników).
+ */
+export function browserPreviewPath(index: number): string {
+  return index <= 1 ? BROWSER_PREVIEW_PATH : `${BROWSER_PREVIEW_PATH}/${index}`;
+}
+
+export function isBrowserPreviewPath(path: string): boolean {
+  return path === BROWSER_PREVIEW_PATH || path.startsWith(`${BROWSER_PREVIEW_PATH}/`);
+}
+
+/** Numer podglądu ze ścieżki (1 dla pierwszego) — do tytułu i pamięci adresu. */
+export function browserPreviewIndex(path: string): number {
+  if (path === BROWSER_PREVIEW_PATH) {
+    return 1;
+  }
+  const parsed = Number(path.slice(`${BROWSER_PREVIEW_PATH}/`.length));
+  return Number.isInteger(parsed) && parsed > 1 ? parsed : 1;
+}
+
+/** Pierwszy wolny numer podglądu wśród już otwartych ścieżek. */
+export function nextBrowserPreviewPath(openPaths: Iterable<string>): string {
+  const taken = new Set<number>();
+  for (const path of openPaths) {
+    if (isBrowserPreviewPath(path)) {
+      taken.add(browserPreviewIndex(path));
+    }
+  }
+  let index = 1;
+  while (taken.has(index)) {
+    index += 1;
+  }
+  return browserPreviewPath(index);
+}
 
 /** Pseudo-ścieżka zakładki grafu wiedzy (notatki .md + linki + autorzy). */
 export const KNOWLEDGE_GRAPH_PATH = 'vn3o://graph';

@@ -81,6 +81,8 @@ export const IPC = {
   TerminalDetachInfo: 'terminal:detach-info',
   WiedzaMcpStatus: 'wiedza-mcp:status',
   WiedzaMcpRegister: 'wiedza-mcp:register',
+  /** Serwer MCP wstał albo padł — panel Wiedza odświeża kropkę statusu. */
+  WiedzaMcpChanged: 'wiedza-mcp:changed',
   ClipboardSaveImage: 'clipboard:save-image',
   IdeBridgeRequest: 'ide:bridge-request',
   IdeBridgeResponse: 'ide:bridge-response',
@@ -367,6 +369,8 @@ export interface WindowApi {
   getDetachedInfo(ptyId: number): Promise<DetachedTerminalInfo | null>;
   getWiedzaMcpStatus(): Promise<{ running: boolean; url: string; error: string | null }>;
   registerWiedzaMcp(): Promise<{ ok: boolean; message: string }>;
+  /** Zmiana stanu serwera MCP grafu wiedzy (start/awaria). */
+  onWiedzaMcpChanged(listener: () => void): void;
   /** Zapisuje obrazek ze schowka do pliku tymczasowego i zwraca jego ścieżkę. */
   saveClipboardImage(): Promise<SaveClipboardImageResult>;
   /** Ścieżka dyskowa pliku z drag & drop (Electron webUtils). */

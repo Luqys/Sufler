@@ -11,6 +11,8 @@ export type ClaudeHookKind = 'notification' | 'stop' | 'prompt' | 'tool';
 export interface ClaudeHookEvent {
   ptyId: number;
   kind: ClaudeHookKind;
+  /** Treść polecenia (tylko `prompt`) — karta trzyma ją pod przyciskiem „Kopiuj polecenie". */
+  prompt?: string;
 }
 
 /** Ścieżka endpointu na serwerze HTTP aplikacji (współdzielonym z ide-ws). */
