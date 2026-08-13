@@ -1,4 +1,4 @@
-import type { AccentId, Appearance, ThemeMode } from '../../shared/appearance';
+import type { AccentId, Appearance, ThemeMode } from '../../shared/project/appearance';
 import { setLanguage } from './i18n';
 
 /** Zapytanie o ciemny motyw systemu — źródło prawdy dla trybu „Systemowy". */

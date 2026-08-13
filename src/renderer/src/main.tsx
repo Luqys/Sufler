@@ -2,8 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { DetachedApp } from './DetachedApp';
-import { DetachedTerminal } from './components/DetachedTerminal';
-import { parseDetachedTarget } from '../../shared/detached';
+import { DetachedTerminal } from './components/dock/DetachedTerminal';
+import { parseDetachedTarget } from '../../shared/docks/detached';
 import { installWheelScroll } from './wheel';
 import './styles.css';
 

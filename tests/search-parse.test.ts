@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseRipgrepJson } from '../src/main/search';
+import { parseRipgrepJson } from '../src/main/project/search';
 
 function matchLine(path: string, line: number, text: string, start: number): string {
   return JSON.stringify({

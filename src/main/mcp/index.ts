@@ -4,8 +4,8 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import type { McpStatusResult } from '../../shared/ipc';
-import type { McpConfigServer, McpDetail } from '../../shared/mcp';
-import { resolveShellEnv } from '../shell-env';
+import type { McpConfigServer, McpDetail } from '../../shared/mcp/mcp';
+import { resolveShellEnv } from '../system/shell-env';
 import { parseClaudeJsonServers, parseMcpGetOutput, parseMcpJson, parseMcpListOutput } from './parse';
 
 const execFileAsync = promisify(execFile);

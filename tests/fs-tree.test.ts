@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseCheckIgnoreOutput, sortEntries } from '../src/main/fs-tree';
+import { parseCheckIgnoreOutput, sortEntries } from '../src/main/project/fs-tree';
 
 describe('parseCheckIgnoreOutput', () => {
   it('parsuje wyjście rozdzielone NUL-ami', () => {

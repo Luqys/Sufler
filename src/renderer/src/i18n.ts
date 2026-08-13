@@ -1,5 +1,5 @@
 import { useMemo, useSyncExternalStore } from 'react';
-import type { Language } from '../../shared/appearance';
+import type { Language } from '../../shared/project/appearance';
 import { fillPlaceholders, localeFor, pluralForm, stringsFor, type StringKey } from '../../shared/i18n';
 
 /**

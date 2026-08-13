@@ -4,7 +4,7 @@ import type {
   McpListEntry,
   McpScope,
   McpTransport,
-} from '../../shared/mcp';
+} from '../../shared/mcp/mcp';
 
 /**
  * Parsery wyjścia `claude mcp …` i plików konfiguracyjnych — celowo w jednym

@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactElement } from 'react';
-import type { LayoutState } from '../../shared/layout';
+import type { LayoutState } from '../../shared/docks/layout';
 import { applyAppearance } from './appearance-client';
-import { Workbench } from './components/Workbench';
+import { Workbench } from './components/shell/Workbench';
 import { DocksProvider } from './docks';
 import { DialogProvider } from './ui-dialogs';
 import { WorkspaceProvider } from './workspace';

@@ -1,12 +1,12 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
-import type { Appearance } from '../shared/appearance';
-import type { HookEntry } from '../shared/hooks-config';
-import type { UsageScan } from '../shared/usage-history';
-import type { Checkpoint } from '../shared/checkpoints';
-import type { DetachedTarget } from '../shared/detached';
-import type { WorklogEntry } from '../shared/worklog';
-import type { TabKind } from '../shared/dock-tabs';
-import type { LayoutVisibilityKey } from '../shared/layout';
+import type { Appearance } from '../shared/project/appearance';
+import type { HookEntry } from '../shared/skills/hooks-config';
+import type { UsageScan } from '../shared/claude/usage-history';
+import type { Checkpoint } from '../shared/git/checkpoints';
+import type { DetachedTarget } from '../shared/docks/detached';
+import type { WorklogEntry } from '../shared/knowledge/worklog';
+import type { TabKind } from '../shared/docks/dock-tabs';
+import type { LayoutVisibilityKey } from '../shared/docks/layout';
 import {
   IPC,
   type AgentCreateInput,
@@ -49,15 +49,15 @@ import {
   type WindowApi,
   type WriteFileResult,
 } from '../shared/ipc';
-import type { ClaudeHookEvent } from '../shared/claude-hooks';
-import type { ClaudeSessionDetails, ClaudeSessionSummary } from '../shared/claude-sessions';
-import type { KnowledgeGraph } from '../shared/graph';
-import type { IdeSelection } from '../shared/ide-protocol';
-import type { LayoutState } from '../shared/layout';
-import type { UsageLimitsResult } from '../shared/limits';
-import type { McpConfigServer, McpDetail } from '../shared/mcp';
-import type { McpAddInput } from '../shared/mcp-add';
-import type { ObsidianRestConfig } from '../shared/obsidian-rest';
+import type { ClaudeHookEvent } from '../shared/claude/claude-hooks';
+import type { ClaudeSessionDetails, ClaudeSessionSummary } from '../shared/claude/claude-sessions';
+import type { KnowledgeGraph } from '../shared/knowledge/graph';
+import type { IdeSelection } from '../shared/system/ide-protocol';
+import type { LayoutState } from '../shared/docks/layout';
+import type { UsageLimitsResult } from '../shared/claude/limits';
+import type { McpConfigServer, McpDetail } from '../shared/mcp/mcp';
+import type { McpAddInput } from '../shared/mcp/mcp-add';
+import type { ObsidianRestConfig } from '../shared/knowledge/obsidian-rest';
 import type { SendToNoteResult } from '../shared/ipc';
 
 const api: WindowApi = {

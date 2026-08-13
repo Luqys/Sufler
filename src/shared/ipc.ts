@@ -1,21 +1,21 @@
-import type { Appearance } from './appearance';
-import type { ClaudeHookEvent } from './claude-hooks';
-import type { ClaudeSessionDetails, ClaudeSessionSummary } from './claude-sessions';
-import type { TabKind } from './dock-tabs';
-import type { IdeSelection } from './ide-protocol';
-import type { KnowledgeGraph } from './graph';
-import type { LayoutState, LayoutVisibilityKey } from './layout';
-import type { UsageLimitsResult } from './limits';
-import type { McpConfigServer, McpDetail, McpListEntry } from './mcp';
-import type { McpAddInput } from './mcp-add';
-import type { ObsidianRestConfig } from './obsidian-rest';
-import type { Checkpoint } from './checkpoints';
-import type { DetachedTarget } from './detached';
-import type { ImportSkip } from './import-drop';
-import type { WorklogEntry } from './worklog';
-import type { HookEntry, HookEvent } from './hooks-config';
-import type { UsageScan } from './usage-history';
-import type { SkillOverrideState } from './skills';
+import type { Appearance } from './project/appearance';
+import type { ClaudeHookEvent } from './claude/claude-hooks';
+import type { ClaudeSessionDetails, ClaudeSessionSummary } from './claude/claude-sessions';
+import type { TabKind } from './docks/dock-tabs';
+import type { IdeSelection } from './system/ide-protocol';
+import type { KnowledgeGraph } from './knowledge/graph';
+import type { LayoutState, LayoutVisibilityKey } from './docks/layout';
+import type { UsageLimitsResult } from './claude/limits';
+import type { McpConfigServer, McpDetail, McpListEntry } from './mcp/mcp';
+import type { McpAddInput } from './mcp/mcp-add';
+import type { ObsidianRestConfig } from './knowledge/obsidian-rest';
+import type { Checkpoint } from './git/checkpoints';
+import type { DetachedTarget } from './docks/detached';
+import type { ImportSkip } from './project/import-drop';
+import type { WorklogEntry } from './knowledge/worklog';
+import type { HookEntry, HookEvent } from './skills/hooks-config';
+import type { UsageScan } from './claude/usage-history';
+import type { SkillOverrideState } from './skills/skills';
 
 export const IPC = {
   LayoutGet: 'layout:get',

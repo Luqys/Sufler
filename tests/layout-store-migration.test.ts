@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { migrateLegacyConfigDir } from '../src/main/layout-store';
+import { migrateLegacyConfigDir } from '../src/main/window/layout-store';
 
 /**
  * Łańcuch migracji katalogu konfiguracji po zmianach nazwy aplikacji:

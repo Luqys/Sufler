@@ -1,0 +1,556 @@
+/*
+ * Panel wiedzy, dialogi i toasty, okno odczepione, graf wiedzy z nakładką.
+ * (M81: podział styles.css na moduły — kolejność kaskady bez zmian.)
+ */
+
+/* --- Panel wiedzy (pliki MD) --- */
+
+.knowledge-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+
+.knowledge-hint {
+  flex: none;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.knowledge-toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 6px 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel-alt) 60%, transparent);
+}
+
+.knowledge-summary {
+  flex: 1;
+  min-width: 0;
+  font-size: 11.5px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.knowledge-summary strong {
+  color: var(--text);
+}
+
+.knowledge-empty {
+  padding: 10px 4px;
+}
+
+.knowledge-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.knowledge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 4px 6px;
+  border-radius: 7px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.knowledge-row:hover {
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+.knowledge-file-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+.knowledge-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.knowledge-open:hover .knowledge-name {
+  color: var(--accent);
+}
+
+.knowledge-dir {
+  color: var(--muted);
+  font-size: 11.5px;
+  flex: none;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.knowledge-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.knowledge-lines {
+  flex: none;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.knowledge-actions {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.knowledge-mcp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel-alt) 60%, transparent);
+}
+
+.knowledge-mcp-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 11.5px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- Dialogi i toasty w stylu aplikacji --- */
+
+.confirm-overlay {
+  z-index: 200;
+}
+
+.confirm-dialog {
+  width: min(400px, calc(100vw - 80px));
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.35);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.confirm-title {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.confirm-message {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+  user-select: text;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.confirm-accept {
+  align-self: auto;
+  padding: 6px 14px;
+  font-size: 12.5px;
+}
+
+.confirm-accept.danger {
+  background: #dc2626;
+}
+
+.toast-stack {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 360px;
+}
+
+.toast {
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--panel-alt);
+  color: var(--text);
+  font-size: 12.5px;
+  line-height: 1.4;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+}
+
+.toast-success {
+  border-color: color-mix(in srgb, #22c55e 45%, transparent);
+}
+
+.toast-error {
+  border-color: color-mix(in srgb, #ef4444 50%, transparent);
+}
+
+/* --- Odczepione okno terminala --- */
+
+.detached-shell {
+  height: 100vh;
+  display: flex;
+  background: var(--term-bg);
+}
+
+.detached-error {
+  margin: auto;
+}
+
+/* --- Graf wiedzy --- */
+
+.graph-view {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.graph-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.graph-canvas:active {
+  cursor: grabbing;
+}
+
+.graph-overlay {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 7px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
+  backdrop-filter: blur(10px) saturate(1.15);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.14);
+  font-size: 11.5px;
+  color: var(--text);
+}
+
+/* „Przelicz" jako przycisk-duch z glifem odświeżania. */
+/* M77: wszystkie kontrolki paska w jednej metryce (24 px) i z jednym promieniem. */
+.graph-overlay .bar-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  border: none;
+  border-radius: 7px;
+  padding: 0 9px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  transition: background 0.15s ease;
+}
+
+.graph-overlay .bar-btn::before {
+  content: '↻';
+  margin-right: 5px;
+}
+
+.graph-overlay .bar-btn:hover {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* --- M39: szukajka grafu i ukrywanie osieroconych --- */
+
+.graph-search {
+  width: 132px;
+  height: 24px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--bg) 65%, transparent);
+  color: var(--text);
+  font-size: 11px;
+  outline: none;
+}
+
+.graph-search:focus {
+  border-color: var(--accent);
+}
+
+.graph-search::placeholder {
+  color: var(--muted);
+}
+
+.graph-overlay .bar-btn.graph-orphans-btn::before {
+  content: '◌';
+}
+
+.graph-overlay .bar-btn.graph-orphans-on {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.graph-details-hashtags {
+  color: var(--accent);
+}
+
+.graph-legend {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px 9px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
+  backdrop-filter: blur(10px) saturate(1.15);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.14);
+  min-width: 172px;
+  max-width: 230px;
+  max-height: 46%;
+  overflow-y: auto;
+}
+
+.graph-legend .accent-popover-title {
+  margin: 3px 2px 0;
+  font-size: 10px;
+  letter-spacing: 0.8px;
+}
+
+/* Przełącznik trybu kolorowania (autor / funkcja / warstwa) — segmentowany. */
+/*
+ * M77: pięć trybów w trzykolumnowym rastrze. Przy `display: flex` i `flex: 1`
+ * zawijały się na 3 + 2 i rozciągały do pełnej szerokości, więc drugi rząd
+ * miał przyciski półtora raza szersze od pierwszego.
+ */
+.graph-mode {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.graph-mode-btn {
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.graph-mode-btn:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+
+.graph-mode-btn.active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  box-shadow:
+    0 1px 4px rgb(0 0 0 / 0.18),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+/* Wiersz legendy to przycisk: klik filtruje graf do jednej grupy. */
+.graph-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  font-size: 11.5px;
+  color: var(--text);
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 3px 6px;
+  margin: 0 -6px;
+  border-radius: 7px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+}
+
+.graph-legend-row:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.graph-legend-row.active {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+/* Kropka dziedziczy kolor grupy przez currentColor — halo bez dodatkowych stylów. */
+.graph-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  box-shadow: 0 0 0 2.5px color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.graph-legend-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-legend-count {
+  margin-left: auto;
+  padding: 0.5px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.graph-legend-row.active .graph-legend-count {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--accent);
+}
+
+.graph-hint {
+  position: absolute;
+  bottom: 8px;
+  left: 12px;
+  font-size: 10.5px;
+}
+
+/* Szczegóły zaznaczonego węzła: metadane + lista powiązanych notatek. */
+.graph-details {
+  position: absolute;
+  right: 12px;
+  bottom: 34px;
+  width: 240px;
+  max-height: 55%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.18);
+}
+
+.graph-details-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.graph-details-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-details-meta {
+  font-size: 10.5px;
+  color: var(--muted);
+  overflow-wrap: break-word;
+}
+
+.graph-details-open {
+  align-self: flex-start;
+}
+
+.graph-details-related {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.graph-details-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 3px 0 2px;
+}
+
+.graph-related-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.graph-related-item:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.graph-related-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

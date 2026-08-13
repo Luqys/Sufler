@@ -1,4 +1,4 @@
-import { createWheelNormalizer, type ScrollMetrics } from '../../shared/scroll';
+import { createWheelNormalizer, type ScrollMetrics } from '../../shared/system/scroll';
 
 /**
  * Jednolite przewijanie w całym oknie (zgłoszenie użytkowników): kółko myszy

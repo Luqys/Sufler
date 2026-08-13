@@ -8,7 +8,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from 'react';
-import { createClaudeStatusTracker } from '../../shared/claude-status';
+import { createClaudeStatusTracker } from '../../shared/claude/claude-status';
 import {
   activateTab as activateTabState,
   activeTabs,
@@ -25,7 +25,7 @@ import {
   type DockId,
   type DocksState,
   type TabKind,
-} from '../../shared/dock-tabs';
+} from '../../shared/docks/dock-tabs';
 import { t, tf } from './i18n';
 import { createTerminalInstance, disposeTerminalInstance, serializeTerminal } from './terminals';
 import { useDialogs } from './ui-dialogs';

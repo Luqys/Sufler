@@ -197,14 +197,8 @@ Zanim weźmiesz numer, sprawdź:
 git log --all --oneline | grep -oE '^[0-9a-f]+ M[0-9]+' | grep -oE 'M[0-9]+' | sort -u -t M -k2 -n
 ```
 
-Stan na 2026-08-13: zajęte ciągiem M0–M63, gałęzie `m65-dystrybucja`
-i `m66-poprawki-zgloszenia`, M67 (panel „Sesje"), M68 (slash-komendy),
-M69 (commit z aplikacji), M70 (edytor hooków), M73 (historia zużycia),
-M74 (paleta komend), M75 (pasek ikon), M76 (ekran startowy tworzy folder)
-M77 (szlif UI i podział przeciągnięciem), M78 (uruchamianie `claude`
-na Windowsie) oraz M79 (dodawanie serwera MCP) — pięć ostatnich ze zgłoszeń
-z pracy z aplikacją. Wolne: M64 (luka w środku, zostawić), M71–M72
-(propozycje z tabeli poniżej) i M80 w górę.
+Stan na 2026-08-13: zajęte ciągiem M0–M63 oraz M67–M81. Wolne: M64 (luka
+w środku, zostawić), M65–M66 (gałęzie wydaniowe/poprawkowe) i M82 w górę.
 
 **Numer w tabeli poniżej jest propozycją, nie rezerwacją.** Sesja startująca kamień
 bierze pierwszy wolny numer z komendy wyżej i poprawia tu wiersz. Inaczej backlog
@@ -278,6 +272,44 @@ Warstwa danych to ta sama, co w M34 (`src/shared/claude-sessions.ts`,
 linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
+
+### M81 — audyt i reorganizacja drzewa (zrobione)
+
+Katalogi rosły płasko: `src/shared` 50 plików, `src/main` 41, `components` 38,
+`e2e` 68 — wszystko w jednym poziomie, a `styles.css` i `i18n.ts` spuchły do
+4576 i 1334 linii. Audyt najpierw, przenosiny potem.
+
+**Co pokazał audyt.** Zero martwych modułów — każdy plik źródłowy jest
+importowany. Z 541 kluczy słownika 15 nie miało dosłownego użycia, ale 12 z nich
+składa się dynamicznie (`accent.*`, `theme.*`, `settings.hookLayer.*`); naprawdę
+martwe były trzy (`usage.dayTitle` po usunięciu wykresu w M77, `welcome.newTitle`
+i `welcome.newGitFailed` z M76) i tylko te wypadły.
+
+**Nowa siatka — ta sama w każdej warstwie:**
+
+| Warstwa | Podział |
+|---|---|
+| `src/shared` | `claude/`, `docks/`, `editor/`, `git/`, `knowledge/`, `mcp/`, `skills/`, `project/`, `system/`; `ipc.ts` i `i18n/` zostają na wierzchu jako kontrakty |
+| `src/main` | `claude/`, `project/`, `git/`, `knowledge/`, `skills/`, `mcp/`, `window/`, `system/`; `index.ts` to okno + rejestracja IPC |
+| `components` | `dock/`, `editor/`, `sidebar/`, `graph/`, `dialogs/`, `views/`, `shell/` |
+| `tests` | lustrzanie do `src/shared` |
+| `e2e` | obszarami: `start/`, `dock/`, `editor/`, `panele/`, `wiedza/`, `ustawienia/` (numer kamienia zostaje w nazwie pliku) |
+
+**Rozbicia.** `i18n.ts` → `i18n/{pl,en,klucze,index}.ts`: teksty osobno,
+`StringKey` wciąż wywodzi się z PL, więc typ nadal wymusza komplet tłumaczeń.
+`styles.css` → spis treści plus osiem modułów w `styles/`; podział jest
+**sekwencyjny**, po granicach istniejących sekcji, bo kaskada zależy od
+kolejności — moduły importują się dokładnie w tej, w której stały reguły.
+
+**Pułapka do zapamiętania:** `e2e/m51-ikona.spec.ts` liczył korzeń repozytorium
+jako `join(__dirname, '..')`. Po zejściu o katalog głębiej spec zaczął szukać
+`build/icon.png` w `e2e/` i to jedyna realna szkoda, jaką zrobiły przenosiny —
+złapało ją pełne e2e. Przy każdej zmianie układu katalogów sprawdzić
+`grep -rn "__dirname" e2e/ scripts/`.
+
+Przenosiny szły `git mv` (historia plików zostaje), a importy przepisał skrypt
+rozwiązujący każdy import względny do ścieżki w repo i liczący go na nowo
+z nowej lokalizacji: 233 przeniesione pliki, 205 z przepisanymi importami.
 
 ### M80 — lista sesji do przeglądania, nie do przewijania (zrobione)
 

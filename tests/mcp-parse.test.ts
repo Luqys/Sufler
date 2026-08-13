@@ -5,7 +5,7 @@ import {
   parseMcpJson,
   parseMcpListOutput,
 } from '../src/main/mcp/parse';
-import { mergeMcpServers } from '../src/shared/mcp';
+import { mergeMcpServers } from '../src/shared/mcp/mcp';
 
 /** Fixture przechwycony z rzeczywistego `claude mcp list` (sierpień 2026). */
 const REAL_LIST_OUTPUT = `Checking MCP server health…

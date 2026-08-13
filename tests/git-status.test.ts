@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseGitStatusPorcelainZ } from '../src/main/git-status';
+import { parseGitStatusPorcelainZ } from '../src/main/git/git-status';
 
 describe('parseGitStatusPorcelainZ', () => {
   it('rozpoznaje zmodyfikowane i nieśledzone (fixture z rzeczywistego gita)', () => {

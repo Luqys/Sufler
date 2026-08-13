@@ -22,17 +22,17 @@ import {
   setActiveGroup,
   splitGroup as splitGroupState,
   type EditorGroupsState,
-} from '../../shared/editor-groups';
+} from '../../shared/editor/editor-groups';
 import {
   diffTabPath,
   diffTabTitle,
   isDiffPath,
   parseDiffPath,
   type DiffDescriptor,
-} from '../../shared/diff-tabs';
+} from '../../shared/editor/diff-tabs';
 import type { IdeBridgeRequestPayload, ReadFileError, WatchEvent } from '../../shared/ipc';
-import { isImagePath } from '../../shared/media';
-import { baseName } from '../../shared/paths';
+import { isImagePath } from '../../shared/editor/media';
+import { baseName } from '../../shared/editor/paths';
 import {
   browserPreviewIndex,
   HELP_PATH,
@@ -40,7 +40,7 @@ import {
   nextBrowserPreviewPath,
   SETTINGS_PATH,
   WORKLOG_PATH,
-} from '../../shared/preview';
+} from '../../shared/editor/preview';
 import {
   disposeModel,
   ensureModel,
@@ -58,7 +58,7 @@ import {
   resolvePendingDiff,
 } from './ide/pending-diffs';
 import { initWikilinks } from './editor/wikilinks';
-import { WelcomeScreen } from './components/WelcomeScreen';
+import { WelcomeScreen } from './components/views/WelcomeScreen';
 import { t, tf } from './i18n';
 import { useDialogs } from './ui-dialogs';
 

@@ -1,0 +1,214 @@
+/*
+ * Reset, zmienne motywów (jasny/ciemny/matrix), szkielet okna i pasek tytułu.
+ * (M81: podział styles.css na moduły — kolejność kaskady bez zmian.)
+ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  color-scheme: light dark;
+  --bg: #f5f5f7;
+  --panel: #ececef;
+  --panel-alt: #e3e3e8;
+  --border: #d2d2d8;
+  --text: #1d1d1f;
+  --muted: #7c7c84;
+  --accent: #c15f3c;
+  --git-modified: #a1690b;
+  --git-untracked: #388a34;
+  --card-highlight: rgb(255 255 255 / 0.65);
+}
+
+/* Kolory przewodnie (tryb motywu załatwia nativeTheme → prefers-color-scheme). */
+:root[data-accent='blue'] {
+  --accent: #2563eb;
+}
+:root[data-accent='green'] {
+  --accent: #16a34a;
+}
+:root[data-accent='violet'] {
+  --accent: #7c3aed;
+}
+:root[data-accent='pink'] {
+  --accent: #db2777;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #1e1f24;
+    --panel: #25262c;
+    --panel-alt: #2b2c33;
+    --border: #36373f;
+    --text: #e8e8ea;
+    --muted: #8e8e96;
+    --accent: #d97757;
+    --git-modified: #e2c08d;
+    --git-untracked: #73c991;
+    --card-highlight: rgb(255 255 255 / 0.07);
+  }
+  :root[data-accent='blue'] {
+    --accent: #60a5fa;
+  }
+  :root[data-accent='green'] {
+    --accent: #4ade80;
+  }
+  :root[data-accent='violet'] {
+    --accent: #a78bfa;
+  }
+  :root[data-accent='pink'] {
+    --accent: #f472b6;
+  }
+}
+
+/* Te same zmienne pod jawnym atrybutem: wybor uzytkownika dziala takze wtedy,
+   gdy prefers-color-scheme nie podaza za nativeTheme (M58). */
+:root[data-theme='dark'] {
+  --bg: #1e1f24;
+  --panel: #25262c;
+  --panel-alt: #2b2c33;
+  --border: #36373f;
+  --text: #e8e8ea;
+  --muted: #8e8e96;
+  --accent: #d97757;
+  --git-modified: #e2c08d;
+  --git-untracked: #73c991;
+  --card-highlight: rgb(255 255 255 / 0.07);
+  --term-bg: #1b1c21;
+}
+
+:root[data-theme='dark'][data-accent='blue'] {
+  --accent: #60a5fa;
+}
+
+:root[data-theme='dark'][data-accent='green'] {
+  --accent: #4ade80;
+}
+
+:root[data-theme='dark'][data-accent='violet'] {
+  --accent: #a78bfa;
+}
+
+:root[data-theme='dark'][data-accent='pink'] {
+  --accent: #f472b6;
+}
+
+/* Motyw matrixowy (data-flavor na <html>, nativeTheme widzi „ciemny"):
+   fosforyczna zieleń na czerni. Podwójny selektor z [data-accent] wygrywa
+   specyficznością także z regułami kolorów przewodnich. */
+:root[data-flavor='matrix'],
+:root[data-flavor='matrix'][data-accent] {
+  --bg: #050b06;
+  --panel: #081209;
+  --panel-alt: #0c1a0e;
+  --border: #14401f;
+  --text: #c6ffd0;
+  --muted: #55a86b;
+  --accent: #00e653;
+  --git-modified: #b8e63e;
+  --git-untracked: #3ee673;
+  --card-highlight: rgb(0 230 83 / 0.12);
+}
+
+/* Vibrancy psułoby czerń — w Matrixie okno i sidebar są kryte. */
+:root[data-flavor='matrix'] body {
+  background: var(--bg);
+}
+:root[data-flavor='matrix'] .sidebar {
+  background: var(--panel);
+}
+:root[data-flavor='matrix'] .icon-rail {
+  background: var(--panel-alt);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  /* Okno ma vibrancy 'sidebar' — tło malują poszczególne obszary,
+     a półprzezroczysty sidebar przepuszcza materiał systemowy. */
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.dragging-vertical {
+  cursor: col-resize;
+}
+
+body.dragging-horizontal {
+  cursor: row-resize;
+}
+
+.shell {
+  display: grid;
+  grid-template-rows: 38px minmax(0, 1fr);
+  height: 100%;
+}
+
+.titlebar {
+  -webkit-app-region: drag;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.titlebar-actions {
+  position: absolute;
+  right: 8px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-btn {
+  width: 26px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.titlebar-btn:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.titlebar-btn.on {
+  color: var(--accent);
+}
+
+.workbench {
+  display: grid;
+  min-height: 0;
+}
+
+.center {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+}

@@ -3,7 +3,7 @@ import {
   hasGlobalSessionLogHooks,
   SESSION_LOG_SCRIPT,
   withGlobalSessionLogHooks,
-} from '../src/shared/session-log-script';
+} from '../src/shared/claude/session-log-script';
 
 const SCRIPT = '/Users/ktos/.claude/sufler-dziennik.mjs';
 const OBCY = { hooks: [{ type: 'command', command: 'echo obcy' }] };

@@ -1,47 +1,47 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import type { TabKind } from '../shared/dock-tabs';
-import type { LayoutVisibilityKey } from '../shared/layout';
-import type { HookEntry } from '../shared/hooks-config';
+import type { TabKind } from '../shared/docks/dock-tabs';
+import type { LayoutVisibilityKey } from '../shared/docks/layout';
+import type { HookEntry } from '../shared/skills/hooks-config';
 import type { HookLayer } from '../shared/ipc';
 import { IPC } from '../shared/ipc';
-import { applyAppearanceAtBoot, getAppearance, setAppearance } from './appearance';
-import { listClaudeSessions, readClaudeSessionDetails } from './claude-sessions';
-import { saveClipboardImage } from './clipboard-image';
-import { t, tf } from './i18n';
-import { listMarkdownFiles } from './knowledge';
-import { buildKnowledgeGraph } from './knowledge-graph';
-import { closeKnowledgeWatcher, watchKnowledge } from './knowledge-watcher';
-import { getUsageLimits } from './usage-limits';
-import { closeWatcher, setWatchedFiles } from './file-watcher';
-import { readDirListing, readFileForEditor, readImageForPreview, writeTextFile } from './fs-tree';
-import { importDroppedPaths } from './import-drop';
-import { migrateLegacyConfigDir, readLayout, writeLayout } from './layout-store';
-import { runGitLog, runGitShowCommit } from './git-log';
-import { runGitCommit } from './git-commit';
-import { addHook, listHooks, removeHook } from './hooks-config';
-import { readUsageHistory } from './usage-history';
-import { runGitShowFile } from './git-show';
-import { runGitStatus } from './git-status';
-import { startIdeServer, stopIdeServer, updateIdeWorkspaceFolders } from './ide-server';
+import { applyAppearanceAtBoot, getAppearance, setAppearance } from './window/appearance';
+import { listClaudeSessions, readClaudeSessionDetails } from './claude/claude-sessions';
+import { saveClipboardImage } from './system/clipboard-image';
+import { t, tf } from './system/i18n';
+import { listMarkdownFiles } from './knowledge/knowledge';
+import { buildKnowledgeGraph } from './knowledge/knowledge-graph';
+import { closeKnowledgeWatcher, watchKnowledge } from './knowledge/knowledge-watcher';
+import { getUsageLimits } from './claude/usage-limits';
+import { closeWatcher, setWatchedFiles } from './project/file-watcher';
+import { readDirListing, readFileForEditor, readImageForPreview, writeTextFile } from './project/fs-tree';
+import { importDroppedPaths } from './project/import-drop';
+import { migrateLegacyConfigDir, readLayout, writeLayout } from './window/layout-store';
+import { runGitLog, runGitShowCommit } from './git/git-log';
+import { runGitCommit } from './git/git-commit';
+import { addHook, listHooks, removeHook } from './claude/hooks-config';
+import { readUsageHistory } from './claude/usage-history';
+import { runGitShowFile } from './git/git-show';
+import { runGitStatus } from './git/git-status';
+import { startIdeServer, stopIdeServer, updateIdeWorkspaceFolders } from './claude/ide-server';
 import {
   getObsidianConfig,
   resolveNoteLinks,
   sendToDailyNote,
   setObsidianConfig,
-} from './obsidian';
-import type { ObsidianRestConfig } from '../shared/obsidian-rest';
-import { installAppMenu } from './menu';
+} from './knowledge/obsidian';
+import type { ObsidianRestConfig } from '../shared/knowledge/obsidian-rest';
+import { installAppMenu } from './window/menu';
 import { readMcpConfig, runMcpGet, runMcpList } from './mcp/index';
 import { closeMcpWatcher, watchMcpConfig } from './mcp/watcher';
-import { runListFiles } from './quick-open';
-import { runProjectSearch } from './search';
-import { closeTreeWatcher, setWatchedTreeDirs } from './tree-watcher';
-import { createPty, killAllPtys, killPty, listPtyPids, resizePty, writePty } from './pty-manager';
-import { getDetachedInfo, openTerminalWindow } from './terminal-windows';
+import { runListFiles } from './project/quick-open';
+import { runProjectSearch } from './project/search';
+import { closeTreeWatcher, setWatchedTreeDirs } from './project/tree-watcher';
+import { createPty, killAllPtys, killPty, listPtyPids, resizePty, writePty } from './claude/pty-manager';
+import { getDetachedInfo, openTerminalWindow } from './window/terminal-windows';
 import type { DetachedTerminalInfo } from '../shared/ipc';
-import { getWiedzaMcpStatus, startWiedzaMcp, stopWiedzaMcp, wiedzaMcpUrl } from './wiedza-mcp';
+import { getWiedzaMcpStatus, startWiedzaMcp, stopWiedzaMcp, wiedzaMcpUrl } from './knowledge/wiedza-mcp';
 import { execFile as execFileCallback } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -55,10 +55,10 @@ import {
   getRecentRoots,
   getVaultPath,
   setProjectRoot,
-} from './project';
-import { adoptProject, createProject, defaultProjectParent } from './project-create';
-import { readProjectIcon } from './project-icon';
-import { resolveShellEnv } from './shell-env';
+} from './project/project';
+import { adoptProject, createProject, defaultProjectParent } from './project/project-create';
+import { readProjectIcon } from './project/project-icon';
+import { resolveShellEnv } from './system/shell-env';
 import {
   createAgent,
   createRule,
@@ -66,7 +66,7 @@ import {
   readSkillsSnapshot,
   setAgentEnabled,
   setSkillEnabled,
-} from './skills';
+} from './skills/skills';
 import type {
   AgentCreateInput,
   McpAddResult,
@@ -78,15 +78,15 @@ import {
   buildMcpAddArgs,
   isAlreadyExistsError,
   type McpAddInput,
-} from '../shared/mcp-add';
-import { closeSkillsWatcher, watchSkillsSources } from './skills-watcher';
-import { isSessionLogEnabled, setSessionLogEnabled } from './session-log';
-import { isGlobalSessionLogEnabled, setGlobalSessionLogEnabled } from './session-log-global';
-import { summarizeSessionLog } from './session-summary';
-import { listCheckpoints, restoreCheckpoint } from './checkpoints';
-import { readWorklog } from './worklog';
-import { openDetachedWindow } from './panel-windows';
-import type { DetachedTarget } from '../shared/detached';
+} from '../shared/mcp/mcp-add';
+import { closeSkillsWatcher, watchSkillsSources } from './skills/skills-watcher';
+import { isSessionLogEnabled, setSessionLogEnabled } from './claude/session-log';
+import { isGlobalSessionLogEnabled, setGlobalSessionLogEnabled } from './claude/session-log-global';
+import { summarizeSessionLog } from './claude/session-summary';
+import { listCheckpoints, restoreCheckpoint } from './claude/checkpoints';
+import { readWorklog } from './knowledge/worklog';
+import { openDetachedWindow } from './window/panel-windows';
+import type { DetachedTarget } from '../shared/docks/detached';
 
 function createWindow(): void {
   const win = new BrowserWindow({

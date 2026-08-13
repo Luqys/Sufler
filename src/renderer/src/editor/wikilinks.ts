@@ -5,7 +5,7 @@
  * w edytorze. Cmd+klik — standardowy gest „idź do linku" Monaco.
  */
 import { monaco } from '../monaco-setup';
-import { findWikilinks } from '../../../shared/wikilinks';
+import { findWikilinks } from '../../../shared/knowledge/wikilinks';
 
 const NOTE_SCHEME = 'vn3o-note';
 

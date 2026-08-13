@@ -1,6 +1,6 @@
 import { type ReactElement } from 'react';
-import type { DetachedTarget } from '../../shared/detached';
-import { DetachedPanel } from './components/DetachedPanel';
+import type { DetachedTarget } from '../../shared/docks/detached';
+import { DetachedPanel } from './components/shell/DetachedPanel';
 import { DocksProvider } from './docks';
 import { DialogProvider } from './ui-dialogs';
 import { WorkspaceProvider } from './workspace';

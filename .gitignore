@@ -6,3 +6,5 @@ e2e-artifacts/
 .DS_Store
 *.tsbuildinfo
 test-results/
+# Konspekt wiedzy generuje aplikacja przy każdej zmianie notatek.
+konspekt-wiedzy.md

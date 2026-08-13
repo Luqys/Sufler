@@ -2,10 +2,10 @@ import { FitAddon } from '@xterm/addon-fit';
 import { SerializeAddon } from '@xterm/addon-serialize';
 import { Terminal, type ITheme } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
-import type { TabKind } from '../../shared/dock-tabs';
-import { quotePathForPrompt } from '../../shared/media';
-import { createWheelNormalizer } from '../../shared/scroll';
-import { CLAUDE_NEWLINE, isClaudeNewline } from '../../shared/terminal-keys';
+import type { TabKind } from '../../shared/docks/dock-tabs';
+import { quotePathForPrompt } from '../../shared/editor/media';
+import { createWheelNormalizer } from '../../shared/system/scroll';
+import { CLAUDE_NEWLINE, isClaudeNewline } from '../../shared/claude/terminal-keys';
 import { FLAVOR_EVENT, isDarkTheme, isMatrixFlavor } from './appearance-client';
 import { t } from './i18n';
 
