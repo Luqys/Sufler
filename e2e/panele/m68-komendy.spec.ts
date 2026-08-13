@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { launchApp, makeConfigHome, makeFixtureProject } from './utils';
+import { launchApp, makeConfigHome, makeFixtureProject } from '../utils';
 
 test('M68: slash-komendy projektu w panelu, nowa pojawia się bez restartu', async () => {
   const project = makeFixtureProject();

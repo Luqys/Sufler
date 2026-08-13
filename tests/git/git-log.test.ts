@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseGitLog } from '../src/main/git/git-log';
+import { parseGitLog } from '../../src/main/git/git-log';
 
 const F = '\x1f';
 const R = '\x1e';

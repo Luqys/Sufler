@@ -22,6 +22,7 @@ import { runGitLog, runGitShowCommit } from './git/git-log';
 import { runGitCommit } from './git/git-commit';
 import { addHook, listHooks, removeHook } from './claude/hooks-config';
 import { readUsageHistory } from './claude/usage-history';
+import { runDiagnostics } from './project/diagnostics';
 import { runGitShowFile } from './git/git-show';
 import { runGitStatus } from './git/git-status';
 import { startIdeServer, stopIdeServer, updateIdeWorkspaceFolders } from './claude/ide-server';
@@ -349,6 +350,7 @@ void app.whenReady().then(() => {
     runGitCommit(root, paths, message),
   );
   ipcMain.handle(IPC.UsageHistoryGet, (_event, root: string) => readUsageHistory(root));
+  ipcMain.handle(IPC.DiagnosticsRun, (_event, root: string) => runDiagnostics(root));
   ipcMain.handle(IPC.HooksList, (_event, root: string) => listHooks(root));
   ipcMain.handle(IPC.HooksAdd, (_event, root: string, entry: HookEntry) => addHook(root, entry));
   ipcMain.handle(IPC.HooksRemove, (_event, root: string, layer: HookLayer, entry: HookEntry) =>

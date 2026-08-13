@@ -15,6 +15,7 @@ import type { ImportSkip } from './project/import-drop';
 import type { WorklogEntry } from './knowledge/worklog';
 import type { HookEntry, HookEvent } from './skills/hooks-config';
 import type { UsageScan } from './claude/usage-history';
+import type { DiagnosticsResult } from './editor/diagnostics';
 import type { SkillOverrideState } from './skills/skills';
 
 export const IPC = {
@@ -100,6 +101,7 @@ export const IPC = {
   GitShowFile: 'git:show-file',
   GitCommit: 'git:commit',
   UsageHistoryGet: 'usage:history',
+  DiagnosticsRun: 'diagnostics:run',
   HooksList: 'hooks:list',
   HooksAdd: 'hooks:add',
   HooksRemove: 'hooks:remove',
@@ -456,6 +458,8 @@ export interface WindowApi {
   gitShowFile(root: string, rev: string, path: string): Promise<GitShowFileResult>;
   /** Zatwierdzenie zaznaczonych plików z panelu Git (M69). */
   gitCommit(root: string, paths: string[], message: string): Promise<GitCommitResult>;
+  /** `tsc` + `eslint` na żądanie — diagnostyka bez LSP (M71). */
+  runDiagnostics(root: string): Promise<DiagnosticsResult>;
   /** Zużycie tokenów policzone z transkryptów projektu (M73). */
   getUsageHistory(root: string): Promise<UsageScan>;
   /** Hooki Claude Code z trzech warstw settings (M70). */

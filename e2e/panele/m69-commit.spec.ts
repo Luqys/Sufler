@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { execSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { launchApp, makeConfigHome, makeFixtureProject } from './utils';
+import { launchApp, makeConfigHome, makeFixtureProject } from '../utils';
 
 /** Autor w konfiguracji repozytorium — commit z aplikacji idzie bez `-c`. */
 function setIdentity(project: string): void {

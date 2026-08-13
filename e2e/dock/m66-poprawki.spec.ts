@@ -6,7 +6,7 @@ import {
   makeConfigHome,
   makeFixtureProject,
   makeRawKeysClaudeBin,
-} from './utils';
+} from '../utils';
 
 /**
  * M66 — poprawki ze zgłoszeń użytkowników: Shift+Enter jako nowa linia

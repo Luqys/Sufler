@@ -201,6 +201,8 @@ export const EN: Record<StringKey, string> = {
   'unit.sessions': 'session|sessions',
   'unit.prompts': 'prompt|prompts',
   'unit.replies': 'reply|replies',
+  'unit.errors': 'error|errors',
+  'unit.warnings': 'warning|warnings',
   'unit.tools': 'tool|tools',
 
   'ft.noAccess': 'No access',
@@ -635,4 +637,13 @@ export const EN: Record<StringKey, string> = {
   'sessions.noMatch': 'No session matches the phrase.',
   'sessions.recent': 'Active in the last few minutes',
   'sessions.clockTitle': '{when} · conversation lasted {duration}',
+
+  // Diagnostics without LSP (M71)
+  'diagnostics.run': 'Check project',
+  'diagnostics.running': 'Checking…',
+  'diagnostics.runHint': 'Runs tsc and eslint in the project root (on demand, not in the background)',
+  'diagnostics.errors': '{count} errors',
+  'diagnostics.warnings': '{count} warnings',
+  'diagnostics.clean': 'No errors or warnings.',
+  'diagnostics.toolFailed': '{tool} failed to start',
 };

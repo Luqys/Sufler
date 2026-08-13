@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EN, PL, pluralForm, stringsFor, type StringKey } from '../src/shared/i18n';
+import { EN, PL, pluralForm, stringsFor, type StringKey } from '../../src/shared/i18n';
 
 function placeholders(text: string): string[] {
   return [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1] ?? '').sort();

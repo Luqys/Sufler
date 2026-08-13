@@ -12,6 +12,7 @@ import {
 } from '../../../../shared/editor/preview';
 import { useWorkspace } from '../../workspace';
 import { BrowserPreview } from './BrowserPreview';
+import { DiagnosticsBar } from './DiagnosticsBar';
 import { DiffView } from './DiffView';
 import { EditorTabs } from './EditorTabs';
 import { GraphView } from '../graph/GraphView';
@@ -148,6 +149,7 @@ export function EditorArea(): ReactElement {
           );
         })}
       </div>
+      <DiagnosticsBar />
     </main>
   );
 }

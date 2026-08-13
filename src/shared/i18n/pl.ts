@@ -216,6 +216,8 @@ export const PL = {
   'unit.sessions': 'sesja|sesje|sesji',
   'unit.prompts': 'polecenie|polecenia|poleceń',
   'unit.replies': 'odpowiedź|odpowiedzi|odpowiedzi',
+  'unit.errors': 'błąd|błędy|błędów',
+  'unit.warnings': 'ostrzeżenie|ostrzeżenia|ostrzeżeń',
   'unit.tools': 'narzędzie|narzędzia|narzędzi',
 
   // Drzewo plików
@@ -668,4 +670,13 @@ export const PL = {
   'sessions.noMatch': 'Żadna sesja nie pasuje do frazy.',
   'sessions.recent': 'Aktywna w ostatnich minutach',
   'sessions.clockTitle': '{when} · rozmowa trwała {duration}',
+
+  // Diagnostyka bez LSP (M71)
+  'diagnostics.run': 'Sprawdź projekt',
+  'diagnostics.running': 'Sprawdzam…',
+  'diagnostics.runHint': 'Uruchamia tsc i eslint w korzeniu projektu (na żądanie, nie w tle)',
+  'diagnostics.errors': '{count} błędów',
+  'diagnostics.warnings': '{count} ostrzeżeń',
+  'diagnostics.clean': 'Bez błędów i ostrzeżeń.',
+  'diagnostics.toolFailed': '{tool} nie wystartował',
 } as const;
