@@ -224,6 +224,7 @@ export const PL = {
 
   // Drzewo plików
   'ft.noAccess': 'Brak dostępu',
+  'ft.capped': '+{count} dalszych wpisów — katalog przycięty dla płynności',
   'ft.empty': '(pusto)',
   'ft.openProject': 'Otwórz folder projektu…',
   'ft.refresh': 'Odśwież drzewo',

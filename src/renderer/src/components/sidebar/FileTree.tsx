@@ -16,7 +16,7 @@ import { useWorkspace } from '../../workspace';
 import { FOLDER_ICON, fileIconFor } from './file-icons';
 
 type Listing =
-  | { status: 'loaded'; entries: DirEntry[] }
+  | { status: 'loaded'; entries: DirEntry[]; hidden: number }
   | { status: 'error'; message: string };
 
 type GitState = 'modified' | 'untracked';
@@ -84,7 +84,7 @@ export function FileTree(): ReactElement {
       next.set(
         dirPath,
         result.ok
-          ? { status: 'loaded', entries: result.entries }
+          ? { status: 'loaded', entries: result.entries, hidden: result.hidden }
           : { status: 'error', message: result.error },
       );
       return next;
@@ -279,7 +279,15 @@ export function FileTree(): ReactElement {
         </div>
       );
     }
-    return visible.map((entry) => {
+    // Katalog przycięty limitem (M88) — mówimy o tym wprost, zamiast po cichu
+    // pokazywać niepełną listę.
+    const nadmiar =
+      listing.hidden > 0 ? (
+        <div className="tree-note tree-capped" style={indent} data-testid="tree-capped" key="capped">
+          {tf('ft.capped', { count: String(listing.hidden) })}
+        </div>
+      ) : null;
+    const wiersze = visible.map((entry) => {
       const isOpen = entry.kind === 'dir' && expanded.has(entry.path);
       const gitState =
         entry.kind === 'file'
@@ -334,6 +342,7 @@ export function FileTree(): ReactElement {
         </div>
       );
     });
+    return nadmiar === null ? wiersze : [...wiersze, nadmiar];
   };
 
   return (

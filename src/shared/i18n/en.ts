@@ -208,6 +208,7 @@ export const EN: Record<StringKey, string> = {
   'unit.tools': 'tool|tools',
 
   'ft.noAccess': 'No access',
+  'ft.capped': '+{count} more entries — directory trimmed to stay responsive',
   'ft.empty': '(empty)',
   'ft.openProject': 'Open project folder…',
   'ft.refresh': 'Refresh tree',

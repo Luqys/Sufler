@@ -1,4 +1,5 @@
 import { watch, type FSWatcher } from 'chokidar';
+import { capWatchDirs } from '../../shared/project/limits';
 import type { BrowserWindow } from 'electron';
 import { IPC } from '../../shared/ipc';
 
@@ -9,7 +10,14 @@ const watched = new Set<string>();
  * Obserwacja TYLKO rozwiniętych katalogów drzewa (depth 0) — ryzyko nr 3
  * ze SPEC.md zabrania rekurencyjnego watchowania całego projektu.
  */
-export function setWatchedTreeDirs(win: BrowserWindow, dirs: string[]): void {
+export function setWatchedTreeDirs(win: BrowserWindow, rawDirs: string[]): void {
+  /*
+   * Limit obserwowanych katalogów (M88). Pomiar: 250 katalogów to 257 ms
+   * gotowości chokidara i wyraźny wzrost RSS. Zostawiamy ostatnie 200 —
+   * lista przychodzi w kolejności rozwijania, więc świeżo otwarty katalog,
+   * na którym człowiek pracuje, zawsze zostaje obserwowany.
+   */
+  const dirs = capWatchDirs(rawDirs);
   if (!watcher) {
     watcher = watch([], { ignoreInitial: true, depth: 0 });
     watcher.on('all', (_event, path) => {

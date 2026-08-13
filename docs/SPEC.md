@@ -196,7 +196,7 @@ bo numer wziął panel „Sesje".
 | ~~M85~~ | ~~Commit po kawałkach — zaznaczanie fragmentów pliku~~ (zrobione) | test jedn.: `tests/git/hunks.test.ts`, `tests/git/hunk-commit.test.ts`; e2e: `e2e/panele/m85-fragmenty.spec.ts` |
 | ~~M86~~ | ~~Diff worktree ↔ gałąź bazowa — dokończenie M72~~ (zrobione) | test jedn.: `tests/git/branch-diff.test.ts`; e2e: `e2e/panele/m86-worktree-diff.spec.ts` |
 | ~~M87~~ | ~~Przełącznik projektów w palecie `Cmd+K` z ostatnimi korzeniami~~ (zrobione) | test jedn.: `tests/project/recent-projects.test.ts`; e2e: `e2e/ustawienia/m87-projekty-paleta.spec.ts` |
-| M88 | Wydajność na dużym repozytorium — pomiar i twarde limity | test jedn.: limity obserwatora i wyników; e2e: repo z 5000 plików nie blokuje drzewa ani szukania |
+| ~~M88~~ | ~~Wydajność na dużym repozytorium — pomiar i twarde limity~~ (zrobione) | test jedn.: `tests/project/limits.test.ts`; e2e: `e2e/panele/m88-duze-repo.spec.ts` |
 
 Kolejność sensowna, nie obowiązkowa: M83 i M84 są tanie i domykają rzeczy zaczęte
 (panel Sesje, pasek diagnostyki). M85 i M88 to jedyne dwa duże kamienie na tej liście.
@@ -245,6 +245,38 @@ Warstwa danych to ta sama, co w M34 (`src/shared/claude-sessions.ts`,
 linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
+
+### M88 — wydajność na dużym repozytorium (zrobione)
+
+Najpierw pomiar, potem limity. Repozytorium wygenerowane do próby: 25 000 plików
+w 250 katalogach plus katalog `dane/` z 20 000 wpisów i `node_modules` do
+zignorowania.
+
+| Operacja | Koszt |
+|---|---|
+| `readdir` 20 000 wpisów | 26 ms |
+| `git check-ignore` 200 / 1000 / 2000 / 5000 / 20 000 ścieżek | 24 / 48 / 87 / 220 / 810 ms |
+| `rg --files` 25 000 plików (ścieżką aplikacji, `ARGV0=rg`) | 64 ms |
+| `git status --porcelain` | 30 ms |
+| chokidar: 250 katalogów | 257 ms |
+| chokidar: jeden katalog z 20 000 wpisów | 749 ms |
+
+**Wąskie gardło jest jedno i nie tam, gdzie zakładałem.** `rg` i `git status`
+są niewinne — mit „na dużym repo szukanie zamula" pomiar obalił. Kosztuje
+`git check-ignore`, wołany przy KAŻDYM rozwinięciu katalogu, i rośnie liniowo
+z liczbą wpisów.
+
+- **Limit 2000 wpisów na katalog**, przycinanie PRZED zapytaniem gita — w tym
+  tkwi cały zysk (87 ms zamiast 810 ms). Drzewo mówi wprost, ile wpisów ukryto,
+  zamiast po cichu pokazywać niepełną listę.
+- **Limit 200 obserwowanych katalogów**, z zachowaniem OSTATNICH: lista przychodzi
+  w kolejności rozwijania, więc katalog, na którym człowiek właśnie pracuje,
+  zawsze zostaje obserwowany.
+- Pomiar `check-ignore` z pierwszego podejścia (3,3 s dla 20 000) był **zawyżony**,
+  bo puściłem dwa procesy równolegle; czysty pomiar to 810 ms. Zapisane, bo liczba
+  z równoległego przebiegu trafiła najpierw do notatek.
+- Progi siedzą w `src/shared/project/limits.ts` razem z tabelą pomiarów — kto
+  będzie je zmieniał, zobaczy, skąd się wzięły.
 
 ### M87 — projekty w palecie komend (zrobione)
 

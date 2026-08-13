@@ -185,7 +185,8 @@ export interface DirEntry {
 }
 
 export type ReadDirResult =
-  | { ok: true; entries: DirEntry[] }
+  /** `hidden` > 0 — katalog przycięty limitem wyświetlania (M88). */
+  | { ok: true; entries: DirEntry[]; hidden: number }
   | { ok: false; error: string };
 
 export type ReadFileError = 'too-large' | 'binary' | 'unreadable';
