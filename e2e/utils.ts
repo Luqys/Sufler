@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { inflateSync } from 'node:zlib';
+import { expect, type Locator, type Page } from '@playwright/test';
 import { _electron as electron, type ElectronApplication } from 'playwright';
 
 /** Projekt-fixture: repo git z .gitignore, kilkoma plikami i katalogiem node_modules. */
@@ -23,6 +24,32 @@ export function makeFixtureProject(): string {
   execSync(`${gitEnv} add -A`, { cwd: dir, stdio: 'ignore' });
   execSync(`${gitEnv} commit -q -m init`, { cwd: dir, stdio: 'ignore' });
   return dir;
+}
+
+/**
+ * Wpisuje polecenie do terminala i zatwierdza je Enterem.
+ *
+ * Samo `click()` + `keyboard.type()` bywa zawodne (M82): xterm trzyma wejście
+ * w ukrytym `textarea`, a przemontowanie panelu (podział doku, przenosiny
+ * karty) przenosi fokus między instancjami. Gdy syntetyczny klawisz trafi
+ * w moment przełączania, znak ląduje w niewłaściwym celu albo poza kolejnością
+ * — w przebiegu z 13 sierpnia terminal dostał `techo …` zamiast `echo …`.
+ *
+ * Dlatego: czekamy na klasę `focus` na TYM terminalu, a przed Enterem
+ * sprawdzamy, że pty dostało CAŁE polecenie. Niedostarczony znak wychodzi
+ * natychmiast i w miejscu, w którym powstał, zamiast po 15 sekundach jako
+ * brak wyniku.
+ */
+export async function wpiszPolecenie(
+  page: Page,
+  terminal: Locator,
+  polecenie: string,
+): Promise<void> {
+  await terminal.click();
+  await expect(terminal).toHaveClass(/(^|\s)focus(\s|$)/);
+  await page.keyboard.type(polecenie);
+  await expect(terminal).toContainText(polecenie, { timeout: 15_000 });
+  await page.keyboard.press('Enter');
 }
 
 export function makeConfigHome(): string {

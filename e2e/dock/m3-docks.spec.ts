@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 import { expect, test, type ElectronApplication } from '@playwright/test';
-import { launchApp, makeConfigHome, makeFixtureProject } from '../utils';
+import { launchApp, makeConfigHome, makeFixtureProject, wpiszPolecenie } from '../utils';
 
 function isProcessAlive(pid: number): boolean {
   try {
@@ -26,8 +26,7 @@ test('terminal w dolnym doku wykonuje polecenie echo', async () => {
   const terminal = page.locator('[data-testid=bottom-dock] .xterm');
   await expect(terminal).toBeVisible();
 
-  await page.keyboard.type('echo vn3o-$((1300+37))');
-  await page.keyboard.press('Enter');
+  await wpiszPolecenie(page, terminal, 'echo vn3o-$((1300+37))');
   await expect(terminal).toContainText('vn3o-1337', { timeout: 15_000 });
 
   await page.screenshot({ path: 'e2e-artifacts/m3-terminal-echo.png' });
@@ -69,8 +68,7 @@ test('przeciągnięcie zakładki między dokami zachowuje proces i scrollback', 
   await page.getByTestId('bottom-new-terminal').click();
   const bottomTerminal = page.locator('[data-testid=bottom-dock] .xterm');
   await expect(bottomTerminal).toBeVisible();
-  await page.keyboard.type('echo marker-$((40+2))');
-  await page.keyboard.press('Enter');
+  await wpiszPolecenie(page, bottomTerminal, 'echo marker-$((40+2))');
   await expect(bottomTerminal).toContainText('marker-42', { timeout: 15_000 });
 
   const pidsBefore = await listPtyPids(app);
@@ -90,9 +88,7 @@ test('przeciągnięcie zakładki między dokami zachowuje proces i scrollback', 
   const pidsAfter = await listPtyPids(app);
   expect(pidsAfter).toEqual(pidsBefore);
 
-  await rightTerminal.click();
-  await page.keyboard.type('echo po-przeprowadzce-$((50+5))');
-  await page.keyboard.press('Enter');
+  await wpiszPolecenie(page, rightTerminal, 'echo po-przeprowadzce-$((50+5))');
   await expect(rightTerminal).toContainText('po-przeprowadzce-55', { timeout: 15_000 });
 
   await page.screenshot({ path: 'e2e-artifacts/m3-po-przeciagnieciu.png' });

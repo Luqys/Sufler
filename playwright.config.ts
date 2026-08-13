@@ -5,7 +5,17 @@ export default defineConfig({
   timeout: 60_000,
   fullyParallel: false,
   workers: 1,
-  retries: 0,
+  /*
+   * Jedno powtórzenie (M82). Scenariusze sterują PRAWDZIWYM oknem macOS, więc
+   * część padów pochodzi spoza aplikacji: przejęcie fokusu przez inne okno,
+   * chwilowe obciążenie maszyny. Zmierzone: ~1 pad na 120 uruchomień testu,
+   * za każdym razem inny scenariusz, zawsze zielony przy powtórce.
+   *
+   * UWAGA: „flaky" w raporcie NIE jest zielonym światłem — oznacza, że test
+   * padł za pierwszym razem. Przy każdym takim wpisie sprawdzić przyczynę,
+   * zanim uzna się kamień za skończony.
+   */
+  retries: 1,
   outputDir: './e2e-artifacts/test-results',
   reporter: [['list']],
 });

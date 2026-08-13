@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 import { expect, test, type ElectronApplication } from '@playwright/test';
-import { launchApp, makeConfigHome, makeFixtureProject } from '../utils';
+import { launchApp, makeConfigHome, makeFixtureProject, wpiszPolecenie } from '../utils';
 
 function listPtyPids(app: ElectronApplication): Promise<number[]> {
   return app.evaluate(() => {
@@ -16,8 +16,7 @@ test('wyciągnięcie karty poza okno otwiera sesję w nowym oknie z zachowanym s
   await page.getByTestId('bottom-new-terminal').click();
   const terminal = page.locator('[data-testid=bottom-dock] .xterm');
   await expect(terminal).toBeVisible();
-  await page.keyboard.type('echo przed-detach-$((90+9))');
-  await page.keyboard.press('Enter');
+  await wpiszPolecenie(page, terminal, 'echo przed-detach-$((90+9))');
   await expect(terminal).toContainText('przed-detach-99', { timeout: 15_000 });
 
   expect(await listPtyPids(app)).toHaveLength(1);
@@ -40,9 +39,7 @@ test('wyciągnięcie karty poza okno otwiera sesję w nowym oknie z zachowanym s
   expect(await listPtyPids(app)).toHaveLength(1);
 
   // Sesja w nowym oknie nadal działa.
-  await detached.locator('.xterm').click();
-  await detached.keyboard.type('echo po-detach-$((40+4))');
-  await detached.keyboard.press('Enter');
+  await wpiszPolecenie(detached, detached.locator('.xterm'), 'echo po-detach-$((40+4))');
   await expect(detached.locator('.xterm')).toContainText('po-detach-44', { timeout: 15_000 });
 
   await detached.screenshot({ path: 'e2e-artifacts/m19-odczepione-okno.png' });

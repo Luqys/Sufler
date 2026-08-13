@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { launchApp, makeConfigHome, makeFixtureProject } from '../utils';
+import { launchApp, makeConfigHome, makeFixtureProject, wpiszPolecenie } from '../utils';
 
 test('ekran startowy: wybór z ostatnich folderów, terminal startuje w wybranym', async () => {
   const configHome = makeConfigHome();
@@ -30,8 +30,7 @@ test('ekran startowy: wybór z ostatnich folderów, terminal startuje w wybranym
   await page.getByTestId('bottom-new-terminal').click();
   const terminal = page.locator('[data-testid=bottom-dock] .xterm');
   await expect(terminal).toBeVisible();
-  await page.keyboard.type('echo KATALOG-$PWD');
-  await page.keyboard.press('Enter');
+  await wpiszPolecenie(page, terminal, 'echo KATALOG-$PWD');
   await expect(terminal).toContainText('KATALOG-/', { timeout: 15_000 });
   await expect(terminal).toContainText('vn3o-proj-', { timeout: 15_000 });
 

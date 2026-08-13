@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { launchApp, makeConfigHome, makeFixtureProject } from '../utils';
+import { launchApp, makeConfigHome, makeFixtureProject, wpiszPolecenie } from '../utils';
 
 test('podział doku: dwie sesje widoczne obok siebie, każda niezależna', async () => {
   const app = await launchApp(makeConfigHome(), makeFixtureProject());
@@ -8,16 +8,14 @@ test('podział doku: dwie sesje widoczne obok siebie, każda niezależna', async
   // Dwa terminale w jednym panelu dolnego doku.
   await page.getByTestId('bottom-new-terminal').click();
   await expect(page.locator('[data-testid=bottom-dock] .xterm')).toBeVisible();
-  await page.keyboard.type('echo splitA-$((1+1))');
-  await page.keyboard.press('Enter');
+  await wpiszPolecenie(page, page.locator('[data-testid=bottom-dock] .xterm'), 'echo splitA-$((1+1))');
   await expect(page.locator('[data-testid=bottom-dock] .xterm')).toContainText('splitA-2', {
     timeout: 15_000,
   });
 
   await page.getByTestId('bottom-new-terminal').click();
   await expect(page.locator('[data-testid=bottom-dock] .dock-tab')).toHaveCount(2);
-  await page.keyboard.type('echo splitB-$((2+2))');
-  await page.keyboard.press('Enter');
+  await wpiszPolecenie(page, page.locator('[data-testid=bottom-dock] .xterm'), 'echo splitB-$((2+2))');
   await expect(page.locator('[data-testid=bottom-dock] .xterm')).toContainText('splitB-4', {
     timeout: 15_000,
   });
@@ -32,9 +30,7 @@ test('podział doku: dwie sesje widoczne obok siebie, każda niezależna', async
   await expect(pane1.locator('.xterm')).toContainText('splitB-4');
 
   // Wpis w prawym panelu nie dotyka lewego.
-  await pane1.locator('.xterm').click();
-  await page.keyboard.type('echo splitC-$((3+3))');
-  await page.keyboard.press('Enter');
+  await wpiszPolecenie(page, pane1.locator('.xterm'), 'echo splitC-$((3+3))');
   await expect(pane1.locator('.xterm')).toContainText('splitC-6', { timeout: 15_000 });
   await expect(pane0.locator('.xterm')).not.toContainText('splitC-6');
 
