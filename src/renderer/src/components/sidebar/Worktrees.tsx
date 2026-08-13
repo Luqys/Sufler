@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type ReactElement } from 'react';
+import { baseSideFor, type BranchDiff } from '../../../../shared/git/branch-diff';
 import {
   validateWorktreeName,
   worktreeLabel,
@@ -7,6 +8,7 @@ import {
 import { tf, useT } from '../../i18n';
 import { useDocks } from '../../docks';
 import { useDialogs } from '../../ui-dialogs';
+import { useWorkspace } from '../../workspace';
 
 const ICON_CLAUDE = <span aria-hidden>✳</span>;
 
@@ -19,10 +21,14 @@ const ICON_CLAUDE = <span aria-hidden>✳</span>;
 export function Worktrees({ root }: { root: string }): ReactElement | null {
   const t = useT();
   const { addTab } = useDocks();
+  const { openDiffTab } = useWorkspace();
   const { confirmDialog, notify } = useDialogs();
   const [items, setItems] = useState<Worktree[] | null>(null);
   const [name, setName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [diffs, setDiffs] = useState<ReadonlyMap<string, BranchDiff | 'loading' | 'none'>>(
+    new Map(),
+  );
 
   const refresh = useCallback(() => {
     void window.api.listWorktrees(root).then(setItems);
@@ -55,6 +61,27 @@ export function Worktrees({ root }: { root: string }): ReactElement | null {
     });
   };
 
+  /**
+   * Co ten worktree wniósł wobec gałęzi projektu. Liczone na żądanie —
+   * rozwinięcie wiersza, nie ładowanie wszystkiego przy otwarciu panelu.
+   */
+  const toggleDiff = (worktree: Worktree): void => {
+    const current = diffs.get(worktree.branch);
+    if (current !== undefined) {
+      setDiffs((prev) => {
+        const next = new Map(prev);
+        next.delete(worktree.branch);
+        return next;
+      });
+      return;
+    }
+    setDiffs((prev) => new Map(prev).set(worktree.branch, 'loading'));
+    const base = items?.find((item) => item.main)?.branch ?? '';
+    void window.api.diffWorktree(root, worktree.branch, base).then((result) => {
+      setDiffs((prev) => new Map(prev).set(worktree.branch, result ?? 'none'));
+    });
+  };
+
   const merge = (worktree: Worktree): void => {
     void confirmDialog({
       title: t('worktree.mergeTitle'),
@@ -64,6 +91,12 @@ export function Worktrees({ root }: { root: string }): ReactElement | null {
         return;
       }
       void window.api.mergeWorktree(root, worktree.branch).then((result) => {
+        // Po scaleniu policzona różnica jest nieaktualna z definicji.
+        setDiffs((prev) => {
+          const next = new Map(prev);
+          next.delete(worktree.branch);
+          return next;
+        });
         if (result.ok) {
           notify(tf('worktree.merged', { branch: worktree.branch, into: result.into }), 'success');
         } else if (result.error === 'conflict') {
@@ -125,6 +158,15 @@ export function Worktrees({ root }: { root: string }): ReactElement | null {
               <button
                 type="button"
                 className="bar-btn"
+                data-testid="worktree-diff"
+                title={t('worktree.diff')}
+                onClick={() => toggleDiff(worktree)}
+              >
+                ±
+              </button>
+              <button
+                type="button"
+                className="bar-btn"
                 data-testid="worktree-merge"
                 title={t('worktree.merge')}
                 onClick={() => merge(worktree)}
@@ -142,6 +184,55 @@ export function Worktrees({ root }: { root: string }): ReactElement | null {
               </button>
             </span>
           )}
+          {(() => {
+            const diff = diffs.get(worktree.branch);
+            if (diff === undefined) {
+              return null;
+            }
+            if (diff === 'loading') {
+              return <span className="tree-note">{t('worktree.diffLoading')}</span>;
+            }
+            if (diff === 'none') {
+              // null z IPC = porównania nie dało się policzyć (odłączona baza,
+              // zniknięta gałąź) — to co innego niż „nic nie wniosła".
+              return (
+                <span className="tree-note" data-testid="worktree-diff-unavailable">
+                  {t('worktree.diffUnavailable')}
+                </span>
+              );
+            }
+            if (diff.files.length === 0) {
+              return (
+                <span className="tree-note" data-testid="worktree-diff-empty">
+                  {t('worktree.diffEmpty')}
+                </span>
+              );
+            }
+            return (
+              <span className="worktree-diff" data-testid="worktree-diff-list">
+                {diff.files.map((file) => (
+                  <button
+                    key={`${file.status}:${file.path}`}
+                    type="button"
+                    className="git-file git-change"
+                    data-testid="worktree-diff-file"
+                    onClick={() =>
+                      openDiffTab({
+                        kind: 'commit',
+                        hash: diff.tip,
+                        parent: baseSideFor(file, diff.mergeBase),
+                        path: file.path,
+                        status: file.status,
+                      })
+                    }
+                  >
+                    <span className={`git-status git-status-${file.status}`}>{file.status}</span>
+                    <span className="git-file-path">{file.path}</span>
+                  </button>
+                ))}
+              </span>
+            );
+          })()}
         </div>
       ))}
       <div className="worktree-form">

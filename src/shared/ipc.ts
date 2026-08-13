@@ -17,6 +17,7 @@ import type { HookEntry, HookEvent } from './skills/hooks-config';
 import type { UsageScan } from './claude/usage-history';
 import type { DiagnosticsResult } from './editor/diagnostics';
 import type { Worktree } from './git/worktrees';
+import type { BranchDiff } from './git/branch-diff';
 import type { SessionHits } from './claude/transcript-search';
 import type { SkillOverrideState } from './skills/skills';
 
@@ -106,6 +107,7 @@ export const IPC = {
   DiagnosticsRun: 'diagnostics:run',
   TranscriptSearch: 'claude-sessions:search',
   WorktreeList: 'worktree:list',
+  WorktreeDiff: 'worktree:diff',
   WorktreeAdd: 'worktree:add',
   WorktreeRemove: 'worktree:remove',
   WorktreeMerge: 'worktree:merge',
@@ -484,6 +486,8 @@ export interface WindowApi {
   /** Worktree'y gita — kilka sesji nad jednym zadaniem (M72). */
   listWorktrees(root: string): Promise<Worktree[]>;
   addWorktree(root: string, name: string): Promise<WorktreeWriteResult>;
+  /** Co ten worktree wniósł wobec gałęzi bazowej, od punktu rozejścia (M86). */
+  diffWorktree(root: string, branch: string, base: string): Promise<BranchDiff | null>;
   removeWorktree(root: string, path: string): Promise<WorktreeWriteResult>;
   mergeWorktree(root: string, branch: string): Promise<WorktreeMergeResult>;
   /** `tsc` + `eslint` na żądanie — diagnostyka bez LSP (M71). */

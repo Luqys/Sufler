@@ -194,7 +194,7 @@ bo numer wziął panel „Sesje".
 | ~~M83~~ | ~~Wyszukiwanie w treści transkryptów sesji, nie tylko w tytułach~~ (zrobione) | test jedn.: `tests/claude/transcript-search.test.ts`; e2e: `e2e/panele/m83-szukanie-rozmow.spec.ts` |
 | M84 | Diagnostyka po zapisie — opcjonalna, dławiona, z filtrem listy problemów | test jedn.: dławik i scalanie wyników kolejnych przebiegów; e2e: `Cmd+S` odświeża pasek bez klikania „Sprawdź projekt" |
 | M85 | Commit po kawałkach — zaznaczanie fragmentów w `DiffView` | test jedn.: budowa łatki dla wybranych hunków (`git apply --cached`); e2e: zatwierdzenie jednego z dwóch fragmentów pliku zostawia drugi w drzewie |
-| M86 | Diff worktree ↔ gałąź bazowa — dokończenie M72 | test jedn.: parser `git diff <baza>...<gałąź> --numstat`; e2e: lista plików różniących worktree od bazy, klik otwiera diff |
+| ~~M86~~ | ~~Diff worktree ↔ gałąź bazowa — dokończenie M72~~ (zrobione) | test jedn.: `tests/git/branch-diff.test.ts`; e2e: `e2e/panele/m86-worktree-diff.spec.ts` |
 | M87 | Przełącznik projektów w palecie `Cmd+K` z ostatnimi korzeniami i ikonami | test jedn.: ranking ostatnich projektów; e2e: paleta przełącza projekt bez restartu aplikacji |
 | M88 | Wydajność na dużym repozytorium — pomiar i twarde limity | test jedn.: limity obserwatora i wyników; e2e: repo z 5000 plików nie blokuje drzewa ani szukania |
 
@@ -245,6 +245,35 @@ Warstwa danych to ta sama, co w M34 (`src/shared/claude-sessions.ts`,
 linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
+
+### M86 — diff worktree ↔ gałąź bazowa (zrobione)
+
+Dokończenie M72. Wiersz worktree'a ma przycisk `±`, który rozwija listę plików
+wniesionych przez tę gałąź; klik w plik otwiera zwykłą zakładkę diffa.
+
+- **Sprostowanie do M72:** napisałem tam, że to wymaga diffa „między katalogami
+  roboczymi" i dlatego wypada z zakresu. To nieprawda — gałąź worktree'a widać
+  z korzenia projektu jak każdą inną (`git diff baza...gałąź` działa), a istniejący
+  deskryptor `kind: 'commit'` obsługuje dowolne rewizje. Kamień kosztował
+  kilkanaście minut zamiast osobnego projektu.
+- Liczymy od **punktu rozejścia** (`git merge-base`), nie od czubka bazy. Inaczej
+  praca, która w międzyczasie weszła na gałąź projektu, pokazywałaby się jako
+  wkład worktree'a i porównanie kłamałoby o tym, co ten katalog wniósł. Test
+  jednostkowy pilnuje dokładnie tego przypadku.
+- Format `--name-status -z`: ścieżki ze spacjami i cudzysłowami nie wymagają
+  odcytowywania, a zmiana nazwy niesie starą i nową ścieżkę.
+- Plik dodany na gałęzi nie ma strony „przed" — zakładka dostaje `parent: null`
+  i pokazuje pustą lewą stronę zamiast błędu.
+- Liczone na żądanie, po rozwinięciu wiersza; panel nie liczy różnic dla
+  wszystkich worktree'ów przy otwarciu.
+- Zakładka diffa dostaje **sha czubka gałęzi**, nie jej nazwę. `runGitShowFile`
+  przepuszcza wyłącznie `HEAD` i sha — to zabezpieczenie przed wstrzyknięciem do
+  `git show <rev>:<ścieżka>` i nie ma powodu go luzować; zamiast tego gałąź
+  rozwiązujemy do sha po stronie liczącej różnicę. Przy okazji porównanie zostaje
+  przypięte do rewizji, którą faktycznie policzyliśmy, a nie do ruchomej gałęzi.
+- Rozróżniamy „nie da się porównać" (null z IPC: odłączona baza, zniknięta gałąź)
+  od „nic jeszcze nie wniosła" (pusta lista). Wspólny komunikat kłamałby
+  uspokajająco w razie awarii.
 
 ### M83 — szukanie w treści rozmów (zrobione)
 
@@ -550,10 +579,11 @@ w terminalu, druga instancja Suflera, ręczne scalanie. Panel Git ma teraz sekcj
   zostaje nietknięty wraz z osobnym komunikatem. Gałąź zostaje zawsze.
 - Logika w `src/shared/git/worktrees.ts` (parser `--porcelain`, walidacja nazw,
   ścieżki), operacje w `src/main/git/worktrees.ts`.
-- **Poza zakresem tego kamienia:** widok porównawczy diff worktree ↔ gałąź bazowa.
-  Pierwotny plan go zakładał, ale `DiffView` porównuje rewizje jednego repozytorium,
-  a tu potrzebny jest diff między katalogami roboczymi — to osobna mechanika
-  i osobny kamień, jeśli okaże się potrzebny w praktyce.
+- **Poza zakresem tego kamienia** był widok porównawczy diff worktree ↔ gałąź
+  bazowa. Uzasadnienie, które tu wpisałem („`DiffView` porównuje rewizje jednego
+  repozytorium, a tu potrzebny jest diff między katalogami roboczymi"), **było
+  błędne** — gałąź worktree'a jest zwykłą gałęzią tego samego repozytorium.
+  Zrobione w M86 kilkanaście minut później, przy użyciu istniejącej zakładki diffa.
 
 ### M71 — diagnostyka bez LSP (zrobione)
 

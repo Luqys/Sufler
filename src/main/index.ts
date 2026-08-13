@@ -25,6 +25,7 @@ import { readUsageHistory } from './claude/usage-history';
 import { runDiagnostics } from './project/diagnostics';
 import { addWorktree, listWorktrees, mergeWorktree, removeWorktree } from './git/worktrees';
 import { searchTranscripts } from './claude/transcript-search';
+import { diffAgainstBase } from './git/branch-diff';
 import { runGitShowFile } from './git/git-show';
 import { runGitStatus } from './git/git-status';
 import { startIdeServer, stopIdeServer, updateIdeWorkspaceFolders } from './claude/ide-server';
@@ -357,6 +358,9 @@ void app.whenReady().then(() => {
     searchTranscripts(root, query),
   );
   ipcMain.handle(IPC.WorktreeList, (_event, root: string) => listWorktrees(root));
+  ipcMain.handle(IPC.WorktreeDiff, (_event, root: string, branch: string, base: string) =>
+    diffAgainstBase(root, branch, base),
+  );
   ipcMain.handle(IPC.WorktreeAdd, (_event, root: string, name: string) => addWorktree(root, name));
   ipcMain.handle(IPC.WorktreeRemove, (_event, root: string, path: string) =>
     removeWorktree(root, path),

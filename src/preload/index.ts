@@ -4,6 +4,7 @@ import type { HookEntry } from '../shared/skills/hooks-config';
 import type { UsageScan } from '../shared/claude/usage-history';
 import type { DiagnosticsResult } from '../shared/editor/diagnostics';
 import type { Worktree } from '../shared/git/worktrees';
+import type { BranchDiff } from '../shared/git/branch-diff';
 import type { SessionHits } from '../shared/claude/transcript-search';
 import type { WorktreeMergeResult, WorktreeWriteResult } from '../shared/ipc';
 import type { Checkpoint } from '../shared/git/checkpoints';
@@ -224,6 +225,8 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.WorktreeList, root),
   addWorktree: (root: string, name: string): Promise<WorktreeWriteResult> =>
     ipcRenderer.invoke(IPC.WorktreeAdd, root, name),
+  diffWorktree: (root: string, branch: string, base: string): Promise<BranchDiff | null> =>
+    ipcRenderer.invoke(IPC.WorktreeDiff, root, branch, base),
   removeWorktree: (root: string, path: string): Promise<WorktreeWriteResult> =>
     ipcRenderer.invoke(IPC.WorktreeRemove, root, path),
   mergeWorktree: (root: string, branch: string): Promise<WorktreeMergeResult> =>
