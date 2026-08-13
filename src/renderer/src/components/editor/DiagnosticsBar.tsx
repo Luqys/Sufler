@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import type { Diagnostic, DiagnosticsResult } from '../../../../shared/editor/diagnostics';
+import { autoRunDelay, filterDiagnostics } from '../../../../shared/editor/diagnostics-auto';
 import { tf, tp, useT } from '../../i18n';
 import { monaco } from '../../monaco-setup';
 import { useWorkspace } from '../../workspace';
@@ -52,10 +53,16 @@ function applyMarkers(root: string, items: readonly Diagnostic[]): void {
  */
 export function DiagnosticsBar(): ReactElement {
   const t = useT();
-  const { root, openFileAt } = useWorkspace();
+  const { root, openFileAt, savedTick } = useWorkspace();
   const [result, setResult] = useState<DiagnosticsResult | null>(null);
   const [running, setRunning] = useState(false);
   const [open, setOpen] = useState(false);
+  /** Tryb automatyczny i filtr listy problemów (M90). */
+  const [auto, setAuto] = useState(false);
+  const [query, setQuery] = useState('');
+  const [onlyErrors, setOnlyErrors] = useState(false);
+  const lastFinishedRef = useRef(0);
+  const runningRef = useRef(false);
   const rootRef = useRef(root);
   rootRef.current = root;
 
@@ -82,23 +89,57 @@ export function DiagnosticsBar(): ReactElement {
     return () => subscription.dispose();
   }, [result]);
 
+  useEffect(() => {
+    void window.api.getDiagnosticsAuto().then(setAuto);
+  }, []);
+
   const run = (): void => {
-    if (running) {
+    if (runningRef.current) {
       return;
     }
+    runningRef.current = true;
     setRunning(true);
     const forRoot = rootRef.current;
     void window.api.runDiagnostics(forRoot).then((next) => {
       if (rootRef.current !== forRoot) {
         return;
       }
+      runningRef.current = false;
+      lastFinishedRef.current = Date.now();
       setRunning(false);
       setResult(next);
       setOpen(next.items.length > 0);
     });
   };
 
+  /*
+   * Zapis pliku uruchamia przebieg, ale z dławikiem: seria `Cmd+S` daje jeden
+   * przebieg, a kolejny nie ruszy szybciej niż po odstępie. `tsc` na tym repo
+   * trwa kilkanaście sekund — sprawdzanie po każdym zapisie byłoby gorsze niż
+   * brak sprawdzania.
+   */
+  useEffect(() => {
+    if (savedTick === 0) {
+      return;
+    }
+    const delay = autoRunDelay(
+      { lastFinishedMs: lastFinishedRef.current, running: runningRef.current },
+      auto,
+      Date.now(),
+    );
+    if (delay === null) {
+      return;
+    }
+    const timer = window.setTimeout(() => runRef.current(), delay);
+    return () => window.clearTimeout(timer);
+  }, [auto, savedTick]);
+
+  const runRef = useRef(run);
+  runRef.current = run;
+
   const clean = result !== null && result.items.length === 0;
+  const visible =
+    result === null ? [] : filterDiagnostics(result.items, query, onlyErrors ? 'error' : 'all');
 
   return (
     <div className={`diagnostics-bar${open ? ' open' : ''}`} data-testid="diagnostics-bar">
@@ -132,6 +173,40 @@ export function DiagnosticsBar(): ReactElement {
           </button>
         )}
         {clean && <span className="diagnostics-clean">{t('diagnostics.clean')}</span>}
+        {result !== null && result.items.length > 0 && (
+          <>
+            <input
+              type="search"
+              className="diagnostics-filter"
+              data-testid="diagnostics-filter"
+              placeholder={t('diagnostics.filter')}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            <label className="diagnostics-only-errors">
+              <input
+                type="checkbox"
+                data-testid="diagnostics-only-errors"
+                checked={onlyErrors}
+                onChange={(event) => setOnlyErrors(event.target.checked)}
+              />
+              {t('diagnostics.onlyErrors')}
+            </label>
+          </>
+        )}
+        <label className="diagnostics-auto" title={t('diagnostics.autoHint')}>
+          <input
+            type="checkbox"
+            data-testid="diagnostics-auto"
+            checked={auto}
+            onChange={(event) => {
+              const next = event.target.checked;
+              setAuto(next);
+              void window.api.setDiagnosticsAuto(next);
+            }}
+          />
+          {t('diagnostics.auto')}
+        </label>
         {result?.failed.map((failure) => (
           <span
             key={failure.source}
@@ -145,7 +220,7 @@ export function DiagnosticsBar(): ReactElement {
       </div>
       {open && result !== null && (
         <div className="diagnostics-list" data-testid="diagnostics-list">
-          {result.items.map((item, index) => (
+          {visible.map((item, index) => (
             <button
               key={`${item.file}:${item.line}:${item.column}:${index}`}
               type="button"

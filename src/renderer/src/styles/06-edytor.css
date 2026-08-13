@@ -637,3 +637,43 @@
   flex: none;
   color: var(--muted);
 }
+
+/* Diagnostyka po zapisie i filtr problemów (M90) */
+.diagnostics-auto,
+.diagnostics-only-errors {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.diagnostics-auto input,
+.diagnostics-only-errors input {
+  accent-color: var(--accent);
+  cursor: pointer;
+  margin: 0;
+}
+
+.diagnostics-filter {
+  flex: 0 1 180px;
+  min-width: 90px;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+}
+
+.diagnostics-filter:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Przełącznik trybu trzyma się prawej krawędzi paska. */
+.diagnostics-auto {
+  margin-left: auto;
+}

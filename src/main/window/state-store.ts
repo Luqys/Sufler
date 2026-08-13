@@ -6,6 +6,8 @@ import { configDir } from './layout-store';
 export interface AppState {
   /** Ostatnio otwierane foldery projektów (najnowszy pierwszy) — ekran startowy. */
   recentRoots?: string[];
+  /** Diagnostyka po zapisie (M90) — domyślnie wyłączona. */
+  diagnosticsAuto?: boolean;
   /** Ścieżka vaulta Obsidiana (indeks wikilinków). */
   vaultPath?: string;
   /** Motyw i akcent (normalizowane w shared/appearance). */
@@ -28,6 +30,9 @@ export function readState(): AppState {
     }
     const obj = raw as Record<string, unknown>;
     const state: AppState = {};
+    if (typeof obj['diagnosticsAuto'] === 'boolean') {
+      state.diagnosticsAuto = obj['diagnosticsAuto'];
+    }
     if (Array.isArray(obj['recentRoots'])) {
       state.recentRoots = obj['recentRoots'].filter(
         (entry): entry is string => typeof entry === 'string',

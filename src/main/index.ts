@@ -23,7 +23,7 @@ import { runGitLog, runGitShowCommit } from './git/git-log';
 import { runGitCommit } from './git/git-commit';
 import { addHook, listHooks, removeHook } from './claude/hooks-config';
 import { readUsageHistory } from './claude/usage-history';
-import { runDiagnostics } from './project/diagnostics';
+import { isDiagnosticsAuto, runDiagnostics, setDiagnosticsAuto } from './project/diagnostics';
 import { addWorktree, listWorktrees, mergeWorktree, removeWorktree } from './git/worktrees';
 import { searchTranscripts } from './claude/transcript-search';
 import { diffAgainstBase } from './git/branch-diff';
@@ -357,6 +357,8 @@ void app.whenReady().then(() => {
   );
   ipcMain.handle(IPC.UsageHistoryGet, (_event, root: string) => readUsageHistory(root));
   ipcMain.handle(IPC.DiagnosticsRun, (_event, root: string) => runDiagnostics(root));
+  ipcMain.handle(IPC.DiagnosticsAutoGet, () => isDiagnosticsAuto());
+  ipcMain.handle(IPC.DiagnosticsAutoSet, (_event, enabled: boolean) => setDiagnosticsAuto(enabled));
   ipcMain.handle(IPC.TranscriptSearch, (_event, root: string, query: string) =>
     searchTranscripts(root, query),
   );

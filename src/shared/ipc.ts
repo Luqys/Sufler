@@ -109,6 +109,8 @@ export const IPC = {
   GitCommitHunks: 'git:commit-hunks',
   UsageHistoryGet: 'usage:history',
   DiagnosticsRun: 'diagnostics:run',
+  DiagnosticsAutoGet: 'diagnostics:auto-get',
+  DiagnosticsAutoSet: 'diagnostics:auto-set',
   TranscriptSearch: 'claude-sessions:search',
   WorktreeList: 'worktree:list',
   WorktreeDiff: 'worktree:diff',
@@ -505,6 +507,9 @@ export interface WindowApi {
   mergeWorktree(root: string, branch: string): Promise<WorktreeMergeResult>;
   /** `tsc` + `eslint` na żądanie — diagnostyka bez LSP (M71). */
   runDiagnostics(root: string): Promise<DiagnosticsResult>;
+  /** „Sprawdzaj projekt po zapisie" — przełącznik trybu automatycznego (M90). */
+  getDiagnosticsAuto(): Promise<boolean>;
+  setDiagnosticsAuto(enabled: boolean): Promise<boolean>;
   /** Zużycie tokenów policzone z transkryptów projektu (M73). */
   getUsageHistory(root: string): Promise<UsageScan>;
   /** Hunki pliku wobec HEAD — commit po kawałkach (M85). */

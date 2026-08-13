@@ -655,6 +655,10 @@ export const EN: Record<StringKey, string> = {
   'diagnostics.runHint': 'Runs tsc and eslint in the project root (on demand, not in the background)',
   'diagnostics.errors': '{count} errors',
   'diagnostics.warnings': '{count} warnings',
+  'diagnostics.auto': 'on save',
+  'diagnostics.autoHint': 'Check the project automatically after saving a file (throttled)',
+  'diagnostics.filter': 'filter problems…',
+  'diagnostics.onlyErrors': 'errors only',
   'diagnostics.clean': 'No errors or warnings.',
   'diagnostics.toolFailed': '{tool} failed to start',
 

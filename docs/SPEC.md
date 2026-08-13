@@ -192,7 +192,7 @@ bo numer wziął panel „Sesje".
 | # | Zakres | Sprawdzenie |
 |---|---|---|
 | ~~M83~~ | ~~Wyszukiwanie w treści transkryptów sesji, nie tylko w tytułach~~ (zrobione) | test jedn.: `tests/claude/transcript-search.test.ts`; e2e: `e2e/panele/m83-szukanie-rozmow.spec.ts` |
-| M84 | Diagnostyka po zapisie — opcjonalna, dławiona, z filtrem listy problemów | test jedn.: dławik i scalanie wyników kolejnych przebiegów; e2e: `Cmd+S` odświeża pasek bez klikania „Sprawdź projekt" |
+| ~~M90~~ | ~~Diagnostyka po zapisie — opcjonalna, dławiona, z filtrem listy problemów~~ (zrobione, numer M84 wzięła inna sesja) | test jedn.: `tests/editor/diagnostics-auto.test.ts`; e2e: `e2e/editor/m90-diagnostyka-zapis.spec.ts` |
 | ~~M85~~ | ~~Commit po kawałkach — zaznaczanie fragmentów pliku~~ (zrobione) | test jedn.: `tests/git/hunks.test.ts`, `tests/git/hunk-commit.test.ts`; e2e: `e2e/panele/m85-fragmenty.spec.ts` |
 | ~~M86~~ | ~~Diff worktree ↔ gałąź bazowa — dokończenie M72~~ (zrobione) | test jedn.: `tests/git/branch-diff.test.ts`; e2e: `e2e/panele/m86-worktree-diff.spec.ts` |
 | ~~M87~~ | ~~Przełącznik projektów w palecie `Cmd+K` z ostatnimi korzeniami~~ (zrobione) | test jedn.: `tests/project/recent-projects.test.ts`; e2e: `e2e/ustawienia/m87-projekty-paleta.spec.ts` |
@@ -245,6 +245,27 @@ Warstwa danych to ta sama, co w M34 (`src/shared/claude-sessions.ts`,
 linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
+
+### M90 — diagnostyka po zapisie (zrobione)
+
+Ostatnia pozycja z backlogu po v1. Miała numer M84 i wypadła, gdy ten numer
+wzięła inna sesja — dokładnie tak, jak przewiduje reguła „numer w tabeli jest
+propozycją, nie rezerwacją".
+
+Pasek z M71 sprawdzał projekt wyłącznie na żądanie. Zapis pliku to najczęstszy
+moment, w którym chce się wiedzieć, czy projekt nadal się kompiluje — ale
+sprawdzanie po KAŻDYM `Cmd+S` byłoby gorsze niż brak sprawdzania: `tsc` na tym
+repozytorium trwa kilkanaście sekund, a zapisy idą seriami.
+
+- Przełącznik „po zapisie" w pasku, **domyślnie wyłączony**, stan w `state.json`.
+- Dławik dwustopniowy: seria zapisów daje jeden przebieg (przerwa 1,2 s), a kolejny
+  nie ruszy szybciej niż 5 s po poprzednim. Trwający przebieg nie dokłada kolejki —
+  jego wynik i tak będzie świeży.
+- Filtr listy problemów (po ścieżce, treści i kodzie reguły, bez ogonków
+  i wielkości liter) plus „tylko błędy". Przy kilkudziesięciu ostrzeżeniach
+  `eslint` to jedyna droga do trzech błędów `tsc`.
+- Sygnałem jest licznik udanych zapisów z `workspace`, nie podsłuchiwanie
+  klawiatury — zapis wywołany z menu albo z paska liczy się tak samo.
 
 ### M88 — wydajność na dużym repozytorium (zrobione)
 

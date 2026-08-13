@@ -688,6 +688,10 @@ export const PL = {
   'diagnostics.runHint': 'Uruchamia tsc i eslint w korzeniu projektu (na żądanie, nie w tle)',
   'diagnostics.errors': '{count} błędów',
   'diagnostics.warnings': '{count} ostrzeżeń',
+  'diagnostics.auto': 'po zapisie',
+  'diagnostics.autoHint': 'Sprawdzaj projekt automatycznie po zapisie pliku (z dławikiem)',
+  'diagnostics.filter': 'filtruj problemy…',
+  'diagnostics.onlyErrors': 'tylko błędy',
   'diagnostics.clean': 'Bez błędów i ostrzeżeń.',
   'diagnostics.toolFailed': '{tool} nie wystartował',
 

@@ -243,6 +243,9 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.WorktreeMerge, root, branch),
   runDiagnostics: (root: string): Promise<DiagnosticsResult> =>
     ipcRenderer.invoke(IPC.DiagnosticsRun, root),
+  getDiagnosticsAuto: (): Promise<boolean> => ipcRenderer.invoke(IPC.DiagnosticsAutoGet),
+  setDiagnosticsAuto: (enabled: boolean): Promise<boolean> =>
+    ipcRenderer.invoke(IPC.DiagnosticsAutoSet, enabled),
   getUsageHistory: (root: string): Promise<UsageScan> =>
     ipcRenderer.invoke(IPC.UsageHistoryGet, root),
   listHooks: (root: string): Promise<HookListEntry[]> => ipcRenderer.invoke(IPC.HooksList, root),

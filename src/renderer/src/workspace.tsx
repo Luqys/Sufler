@@ -105,6 +105,8 @@ interface WorkspaceValue {
   reorderTab(groupId: string, fromPath: string, toPath: string): void;
   closeTab(groupId: string, path: string): void;
   saveActiveFile(): void;
+  /** Rośnie po każdym udanym zapisie — diagnostyka po zapisie (M90). */
+  savedTick: number;
   reloadActiveFromDisk(): void;
   keepMyVersion(): void;
   chooseProject(): void;
@@ -277,6 +279,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
   );
 
   const [revealTarget, setRevealTarget] = useState<RevealTarget | null>(null);
+  const [savedTick, setSavedTick] = useState(0);
   const revealNonce = useRef(0);
 
   const openFileAt = useCallback(
@@ -355,6 +358,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     void window.api.writeFile(path, content).then((result) => {
       if (result.ok) {
         markSaved(path);
+        setSavedTick((tick) => tick + 1);
         patchBuffers((next) =>
           next.set(path, { savedText: content, external: null, loadError: null }),
         );
@@ -723,6 +727,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         reorderTab,
         closeTab,
         saveActiveFile,
+        savedTick,
         reloadActiveFromDisk,
         keepMyVersion,
         chooseProject,

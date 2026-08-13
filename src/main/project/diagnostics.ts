@@ -11,6 +11,7 @@ import {
   type DiagnosticSource,
 } from '../../shared/editor/diagnostics';
 import { resolveShellEnv } from '../system/shell-env';
+import { readState, writeState } from '../window/state-store';
 
 const execFileAsync = promisify(execFile);
 
@@ -108,4 +109,14 @@ export async function runDiagnostics(root: string): Promise<DiagnosticsResult> {
   }
 
   return summarize(items, failed);
+}
+
+/** Przełącznik „sprawdzaj po zapisie" (M90); domyślnie wyłączony. */
+export function isDiagnosticsAuto(): boolean {
+  return readState().diagnosticsAuto === true;
+}
+
+export function setDiagnosticsAuto(enabled: boolean): boolean {
+  writeState({ ...readState(), diagnosticsAuto: enabled });
+  return enabled;
 }
