@@ -6,7 +6,7 @@ import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { z } from 'zod';
 import { buildKnowledgeGraph } from './knowledge-graph';
-import { OUTLINE_OUTPUT, rebuildOutline } from './knowledge';
+import { buildProjectOutline } from './knowledge';
 import { createSkill, readSkillsSnapshot } from '../skills/skills';
 import { getProjectRoot } from '../project/project';
 import { IPC } from '../../shared/ipc';
@@ -51,8 +51,8 @@ function buildMcp(): McpServer {
   mcp.tool(
     'konspekt',
     'Konspekt wiedzy projektu otwartego w Sufler — mapa wszystkich notatek .md ' +
-      '(tytuły, nagłówki, powiązania) z pliku konspekt-wiedzy.md w korzeniu repozytorium. ' +
-      'Przed odczytem konspekt jest przeliczany, więc odpowiada aktualnemu stanowi notatek. ' +
+      '(tytuły, nagłówki, powiązania) notatek .md projektu. Liczony na żądanie, ' +
+      'więc zawsze odpowiada aktualnemu stanowi notatek. ' +
       'Użyj na start, aby wiedzieć, co gdzie jest, zanim sięgniesz po pełne treści.',
     {},
     async () => {
@@ -60,11 +60,9 @@ function buildMcp(): McpServer {
       if (!root) {
         return textResult('Brak otwartego projektu w Sufler.', true);
       }
-      await rebuildOutline(root).catch(() => {
-        // nie blokujemy odczytu — spróbujemy podać ostatnią wersję z repozytorium
-      });
       try {
-        return textResult(await readFile(join(root, OUTLINE_OUTPUT), 'utf8'));
+        // Liczone na żądanie i zwracane wprost — bez pliku pośredniego w projekcie.
+        return textResult(await buildProjectOutline(root));
       } catch {
         return textResult('Nie udało się zbudować konspektu wiedzy.', true);
       }

@@ -379,7 +379,7 @@ export const EN: Record<StringKey, string> = {
   'help.keys.daily': 'send the selection to the Obsidian daily note',
 
   'knowledge.hint':
-    'All the project’s markdown notes in one place. The knowledge outline (`konspekt-wiedzy.md`) updates itself on every note change, and Claude fetches it with the MCP `konspekt` tool — it always knows what lives where.',
+    'All the project’s markdown notes in one place. The knowledge outline (`MCP `konspekt``) updates itself on every note change, and Claude fetches it with the MCP `konspekt` tool — it always knows what lives where.',
   'knowledge.graphOpen': 'Knowledge graph: notes, links and authors (à la Obsidian)',
   'knowledge.refresh': 'Refresh list',
   'knowledge.scanning': 'Scanning .md files…',

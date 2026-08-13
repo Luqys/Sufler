@@ -5,14 +5,17 @@ import { promisify } from 'node:util';
 import type { KnowledgeFile } from '../../shared/ipc';
 import { buildOutline } from '../../shared/knowledge/knowledge-outline';
 import { baseName } from '../../shared/editor/paths';
-import { writeTextFile } from '../project/fs-tree';
 
 const execFileAsync = promisify(execFile);
 
 /** Plik dawnego generatora kontekstu — nadal wykluczany, bo mógł zostać w projektach. */
 export const KNOWLEDGE_OUTPUT = 'kontekst-agenta.md';
 
-/** Automatycznie utrzymywany konspekt wiedzy — też wykluczany ze źródeł. */
+/**
+ * Nazwa pliku konspektu z czasów, gdy aplikacja zapisywała go w projekcie
+ * (M22–M96). Została wyłącznie po to, żeby zostawiony gdzieś stary plik nie
+ * trafiał do grafu i do listy notatek jako zwykła notatka.
+ */
 export const OUTLINE_OUTPUT = 'konspekt-wiedzy.md';
 
 const WALK_SKIP = new Set(['node_modules', '.git', '.obsidian', '.trash', 'dist', 'out']);
@@ -103,10 +106,13 @@ export async function listMarkdownFiles(root: string): Promise<KnowledgeFile[]> 
 }
 
 /**
- * Przelicza konspekt wiedzy (konspekt-wiedzy.md w korzeniu projektu).
- * Zapis tylko, gdy treść realnie się zmieniła (bez pętli zapisu z watcherem).
+ * Buduje konspekt wiedzy i ZWRACA go — bez zapisywania czegokolwiek w projekcie
+ * (M96). Wcześniej aplikacja trzymała go w `konspekt-wiedzy.md` w korzeniu
+ * repozytorium, czyli zaśmiecała cudzy projekt swoim plikiem roboczym.
+ * Claude i tak sięga po konspekt narzędziem MCP, więc plik był zbędnym
+ * pośrednikiem — teraz treść idzie prosto do odpowiedzi.
  */
-export async function rebuildOutline(root: string): Promise<void> {
+export async function buildProjectOutline(root: string): Promise<string> {
   const files = await listMarkdownFiles(root);
   const sources: Array<{ path: string; content: string }> = [];
   for (const file of files.slice(0, 300)) {
@@ -116,10 +122,5 @@ export async function rebuildOutline(root: string): Promise<void> {
       // plik zniknął między listowaniem a odczytem
     }
   }
-  const outline = buildOutline(baseName(root), sources);
-  const target = join(root, OUTLINE_OUTPUT);
-  const existing = await readFile(target, 'utf8').catch(() => null);
-  if (existing !== outline) {
-    await writeTextFile(target, outline);
-  }
+  return buildOutline(baseName(root), sources);
 }

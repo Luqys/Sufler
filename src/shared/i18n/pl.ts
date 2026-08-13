@@ -376,7 +376,7 @@ export const PL = {
     'Pigułka na pasku tytułu pokazuje zużycie okna 5-godzinnego i tygodnia. Po kliknięciu zobaczysz też prognozę — za ile limit skończy się przy obecnym tempie. Po przekroczeniu 80% aplikacja ostrzeże raz na okno, żeby przypomnieć o przerwie albo /clear.',
   'help.wiedza.title': 'Wiedza i graf',
   'help.wiedza.body':
-    'Panel Wiedza zbiera notatki .md projektu i utrzymuje konspekt, który Claude pobiera narzędziem MCP „konspekt". Graf wiedzy łączy notatki wikilinkami [[…]] — kolorowanie po autorze, funkcji, warstwie, tagach i świeżości, do tego szukajka, filtr legendy i ukrywanie notatek bez połączeń.',
+    'Panel Wiedza zbiera notatki .md projektu, a Claude pobiera ich mapę narzędziem MCP „konspekt". Graf wiedzy łączy notatki wikilinkami [[…]] — kolorowanie po autorze, funkcji, warstwie, tagach i świeżości, do tego szukajka, filtr legendy i ukrywanie notatek bez połączeń.',
   'help.skills.title': 'Skille i agenci',
   'help.skills.body':
     'Przegląd skilli (projektowych i osobistych), subagentów i reguł — z przełącznikami wł./wył. zapisywanymi w .claude/settings.local.json oraz kreatorami nowych. Cmd+klik wstawia /nazwę-skilla do sesji Claude; na dole liczniki linii plików CLAUDE.md.',
@@ -400,7 +400,7 @@ export const PL = {
 
   // Panel wiedzy
   'knowledge.hint':
-    'Wszystkie notatki markdown projektu w jednym miejscu. Konspekt wiedzy (`konspekt-wiedzy.md`) aktualizuje się sam przy każdej zmianie notatek, a Claude pobiera go narzędziem MCP `konspekt` — zawsze wie, co gdzie jest.',
+    'Wszystkie notatki markdown projektu w jednym miejscu. Claude pobiera mapę tych notatek narzędziem MCP `konspekt` — liczoną na żądanie, więc zawsze aktualną. Aplikacja nie zapisuje przy tym żadnych plików w Twoim projekcie.',
   'knowledge.graphOpen': 'Graf wiedzy: notatki, linki i autorzy (à la Obsidian)',
   'knowledge.refresh': 'Odśwież listę',
   'knowledge.scanning': 'Skanuję pliki .md…',

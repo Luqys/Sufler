@@ -1,12 +1,12 @@
 import { watch, type FSWatcher } from 'chokidar';
 import type { BrowserWindow } from 'electron';
 import { IPC } from '../../shared/ipc';
-import { KNOWLEDGE_OUTPUT, OUTLINE_OUTPUT, rebuildOutline } from './knowledge';
+import { KNOWLEDGE_OUTPUT, OUTLINE_OUTPUT } from './knowledge';
 
 /**
- * Obserwuje notatki .md projektu: każda zmiana wysyła `knowledge:changed`
- * (graf i panel Wiedzy odświeżają się same) oraz przelicza konspekt wiedzy
- * (konspekt-wiedzy.md) — mapę notatek, z której Claude wie, co gdzie jest.
+ * Obserwuje notatki .md projektu: każda zmiana wysyła `knowledge:changed`,
+ * a graf i panel Wiedzy odświeżają się same. Konspekt dla Claude liczy się
+ * na żądanie w narzędziu MCP, więc watcher niczego nie zapisuje na dysk (M96).
  */
 
 let watcher: FSWatcher | null = null;
@@ -48,12 +48,10 @@ export function watchKnowledge(win: BrowserWindow, root: string): void {
       if (!win.isDestroyed()) {
         win.webContents.send(IPC.KnowledgeChanged);
       }
-      void rebuildOutline(root);
     }, 400);
   };
   watcher.on('all', notify);
   // Konspekt istnieje od wejścia do projektu, nie dopiero od pierwszej zmiany.
-  void rebuildOutline(root);
 }
 
 export function closeKnowledgeWatcher(): void {

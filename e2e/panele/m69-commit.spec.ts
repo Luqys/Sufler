@@ -23,8 +23,8 @@ test('M69: zaznaczone pliki zatwierdzają się z panelu, reszta zostaje w drzewi
   await page.getByTestId('rail-git').click();
   await expect(page.getByTestId('git-panel')).toBeVisible();
 
-  // Liczby wierszy nie sprawdzamy — aplikacja dopisuje do projektu własny
-  // konspekt wiedzy (M22), więc lista zmian rośnie w tle.
+  // Liczb wierszy nie sprawdzamy na sztywno — lista zmian bywa dłuższa niż to,
+  // co dokłada sam test.
   const readmeRow = page.locator('.git-change-row', { hasText: 'README.md' });
   const untrackedRow = page.locator('.git-change-row', { hasText: 'nowy.txt' });
   await expect(readmeRow).toBeVisible();

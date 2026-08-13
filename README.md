@@ -83,43 +83,65 @@ która rozmowa doprowadziła do której zmiany.
 w drzewie, import plików przeciągnięciem z Findera, integracja z Obsidianem,
 motywy jasny, ciemny i matrixowy, interfejs po polsku i angielsku.
 
-## Wymagania
+## Jak uruchomić
 
-- macOS albo Windows
-- [Node.js](https://nodejs.org/) 20+
-- [Claude Code](https://claude.com/claude-code) w `PATH` (sesje Claude i limity planu)
-- `git` i `ripgrep` — dla panelu historii i wyszukiwania
+### Wersja gotowa (bez kompilowania)
 
-## Instalacja
+1. Pobierz paczkę dla swojego systemu z
+   [Releases](https://github.com/Luqys/Sufler/releases):
+   `Sufler-<wersja>-arm64.dmg` (Apple Silicon), `-x64.dmg` (Intel) albo
+   instalator `.exe` dla Windows.
+2. **macOS:** otwórz `.dmg` i przeciągnij Suflera do `Applications`. Paczka jest
+   podpisana ad-hoc, więc przy pierwszym uruchomieniu system pokaże ostrzeżenie —
+   kliknij aplikację prawym przyciskiem i wybierz *Otwórz*, albo zdejmij
+   kwarantannę:
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/Sufler.app
+   ```
+   Krok po kroku prowadzi też plik `START TUTAJ` w obrazie `.dmg`.
+3. **Windows:** uruchom instalator albo wersję przenośną — SmartScreen może
+   poprosić o potwierdzenie (*Więcej informacji → Uruchom mimo to*).
+4. Przy pierwszym starcie wskaż katalog projektu — ten sam, w którym pracujesz
+   z Claude Code. Kolejnym razem aplikacja otworzy go sama; projekty
+   przełączasz `Cmd+K` albo z ekranu startowego.
 
-Gotowe paczki dla macOS (`.dmg`) i Windows (instalator `.exe` oraz wersja
-przenośna) czekają w [Releases](https://github.com/Luqys/Sufler/releases).
-Paczka macOS jest podpisana ad-hoc, więc przy pierwszym uruchomieniu system
-poprosi o potwierdzenie — plik `START TUTAJ` w obrazie `.dmg` prowadzi krok
-po kroku.
-
-Ze źródeł:
+### Ze źródeł
 
 ```bash
 git clone https://github.com/Luqys/Sufler.git
 cd Sufler
 npm install
-npm run dev
+npm run dev        # tryb deweloperski z przeładowaniem
 ```
 
-Aplikacja startuje z ekranem wyboru folderu projektu. Wskaż katalog, w którym
-pracujesz z Claude Code.
-
-## Budowanie paczek
+Żeby zbudować własną paczkę zamiast trybu deweloperskiego:
 
 ```bash
-npm run dist:mac    # .dmg dla arm64 i x64
-npm run dist:win    # instalator .exe (x64, arm64) i wersja przenośna
+npm run dist:mac   # .dmg dla arm64 i x64 → dist/
+npm run dist:win   # instalator .exe i wersja przenośna → dist/
 ```
 
-Paczkę dla danego systemu buduje się na tym systemie. Wydanie oznaczone tagiem
-(`git tag v0.1.0 && git push --tags`) buduje oba warianty automatem
-z `.github/workflows/release.yml`.
+### Czego potrzebuje
+
+| Element | Po co |
+|---|---|
+| macOS albo Windows | wersje gotowe; ze źródeł działa też Linux |
+| [Node.js](https://nodejs.org/) 20+ | tylko przy uruchamianiu ze źródeł |
+| [Claude Code](https://claude.com/claude-code) w `PATH` | sesje Claude, limity planu, hooki statusu |
+| `git` | historia, commity, worktree'y, punkty przywracania |
+| `ripgrep` | wyszukiwanie w projekcie i `Cmd+P` |
+
+Bez Claude Code aplikacja uruchomi się i pokaże pliki, terminale oraz historię
+gita — nie będzie tylko kart z sesjami Claude i licznika limitów.
+
+### Pierwsze kroki po uruchomieniu
+
+- `Cmd+P` — otwórz plik po nazwie, `Cmd+K` — paleta wszystkiego innego.
+- Ikona ✳ w prawym doku startuje sesję Claude w katalogu projektu.
+- Ikona ✓ na pasku tytułu sprawdza projekt (`tsc` + `eslint`) i otwiera kartę
+  „Problemy".
+- Lewy pasek: pliki, wyszukiwanie, historia gita, sesje Claude, wiedza, skille
+  i serwery MCP.
 
 ## Rozwój
 
