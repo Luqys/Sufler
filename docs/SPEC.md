@@ -171,62 +171,35 @@ załącza zrzut ekranu aplikacji w stanie po wykonaniu scenariusza e2e.
 
 ## Kamienie milowe
 
-| # | Zakres | Sprawdzenie |
-|---|---|---|
-| M0 | Szkielet Electron + Vite + TS, puste okno z czterema obszarami układu, zapis rozmiarów | e2e: okno się otwiera, panele mają zapisane rozmiary po restarcie |
-| M1 | Panel plików: drzewo, `.gitignore`, otwieranie w edytorze | e2e: kliknięcie pliku otwiera go w Monaco |
-| M2 | Edytor: zakładki, zapis, detekcja zmian zewnętrznych | e2e: edycja + zapis + modyfikacja pliku z zewnątrz pokazuje pasek |
-| M3 | Dock/Pane/Tab z zakładką `terminal`, przycisk `+`, przeciąganie między dokami | e2e: `echo test` w terminalu zwraca `test` |
-| M4 | Zakładka `claude` (ta sama ścieżka kodu, inna komenda), wskaźniki statusu | e2e: sesja startuje, zamknięcie ubija proces |
-| M5 | Panel skilli i agentów | test jedn.: parser frontmattera; e2e: dodanie SKILL.md pojawia się bez restartu |
-| M6 | Panel MCP | test jedn.: parser `mcp list` na fixture'ach; e2e: panel renderuje serwery z `.mcp.json` |
-| M7 | Status git w drzewie, wyszukiwanie w projekcie (ripgrep), skróty klawiszowe | e2e: wyszukiwanie znajduje znany ciąg |
-| M8 | Integracja z Obsidianem, warstwy 1–2 (patrz niżej) | e2e: vault jako drugi korzeń, edycja i zapis notatki |
-| M9 | Pakowanie i wydanie na macOS | `npm run dist` produkuje działający `.dmg`, aplikacja startuje z `/Applications` |
+Siedem kamieni z pierwszej listy (M68–M74) jest zrobionych — szczegóły w sekcjach
+niżej. Poniżej następna, ułożona po tym, co widać po ich zrobieniu.
 
-Każdy kamień w osobnej sesji Claude Code, na osobnym branchu (`claude --worktree`).
-Między kamieniami `/clear`.
-
-## Kamienie milowe po v1 (M68+)
-
-Tabela wyżej zamyka v1. Kamienie M10–M63 nie trafiły do niej wcale — dopisywały się
-do sekcji tematycznych albo do niczego. Skutek: **numeracja żyje w `git log`, nie tutaj**.
-Zanim weźmiesz numer, sprawdź:
+**Numeracja żyje w `git log`, nie tutaj.** Zanim weźmiesz numer, sprawdź:
 
 ```
 git log --all --oneline | grep -oE '^[0-9a-f]+ M[0-9]+' | grep -oE 'M[0-9]+' | sort -u -t M -k2 -n
 ```
 
-Stan na 2026-08-13: zajęte ciągiem M0–M63 oraz M67–M81. Wolne: M64 (luka
-w środku, zostawić), M65–M66 (gałęzie wydaniowe/poprawkowe) i M82 w górę.
+Stan na 2026-08-13: zajęte ciągiem M0–M63 oraz M66–M81, plus M82 w toku
+(stabilność e2e). Wolne: M64, M65 (luki w środku, zostawić) i M83 w górę.
 
-**Numer w tabeli poniżej jest propozycją, nie rezerwacją.** Sesja startująca kamień
-bierze pierwszy wolny numer z komendy wyżej i poprawia tu wiersz. Inaczej backlog
-blokuje siedem numerów na pracę, która może nigdy nie ruszyć, a kolejna sesja i tak
-weźmie numer z gita. Tak powstało M67: wiersze przesunęły się o jeden, bo numer
-wziął panel „Sesje".
-
-Poniższa lista jest różnicą wobec **tipa łańcucha**, nie wobec `main` — `main` stoi na
-M29 i nie zawiera trzydziestu kilku kamieni. Wszystko, co oczywiste, jest już zrobione:
-deterministyczny status z hooków (M35, M44), punkty przywracania (M55), oś czasu pracy
-(M56), dziennik sesji (M52–M54), wznawianie sesji (M34), warstwa 3 Obsidiana (M36),
-`Cmd+P` (M37), serwer `ide` (`src/main/ide-server.ts`), widok diffa (`DiffView.tsx`).
-
-Zasady bez zmian: osobna sesja, osobna gałąź `m<numer>-<nazwa>`, `/clear` pomiędzy,
-cztery komendy zielone plus zrzut ekranu ze scenariusza e2e.
+**Numer w tabeli poniżej jest propozycją, nie rezerwacją.** Sesja startująca
+kamień bierze pierwszy wolny numer z komendy wyżej i poprawia tu wiersz —
+inaczej backlog blokuje numery na pracę, która może nigdy nie ruszyć, a kolejna
+sesja i tak weźmie numer z gita. Tak powstało M80: wiersze przesunęły się o jeden,
+bo numer wziął panel „Sesje".
 
 | # | Zakres | Sprawdzenie |
 |---|---|---|
-| ~~M68~~ | ~~Slash-komendy z `.claude/commands` jako czwarta grupa panelu skilli~~ (zrobione) | test jedn.: `tests/commands.test.ts`; e2e: `e2e/m68-komendy.spec.ts` |
-| ~~M69~~ | ~~Commit z aplikacji — wybór plików i wiadomość obok istniejącego `DiffView`~~ (zrobione) | test jedn.: `tests/git-commit.test.ts`; e2e: `e2e/m69-commit.spec.ts` |
-| ~~M70~~ | ~~Edytor hooków w Ustawieniach — te same warstwy co `skillOverrides`~~ (zrobione) | test jedn.: `tests/hooks-config.test.ts`; e2e: `e2e/m70-hooki.spec.ts` |
-| ~~M71~~ | ~~Diagnostyka bez LSP — `tsc` i `eslint` w pasku, klik skacze do linii~~ (zrobione) | test jedn.: `tests/editor/diagnostics.test.ts`; e2e: `e2e/editor/m71-diagnostyka.spec.ts` |
-| ~~M72~~ | ~~Worktree'y — kilka sesji Claude na jednym zadaniu, porównanie i scalenie~~ (zrobione) | test jedn.: `tests/git/worktrees.test.ts`; e2e: `e2e/panele/m72-worktree.spec.ts` |
-| ~~M73~~ | ~~Historia zużycia z transkryptów `.jsonl`~~ (zrobione) | test jedn.: `tests/usage-history.test.ts`; e2e: `e2e/m73-zuzycie.spec.ts` |
-| ~~M74~~ | ~~Paleta komend `Cmd+K` — panele, akcje doków, motywy~~ (zrobione) | test jedn.: `tests/command-palette.test.ts`; e2e: `e2e/m74-paleta.spec.ts` |
+| M83 | Wyszukiwanie w treści transkryptów sesji, nie tylko w tytułach | test jedn.: skaner frazy z kontekstem na fixture'ach `.jsonl`; e2e: fraza z wnętrza rozmowy znajduje sesję i otwiera ją na tej wymianie |
+| M84 | Diagnostyka po zapisie — opcjonalna, dławiona, z filtrem listy problemów | test jedn.: dławik i scalanie wyników kolejnych przebiegów; e2e: `Cmd+S` odświeża pasek bez klikania „Sprawdź projekt" |
+| M85 | Commit po kawałkach — zaznaczanie fragmentów w `DiffView` | test jedn.: budowa łatki dla wybranych hunków (`git apply --cached`); e2e: zatwierdzenie jednego z dwóch fragmentów pliku zostawia drugi w drzewie |
+| M86 | Diff worktree ↔ gałąź bazowa — dokończenie M72 | test jedn.: parser `git diff <baza>...<gałąź> --numstat`; e2e: lista plików różniących worktree od bazy, klik otwiera diff |
+| M87 | Przełącznik projektów w palecie `Cmd+K` z ostatnimi korzeniami i ikonami | test jedn.: ranking ostatnich projektów; e2e: paleta przełącza projekt bez restartu aplikacji |
+| M88 | Wydajność na dużym repozytorium — pomiar i twarde limity | test jedn.: limity obserwatora i wyników; e2e: repo z 5000 plików nie blokuje drzewa ani szukania |
 
-Kolejność sensowna, nie obowiązkowa: M68 i M69 są tanie i domykają rzeczy zaczęte
-(panel skilli, `DiffView`). M71 i M72 to jedyne dwa duże kamienie na tej liście.
+Kolejność sensowna, nie obowiązkowa: M83 i M84 są tanie i domykają rzeczy zaczęte
+(panel Sesje, pasek diagnostyki). M85 i M88 to jedyne dwa duże kamienie na tej liście.
 
 ### M66 — poprawki ze zgłoszeń użytkowników (zrobione)
 
