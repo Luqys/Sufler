@@ -15,6 +15,7 @@ import { getLocale, tf, tp, useT } from '../../i18n';
 import { clockTime, compactDateTime, fullDateTime } from '../../relative-time';
 import { useDocks } from '../../docks';
 import { useWorkspace } from '../../workspace';
+import { TranscriptHits } from './TranscriptHits';
 import { UsageHistory } from './UsageHistory';
 
 /** Ile sesji trzyma lista — panel jest przeglądarką historii, nie menu. */
@@ -196,6 +197,20 @@ export function SessionsPanel(): ReactElement {
   );
   const groups = useMemo(() => groupSessionsByDay(visible, now), [visible, now]);
 
+  /** Klik w trafienie: rozwija tę sesję na liście i dociąga jej szczegóły. */
+  const openFromHit = useCallback(
+    (id: string) => {
+      setExpanded((prev) => new Set(prev).add(id));
+      if (!details.has(id)) {
+        setDetails((prev) => new Map(prev).set(id, 'loading'));
+        void window.api.getClaudeSessionDetails(root, id).then((result) => {
+          setDetails((prev) => new Map(prev).set(id, result ?? 'failed'));
+        });
+      }
+    },
+    [details, root],
+  );
+
   const resume = useCallback(
     (session: ClaudeSessionSummary) => {
       addTab('bottom', 'claude', {
@@ -238,6 +253,7 @@ export function SessionsPanel(): ReactElement {
         />
       </label>
       <UsageHistory root={root} reloadKey={reloads} />
+      <TranscriptHits root={root} query={query} sessions={sessions} onOpen={openFromHit} />
       {sessions === null && <p className="placeholder">{t('sessions.loading')}</p>}
       {sessions !== null && sessions.length === 0 && (
         <p className="placeholder">{t('sessions.empty')}</p>

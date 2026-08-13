@@ -24,6 +24,7 @@ import { addHook, listHooks, removeHook } from './claude/hooks-config';
 import { readUsageHistory } from './claude/usage-history';
 import { runDiagnostics } from './project/diagnostics';
 import { addWorktree, listWorktrees, mergeWorktree, removeWorktree } from './git/worktrees';
+import { searchTranscripts } from './claude/transcript-search';
 import { runGitShowFile } from './git/git-show';
 import { runGitStatus } from './git/git-status';
 import { startIdeServer, stopIdeServer, updateIdeWorkspaceFolders } from './claude/ide-server';
@@ -352,6 +353,9 @@ void app.whenReady().then(() => {
   );
   ipcMain.handle(IPC.UsageHistoryGet, (_event, root: string) => readUsageHistory(root));
   ipcMain.handle(IPC.DiagnosticsRun, (_event, root: string) => runDiagnostics(root));
+  ipcMain.handle(IPC.TranscriptSearch, (_event, root: string, query: string) =>
+    searchTranscripts(root, query),
+  );
   ipcMain.handle(IPC.WorktreeList, (_event, root: string) => listWorktrees(root));
   ipcMain.handle(IPC.WorktreeAdd, (_event, root: string, name: string) => addWorktree(root, name));
   ipcMain.handle(IPC.WorktreeRemove, (_event, root: string, path: string) =>

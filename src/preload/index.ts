@@ -4,6 +4,7 @@ import type { HookEntry } from '../shared/skills/hooks-config';
 import type { UsageScan } from '../shared/claude/usage-history';
 import type { DiagnosticsResult } from '../shared/editor/diagnostics';
 import type { Worktree } from '../shared/git/worktrees';
+import type { SessionHits } from '../shared/claude/transcript-search';
 import type { WorktreeMergeResult, WorktreeWriteResult } from '../shared/ipc';
 import type { Checkpoint } from '../shared/git/checkpoints';
 import type { DetachedTarget } from '../shared/docks/detached';
@@ -217,6 +218,8 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.GitShowFile, root, rev, path),
   gitCommit: (root: string, paths: string[], message: string): Promise<GitCommitResult> =>
     ipcRenderer.invoke(IPC.GitCommit, root, paths, message),
+  searchTranscripts: (root: string, query: string): Promise<SessionHits[]> =>
+    ipcRenderer.invoke(IPC.TranscriptSearch, root, query),
   listWorktrees: (root: string): Promise<Worktree[]> =>
     ipcRenderer.invoke(IPC.WorktreeList, root),
   addWorktree: (root: string, name: string): Promise<WorktreeWriteResult> =>

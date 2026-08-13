@@ -482,3 +482,96 @@ body.dragging-horizontal .splitter.horizontal::after {
   font-size: 11px;
   text-align: center;
 }
+
+/* Trafienia w treści rozmów (M83) — druga warstwa nad filtrem tytułów */
+.transcript-hits {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.hits-title {
+  margin: 0;
+}
+
+.hit-session {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 5px 6px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hit-session:hover {
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+.hit-session-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.hit-line {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 11px;
+}
+
+.hit-who {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Rola w tym samym kodzie kolorystycznym co podgląd wymian w rozwiniętym wierszu. */
+.hit-who.assistant {
+  color: var(--accent);
+}
+
+.hit-time {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.hit-text {
+  color: var(--text-dim);
+  line-height: 1.35;
+  /* Trzy wiersze wystarczą na trop; reszta jest w rozmowie. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hit-mark {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
+.hit-more,
+.hits-note {
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.hits-note {
+  margin: 0;
+}

@@ -17,6 +17,7 @@ import type { HookEntry, HookEvent } from './skills/hooks-config';
 import type { UsageScan } from './claude/usage-history';
 import type { DiagnosticsResult } from './editor/diagnostics';
 import type { Worktree } from './git/worktrees';
+import type { SessionHits } from './claude/transcript-search';
 import type { SkillOverrideState } from './skills/skills';
 
 export const IPC = {
@@ -103,6 +104,7 @@ export const IPC = {
   GitCommit: 'git:commit',
   UsageHistoryGet: 'usage:history',
   DiagnosticsRun: 'diagnostics:run',
+  TranscriptSearch: 'claude-sessions:search',
   WorktreeList: 'worktree:list',
   WorktreeAdd: 'worktree:add',
   WorktreeRemove: 'worktree:remove',
@@ -477,6 +479,8 @@ export interface WindowApi {
   gitShowFile(root: string, rev: string, path: string): Promise<GitShowFileResult>;
   /** Zatwierdzenie zaznaczonych plików z panelu Git (M69). */
   gitCommit(root: string, paths: string[], message: string): Promise<GitCommitResult>;
+  /** Szukanie frazy w treści transkryptów projektu (M83). */
+  searchTranscripts(root: string, query: string): Promise<SessionHits[]>;
   /** Worktree'y gita — kilka sesji nad jednym zadaniem (M72). */
   listWorktrees(root: string): Promise<Worktree[]>;
   addWorktree(root: string, name: string): Promise<WorktreeWriteResult>;

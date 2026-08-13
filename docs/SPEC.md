@@ -191,7 +191,7 @@ bo numer wziął panel „Sesje".
 
 | # | Zakres | Sprawdzenie |
 |---|---|---|
-| M83 | Wyszukiwanie w treści transkryptów sesji, nie tylko w tytułach | test jedn.: skaner frazy z kontekstem na fixture'ach `.jsonl`; e2e: fraza z wnętrza rozmowy znajduje sesję i otwiera ją na tej wymianie |
+| ~~M83~~ | ~~Wyszukiwanie w treści transkryptów sesji, nie tylko w tytułach~~ (zrobione) | test jedn.: `tests/claude/transcript-search.test.ts`; e2e: `e2e/panele/m83-szukanie-rozmow.spec.ts` |
 | M84 | Diagnostyka po zapisie — opcjonalna, dławiona, z filtrem listy problemów | test jedn.: dławik i scalanie wyników kolejnych przebiegów; e2e: `Cmd+S` odświeża pasek bez klikania „Sprawdź projekt" |
 | M85 | Commit po kawałkach — zaznaczanie fragmentów w `DiffView` | test jedn.: budowa łatki dla wybranych hunków (`git apply --cached`); e2e: zatwierdzenie jednego z dwóch fragmentów pliku zostawia drugi w drzewie |
 | M86 | Diff worktree ↔ gałąź bazowa — dokończenie M72 | test jedn.: parser `git diff <baza>...<gałąź> --numstat`; e2e: lista plików różniących worktree od bazy, klik otwiera diff |
@@ -245,6 +245,30 @@ Warstwa danych to ta sama, co w M34 (`src/shared/claude-sessions.ts`,
 linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
+
+### M83 — szukanie w treści rozmów (zrobione)
+
+Filtr w panelu „Sesje" (M80) zawężał tytuły i gałęzie, czyli pierwsze polecenie
+i nic więcej. Pytanie „gdzie ja o tym rozmawiałem" wymagało otwierania sesji po
+kolei. Teraz ta sama szukajka ma drugą warstwę: sekcja „W treści rozmów" pokazuje
+sesje, w których fraza faktycznie padła, z wycinkiem i podświetleniem.
+
+- Skaner jest **strumieniowy** i karmiony linia po linii — transkrypty sięgają
+  dziesiątek megabajtów. Pliki idą od najnowszego i przerywamy po dwunastu
+  sesjach z trafieniami; panel ma dawać trop, nie wypisywać historii.
+- Szukanie rusza dopiero od trzech znaków i po przerwie w pisaniu (350 ms),
+  inaczej każdy znak startowałby przemiał wszystkich transkryptów.
+- Bez ogonków i wielkości liter („galezi" znajduje „gałęzi"). Wycinek tniemy po
+  znormalizowanej treści, ale wypisujemy z oryginału — inaczej podgląd gubiłby
+  ogonki.
+- Pomijamy wpisy meta, opakowania komend lokalnych (`<command-name>…`) i ruch
+  subagentów: wyszukiwanie nie może znajdować rzeczy, których w rozmowie nie widać.
+- Limit trafień na sesję (3) **liczy resztę** zamiast ją gubić — „+5 dalszych
+  trafień w tej rozmowie".
+- Klik w wynik rozwija tę rozmowę na liście i dociąga jej szczegóły, nawet jeśli
+  filtr tytułów jej nie pokazuje.
+- Komunikat pustego filtra mówi wprost o tytule i gałęzi, żeby nie zaprzeczał
+  trafieniom pokazanym wyżej.
 
 ### M81 — audyt i reorganizacja drzewa (zrobione)
 
