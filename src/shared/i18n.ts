@@ -380,6 +380,9 @@ export const PL = {
   'skills.personal': 'Skille osobiste',
   'skills.agents': 'Subagenci',
   'skills.rules': 'Reguły',
+  // Slash-komendy (M68) — czwarty rodzaj pliku z frontmatterem
+  'skills.commands': 'Slash-komendy',
+  'skills.commandPersonal': 'osobista',
   'skills.claudeMd': 'Pliki CLAUDE.md',
   'skills.claudeMdHint': 'Długi CLAUDE.md to rozdmuchany kontekst — Claude gubi wtedy instrukcje.',
   'skills.new': '+ Nowy skill',
@@ -916,6 +919,9 @@ export const EN: Record<StringKey, string> = {
   'skills.personal': 'Personal skills',
   'skills.agents': 'Subagents',
   'skills.rules': 'Rules',
+  // Slash commands (M68) — the fourth kind of frontmatter file
+  'skills.commands': 'Slash commands',
+  'skills.commandPersonal': 'personal',
   'skills.claudeMd': 'CLAUDE.md files',
   'skills.claudeMdHint': 'A long CLAUDE.md means bloated context — Claude starts losing instructions.',
   'skills.new': '+ New skill',

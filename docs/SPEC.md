@@ -218,7 +218,7 @@ cztery komendy zielone plus zrzut ekranu ze scenariusza e2e.
 
 | # | Zakres | Sprawdzenie |
 |---|---|---|
-| M68 | Slash-komendy z `.claude/commands` jako czwarta grupa panelu skilli | test jedn.: parser frontmattera komendy, kolejność warstw projekt/osobiste; e2e: dodanie `.md` w `commands/` pojawia się bez restartu |
+| ~~M68~~ | ~~Slash-komendy z `.claude/commands` jako czwarta grupa panelu skilli~~ (zrobione) | test jedn.: `tests/commands.test.ts`; e2e: `e2e/m68-komendy.spec.ts` |
 | ~~M69~~ | ~~Commit z aplikacji — wybór plików i wiadomość obok istniejącego `DiffView`~~ (zrobione) | test jedn.: `tests/git-commit.test.ts`; e2e: `e2e/m69-commit.spec.ts` |
 | M70 | Edytor hooków w Ustawieniach — te same warstwy co `skillOverrides` | test jedn.: zapis/kasowanie wpisu w trzech warstwach `settings.json`; e2e: dodanie hooka przez UI zapisuje się do `settings.local.json` |
 | M71 | Diagnostyka bez LSP — `tsc` i `eslint` w pasku, klik skacze do linii | test jedn.: parser wyjścia obu narzędzi → `{plik, linia, kolumna, treść}`; e2e: błąd składni pokazuje się w pasku i otwiera plik na właściwej linii |
@@ -274,15 +274,24 @@ linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
 
-### M68 — slash-komendy w panelu
+### M68 — slash-komendy w panelu (zrobione)
 
-Panel zna skille, subagentów i reguły; komendy z `.claude/commands/*.md` (oraz
-`~/.claude/commands/*.md`) są czwartym rodzajem tego samego pliku z frontmatterem
-i jedynym, którego brakuje. Ten sam parser (`src/shared/frontmatter.ts`), ten sam
-watcher, to samo `Cmd+klik` wstawiające `/nazwa` do aktywnej sesji.
+Panel znał skille, subagentów i reguły; komendy z `.claude/commands/*.md`
+(oraz `~/.claude/commands/*.md`) były czwartym rodzajem tego samego pliku
+z frontmatterem i jedynym, którego brakowało. Ten sam parser
+(`src/shared/frontmatter.ts`), ten sam watcher, to samo `Cmd+klik` wstawiające
+`/nazwa` do aktywnej sesji.
 
-Pola frontmattera do pokazania: `description`, `argument-hint`, `model`,
-`allowed-tools`. Komenda bez `description` — sama nazwa, bez wiersza opisu.
+- Nazwa wynika ze ścieżki: podkatalogi tworzą przestrzenie nazw rozdzielane
+  dwukropkiem (`commands/frontend/build.md` → `/frontend:build`), jak w CLI.
+  Zejście rekurencyjne ma płytki limit, żeby dowiązanie w kółko nie zapętliło panelu.
+- Frontmatter: `description` pod nazwą, `argument-hint` jako plakietka obok niej,
+  `model` i `allowed-tools` w danych wpisu. Komenda bez `description` zostaje
+  na liście — sama nazwa, bez wiersza opisu.
+- Komenda projektu przykrywa osobistą o tej samej nazwie, tak jak w CLI; komendy
+  osobiste mają plakietkę zakresu.
+- Logika nazw w `src/shared/commands.ts`, odczyt w `readCommands`
+  (`src/main/skills.ts`).
 
 ### M69 — commit z aplikacji (zrobione)
 

@@ -273,11 +273,25 @@ export interface ClaudeMdEntry {
   lines: number;
 }
 
+/** Slash-komenda z `.claude/commands` (M68). */
+export interface CommandEntry {
+  /** Nazwa wywołania bez ukośnika; podkatalogi jako `przestrzeń:nazwa`. */
+  name: string;
+  description: string;
+  path: string;
+  scope: SkillScope;
+  /** Frontmatter `argument-hint` — podpowiedź argumentów przy nazwie. */
+  argumentHint?: string;
+  model?: string;
+  allowedTools?: string;
+}
+
 export interface SkillsSnapshot {
   projectSkills: SkillEntry[];
   personalSkills: SkillEntry[];
   agents: AgentEntry[];
   rules: RuleEntry[];
+  commands: CommandEntry[];
   claudeMd: ClaudeMdEntry[];
 }
 

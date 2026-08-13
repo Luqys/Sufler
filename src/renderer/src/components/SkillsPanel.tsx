@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactElement } from 'react';
+import { commandHint, commandInvocation } from '../../../shared/commands';
 import type {
   AgentCreateInput,
   AgentEntry,
@@ -308,6 +309,29 @@ export function SkillsPanel(): ReactElement {
                 onOpen={openFile}
               />
             ))}
+      </Group>
+      <Group title={t('skills.commands')} count={snapshot.commands.length}>
+        {snapshot.commands.length === 0
+          ? empty
+          : snapshot.commands.map((command) => {
+              const hint = commandHint(command.argumentHint);
+              return (
+                <EntryRow
+                  key={command.path}
+                  name={commandInvocation(command.name)}
+                  description={command.description}
+                  path={command.path}
+                  badges={[
+                    ...(hint ? [{ text: hint, title: 'argument-hint' }] : []),
+                    ...(command.scope === 'personal'
+                      ? [{ text: t('skills.commandPersonal'), title: '~/.claude/commands' }]
+                      : []),
+                  ]}
+                  onOpen={openFile}
+                  onMetaClick={() => insertSlash(command.name)}
+                />
+              );
+            })}
       </Group>
       <div className="claude-md-section">
         <h3 className="view-title">{t('skills.claudeMd')}</h3>

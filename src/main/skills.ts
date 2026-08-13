@@ -2,6 +2,7 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { agentAvailability, buildAgentFile, denyRulesOf, withAgentDeny } from '../shared/agents';
+import { commandNameFromRelative } from '../shared/commands';
 import { frontmatterBool, frontmatterString, parseFrontmatter } from '../shared/frontmatter';
 import { buildRuleFile } from '../shared/rules';
 import {
@@ -15,6 +16,7 @@ import type {
   AgentCreateInput,
   AgentEntry,
   ClaudeMdEntry,
+  CommandEntry,
   RuleCreateInput,
   RuleEntry,
   SkillCreateInput,
@@ -55,6 +57,8 @@ export function skillsSourceDirs(root: string): string[] {
     join(homedir(), '.claude', 'skills'),
     join(root, '.claude', 'agents'),
     join(root, '.claude', 'rules'),
+    join(root, '.claude', 'commands'),
+    join(homedir(), '.claude', 'commands'),
   ];
 }
 
@@ -174,6 +178,47 @@ async function readRules(root: string): Promise<RuleEntry[]> {
   return entries.sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/**
+ * Slash-komendy z katalogu `commands` (M68). Podkatalogi tworzą przestrzenie
+ * nazw, więc schodzimy rekurencyjnie — z płytkim limitem, żeby dowiązanie
+ * w kółko nie zapętliło panelu.
+ */
+async function readCommands(
+  dir: string,
+  scope: SkillScope,
+  prefix = '',
+  depth = 0,
+): Promise<CommandEntry[]> {
+  if (depth > 4) {
+    return [];
+  }
+  const entries: CommandEntry[] = [];
+  for (const child of await listDir(dir)) {
+    const relative = prefix === '' ? child : `${prefix}/${child}`;
+    const path = join(dir, child);
+    const name = commandNameFromRelative(relative);
+    if (name === null) {
+      entries.push(...(await readCommands(path, scope, relative, depth + 1)));
+      continue;
+    }
+    const content = await readTextIfExists(path);
+    if (content === null) {
+      continue;
+    }
+    const { data } = parseFrontmatter(content);
+    entries.push({
+      name,
+      description: frontmatterString(data, 'description') ?? '',
+      path,
+      scope,
+      argumentHint: frontmatterString(data, 'argument-hint'),
+      model: frontmatterString(data, 'model'),
+      allowedTools: frontmatterString(data, 'allowed-tools'),
+    });
+  }
+  return entries;
+}
+
 async function readClaudeMd(root: string): Promise<ClaudeMdEntry[]> {
   const entries: ClaudeMdEntry[] = [];
   for (const candidate of claudeMdCandidates(root)) {
@@ -188,14 +233,23 @@ async function readClaudeMd(root: string): Promise<ClaudeMdEntry[]> {
 export async function readSkillsSnapshot(root: string): Promise<SkillsSnapshot> {
   const settingsChain = await readSettingsChain(root);
   const chain = settingsChain.map(overridesOf);
-  const [projectSkills, personalSkills, agents, rules, claudeMd] = await Promise.all([
-    readSkillsFrom(join(root, '.claude', 'skills'), chain),
-    readSkillsFrom(join(homedir(), '.claude', 'skills'), chain),
-    readAgents(root, settingsChain.map(denyRulesOf)),
-    readRules(root),
-    readClaudeMd(root),
-  ]);
-  return { projectSkills, personalSkills, agents, rules, claudeMd };
+  const [projectSkills, personalSkills, agents, rules, projectCommands, personalCommands, claudeMd] =
+    await Promise.all([
+      readSkillsFrom(join(root, '.claude', 'skills'), chain),
+      readSkillsFrom(join(homedir(), '.claude', 'skills'), chain),
+      readAgents(root, settingsChain.map(denyRulesOf)),
+      readRules(root),
+      readCommands(join(root, '.claude', 'commands'), 'project'),
+      readCommands(join(homedir(), '.claude', 'commands'), 'personal'),
+      readClaudeMd(root),
+    ]);
+  // Komenda projektu przykrywa osobistą o tej samej nazwie — tak samo jak w CLI.
+  const commands = [...projectCommands, ...personalCommands]
+    .filter(
+      (entry, index, all) => all.findIndex((other) => other.name === entry.name) === index,
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
+  return { projectSkills, personalSkills, agents, rules, commands, claudeMd };
 }
 
 export function skillsDirForScope(root: string, scope: SkillScope): string {
