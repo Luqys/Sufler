@@ -267,6 +267,31 @@ repozytorium trwa kilkanaście sekund, a zapisy idą seriami.
 - Sygnałem jest licznik udanych zapisów z `workspace`, nie podsłuchiwanie
   klawiatury — zapis wywołany z menu albo z paska liczy się tak samo.
 
+### M89 — okna bez dławienia w tle (zrobione)
+
+Trop z migotania `m35-hooki`: żadne z trzech okien aplikacji nie ustawiało
+`backgroundThrottling: false`. Chromium dławi w oknie nieaktywnym albo
+zasłoniętym timery i `requestAnimationFrame` — a na tym drugim stoi renderer
+xterma. Dla aplikacji, w której odczepia się okno WŁAŚNIE PO TO, żeby patrzeć
+na sesję Claude obok innej pracy, to zachowanie jest wprost przeciwskuteczne.
+
+Wspólne `webPreferences` wszystkich okien siedzą teraz w jednej funkcji
+(`src/main/window/preferences.ts`), bo różnica między nimi sprowadzała się do
+jednej flagi, a rozjazd kosztowałby ciszej, niż widać.
+
+**Czego NIE wykazano — i dlaczego test wygląda inaczej, niż powinien.**
+Pierwszą wersją był scenariusz e2e: odczepiony terminal miał pokazać wynik
+polecenia, gdy okno jest w tle. Sprawdzenie, czy potrafi paść BEZ naprawy,
+dało **3/3 zielone z wyłączoną flagą** — czyli scenariusz nie badał niczego.
+Powód jest mechaniczny: Playwright czyta DOM i omija tor rysowania, a okno
+„w tle" na pulpicie nie jest realnie zasłonięte, więc Chromium go nie dławi.
+Scenariusz skasowano, a w zamian stoi test jednostkowy pilnujący flagi przed
+cichym usunięciem — broni ustawienia i nie udaje, że bada zachowanie.
+
+Ustawienie zostaje, bo jest poprawne dla aplikacji terminalowej, ale **nie ma
+dowodu, że usuwa migotanie `m35`**. Ta hipoteza została wycofana, zanim weszła
+do dokumentacji jako fakt.
+
 ### M88 — wydajność na dużym repozytorium (zrobione)
 
 Najpierw pomiar, potem limity. Repozytorium wygenerowane do próby: 25 000 plików

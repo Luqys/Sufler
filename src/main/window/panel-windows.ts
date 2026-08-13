@@ -1,6 +1,7 @@
 import { BrowserWindow, nativeTheme } from 'electron';
 import { join } from 'node:path';
 import { detachedQuery, type DetachedTarget } from '../../shared/docks/detached';
+import { oknoWebPreferences } from './preferences';
 
 /**
  * Okna oderwanych paneli i kart edytora (M62). W odróżnieniu od okien
@@ -16,10 +17,7 @@ export function openDetachedWindow(info: DetachedTarget): void {
     minHeight: 240,
     title: `${info.title} — Sufler`,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#1e1f24' : '#ffffff',
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
-    },
+    webPreferences: oknoWebPreferences(),
   });
   const query = detachedQuery(info);
   const devServerUrl = process.env['ELECTRON_RENDERER_URL'];

@@ -2,6 +2,7 @@ import { BrowserWindow, nativeTheme } from 'electron';
 import { join } from 'node:path';
 import type { DetachedTerminalInfo } from '../../shared/ipc';
 import { killPty } from '../claude/pty-manager';
+import { oknoWebPreferences } from './preferences';
 
 /**
  * Odczepione okna terminali: karta wyciągnięta poza okno główne żyje we
@@ -25,10 +26,7 @@ export function openTerminalWindow(info: DetachedTerminalInfo): void {
     minHeight: 280,
     title: `${info.title} — Sufler`,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#1b1c21' : '#ffffff',
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
-    },
+    webPreferences: oknoWebPreferences(),
   });
   const devServerUrl = process.env['ELECTRON_RENDERER_URL'];
   if (devServerUrl) {

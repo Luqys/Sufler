@@ -93,6 +93,7 @@ import { listCheckpoints, restoreCheckpoint } from './claude/checkpoints';
 import { readWorklog } from './knowledge/worklog';
 import { openDetachedWindow } from './window/panel-windows';
 import type { DetachedTarget } from '../shared/docks/detached';
+import { oknoWebPreferences } from './window/preferences';
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -108,12 +109,7 @@ function createWindow(): void {
     // półprzezroczyste warstwy maluje CSS.
     vibrancy: 'sidebar',
     visualEffectState: 'followWindow',
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
-      // Podgląd przeglądarki (localhost) w obszarze edytora.
-      webviewTag: true,
-    },
+    webPreferences: oknoWebPreferences({ webview: true }),
   });
 
   win.once('ready-to-show', () => win.show());
