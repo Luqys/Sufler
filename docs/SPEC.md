@@ -279,6 +279,29 @@ linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
 
+### M80 — lista sesji do przeglądania, nie do przewijania (zrobione)
+
+Panel „Sesje" pokazywał pięćdziesiąt jednakowych wierszy z czasem względnym
+(„12 min temu / 2 godz. temu / 11 godz. temu") i tematami wziętymi z pierwszego
+polecenia — a te często zaczynają się od wklejonej ścieżki zrzutu ekranu.
+Efekt: nie dało się ani wrócić do wczorajszej pracy, ani znaleźć rozmowy.
+
+- **Grupy dni** z lepkimi nagłówkami: „Dziś", „Wczoraj", dalej data z dniem
+  tygodnia, każda z licznikiem. Podział idzie po dacie lokalnej, nie po dobie
+  wstecz — rozmowa z 00:30 należy do dziś, nie do wczoraj.
+- **Szukajka** nad listą: po widocznej etykiecie, po gałęzi i po surowym tytule,
+  więc wklejona ścieżka nadal jest do znalezienia, choć nie widać jej na liście.
+  Bez ogonków i wielkości liter („galaz" znajdzie „gałąź").
+- **Wiersz w dwóch liniach**: temat dostaje całą szerokość, pod nim godzina,
+  gałąź i kropka „sprzed chwili" przy rozmowach z ostatnich dziesięciu minut.
+  Czas trwania i pełna data siedzą w podpowiedzi godziny — trzeci fakt w linii
+  zjadał nazwę gałęzi przy szerokości paska bocznego. Rozmiar transkryptu wypadł
+  zupełnie: w bajtach nie mówił nic o rozmowie.
+- Chevron zniknął — stan rozwinięcia niesie tło i pasek akcentu, a zwolnione
+  miejsce dostał temat.
+- Logika w `src/shared/session-groups.ts` (grupowanie, filtr, czas trwania),
+  wygląd w `SessionsPanel.tsx`.
+
 ### M79 — dodawanie serwera MCP z aplikacji (zrobione)
 
 Panel MCP tylko czytał: konfigurację z plików i stan z `claude mcp list`. Nowy

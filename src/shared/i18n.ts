@@ -220,6 +220,8 @@ export const PL = {
   'unit.prompts': 'polecenie|polecenia|poleceń',
   'unit.replies': 'odpowiedź|odpowiedzi|odpowiedzi',
   'unit.tools': 'narzędzie|narzędzia|narzędzi',
+  'unit.minShort': 'min',
+  'unit.hourShort': 'godz.',
 
   // Drzewo plików
   'ft.noAccess': 'Brak dostępu',
@@ -266,6 +268,13 @@ export const PL = {
   'git.commitNothing': 'Nie ma czego zatwierdzać — zaznaczone pliki zniknęły z listy.',
 
   // Panel „Sesje" (M67) — historia rozmów z Claude w tym projekcie
+  'sessions.today': 'Dziś',
+  'sessions.yesterday': 'Wczoraj',
+  'sessions.filterPlaceholder': 'Szukaj w sesjach…',
+  'sessions.filtered': '{shown} z {total}',
+  'sessions.noMatch': 'Żadna sesja nie pasuje do frazy.',
+  'sessions.recent': 'Aktywna w ostatnich minutach',
+  'sessions.clockTitle': '{when} · rozmowa trwała {duration}',
   'sessions.refresh': 'Odśwież listę sesji',
   'sessions.loading': 'Czytam zapisane sesje…',
   'sessions.empty':
@@ -869,6 +878,8 @@ export const EN: Record<StringKey, string> = {
   'unit.prompts': 'prompt|prompts',
   'unit.replies': 'reply|replies',
   'unit.tools': 'tool|tools',
+  'unit.minShort': 'min',
+  'unit.hourShort': 'h',
 
   'ft.noAccess': 'No access',
   'ft.empty': '(empty)',
@@ -913,6 +924,13 @@ export const EN: Record<StringKey, string> = {
   'git.commitNothing': 'Nothing to commit — the selected files are gone from the list.',
 
   // Sessions panel (M67) — history of Claude conversations in this project
+  'sessions.today': 'Today',
+  'sessions.yesterday': 'Yesterday',
+  'sessions.filterPlaceholder': 'Search sessions…',
+  'sessions.filtered': '{shown} of {total}',
+  'sessions.noMatch': 'No session matches the phrase.',
+  'sessions.recent': 'Active in the last few minutes',
+  'sessions.clockTitle': '{when} · conversation lasted {duration}',
   'sessions.refresh': 'Refresh session list',
   'sessions.loading': 'Reading saved sessions…',
   'sessions.empty':
