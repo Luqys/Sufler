@@ -187,7 +187,7 @@ załącza zrzut ekranu aplikacji w stanie po wykonaniu scenariusza e2e.
 Każdy kamień w osobnej sesji Claude Code, na osobnym branchu (`claude --worktree`).
 Między kamieniami `/clear`.
 
-## Kamienie milowe po v1 (M67+)
+## Kamienie milowe po v1 (M68+)
 
 Tabela wyżej zamyka v1. Kamienie M10–M63 nie trafiły do niej wcale — dopisywały się
 do sekcji tematycznych albo do niczego. Skutek: **numeracja żyje w `git log`, nie tutaj**.
@@ -197,8 +197,15 @@ Zanim weźmiesz numer, sprawdź:
 git log --all --oneline | grep -oE '^[0-9a-f]+ M[0-9]+' | grep -oE 'M[0-9]+' | sort -u -t M -k2 -n
 ```
 
-Stan na 2026-08-13: zajęte ciągiem M0–M63 plus gałęzie `m65-dystrybucja`
-i `m66-poprawki-zgloszenia`. Wolne: M64 (luka w środku, zostawić) i M67 w górę.
+Stan na 2026-08-13: zajęte ciągiem M0–M63, gałęzie `m65-dystrybucja`
+i `m66-poprawki-zgloszenia`, oraz M67 (panel „Sesje" w lewym pasku, w toku).
+Wolne: M64 (luka w środku, zostawić) i M68 w górę.
+
+**Numer w tabeli poniżej jest propozycją, nie rezerwacją.** Sesja startująca kamień
+bierze pierwszy wolny numer z komendy wyżej i poprawia tu wiersz. Inaczej backlog
+blokuje siedem numerów na pracę, która może nigdy nie ruszyć, a kolejna sesja i tak
+weźmie numer z gita. Tak powstało M67: wiersze przesunęły się o jeden, bo numer
+wziął panel „Sesje".
 
 Poniższa lista jest różnicą wobec **tipa łańcucha**, nie wobec `main` — `main` stoi na
 M29 i nie zawiera trzydziestu kilku kamieni. Wszystko, co oczywiste, jest już zrobione:
@@ -211,18 +218,18 @@ cztery komendy zielone plus zrzut ekranu ze scenariusza e2e.
 
 | # | Zakres | Sprawdzenie |
 |---|---|---|
-| M67 | Slash-komendy z `.claude/commands` jako czwarta grupa panelu skilli | test jedn.: parser frontmattera komendy, kolejność warstw projekt/osobiste; e2e: dodanie `.md` w `commands/` pojawia się bez restartu |
-| M68 | Commit z aplikacji — wybór plików i wiadomość obok istniejącego `DiffView` | test jedn.: budowa listy do commita z `git status --porcelain`; e2e: zmiana pliku → zaznaczenie → commit → plik znika z listy, `git log` ma wpis |
-| M69 | Edytor hooków w Ustawieniach — te same warstwy co `skillOverrides` | test jedn.: zapis/kasowanie wpisu w trzech warstwach `settings.json`; e2e: dodanie hooka przez UI zapisuje się do `settings.local.json` |
-| M70 | Diagnostyka bez LSP — `tsc` i `eslint` w pasku, klik skacze do linii | test jedn.: parser wyjścia obu narzędzi → `{plik, linia, kolumna, treść}`; e2e: błąd składni pokazuje się w pasku i otwiera plik na właściwej linii |
-| M71 | Worktree'y — kilka sesji Claude na jednym zadaniu, porównanie i scalenie | test jedn.: mapowanie karta → worktree w `layout.json`; e2e: utworzenie worktree'a daje kartę z własnym `cwd`, usunięcie sprząta katalog |
-| M72 | Historia zużycia i kosztów z transkryptów `.jsonl` | test jedn.: sumowanie tokenów i kosztu na fixture'owych `.jsonl`; e2e: panel pokazuje sumy dla podstawionego katalogu projektów |
-| M73 | Paleta komend `Cmd+K` — panele, akcje doków, motywy, skille | test jedn.: ranking dopasowań rozmytych; e2e: `Cmd+K` + fraza otwiera właściwy panel |
+| M68 | Slash-komendy z `.claude/commands` jako czwarta grupa panelu skilli | test jedn.: parser frontmattera komendy, kolejność warstw projekt/osobiste; e2e: dodanie `.md` w `commands/` pojawia się bez restartu |
+| M69 | Commit z aplikacji — wybór plików i wiadomość obok istniejącego `DiffView` | test jedn.: budowa listy do commita z `git status --porcelain`; e2e: zmiana pliku → zaznaczenie → commit → plik znika z listy, `git log` ma wpis |
+| M70 | Edytor hooków w Ustawieniach — te same warstwy co `skillOverrides` | test jedn.: zapis/kasowanie wpisu w trzech warstwach `settings.json`; e2e: dodanie hooka przez UI zapisuje się do `settings.local.json` |
+| M71 | Diagnostyka bez LSP — `tsc` i `eslint` w pasku, klik skacze do linii | test jedn.: parser wyjścia obu narzędzi → `{plik, linia, kolumna, treść}`; e2e: błąd składni pokazuje się w pasku i otwiera plik na właściwej linii |
+| M72 | Worktree'y — kilka sesji Claude na jednym zadaniu, porównanie i scalenie | test jedn.: mapowanie karta → worktree w `layout.json`; e2e: utworzenie worktree'a daje kartę z własnym `cwd`, usunięcie sprząta katalog |
+| M73 | Historia zużycia i kosztów z transkryptów `.jsonl` | test jedn.: sumowanie tokenów i kosztu na fixture'owych `.jsonl`; e2e: panel pokazuje sumy dla podstawionego katalogu projektów |
+| M74 | Paleta komend `Cmd+K` — panele, akcje doków, motywy, skille | test jedn.: ranking dopasowań rozmytych; e2e: `Cmd+K` + fraza otwiera właściwy panel |
 
-Kolejność sensowna, nie obowiązkowa: M67 i M68 są tanie i domykają rzeczy zaczęte
-(panel skilli, `DiffView`). M70 i M71 to jedyne dwa duże kamienie na tej liście.
+Kolejność sensowna, nie obowiązkowa: M68 i M69 są tanie i domykają rzeczy zaczęte
+(panel skilli, `DiffView`). M71 i M72 to jedyne dwa duże kamienie na tej liście.
 
-### M67 — slash-komendy w panelu
+### M68 — slash-komendy w panelu
 
 Panel zna skille, subagentów i reguły; komendy z `.claude/commands/*.md` (oraz
 `~/.claude/commands/*.md`) są czwartym rodzajem tego samego pliku z frontmatterem
@@ -232,7 +239,7 @@ watcher, to samo `Cmd+klik` wstawiające `/nazwa` do aktywnej sesji.
 Pola frontmattera do pokazania: `description`, `argument-hint`, `model`,
 `allowed-tools`. Komenda bez `description` — sama nazwa, bez wiersza opisu.
 
-### M68 — commit z aplikacji
+### M69 — commit z aplikacji
 
 `DiffView` pokazuje zmianę, ale zatwierdzić ją trzeba w terminalu. Domknięcie pętli:
 lista zmienionych plików z zaznaczaniem, pole wiadomości, przycisk commita.
@@ -242,7 +249,7 @@ lista zmienionych plików z zaznaczaniem, pole wiadomości, przycisk commita.
 - Bez `push` — świadomie. Wypychanie zostaje w terminalu.
 - Autor commita bierzemy z konfiguracji gita repozytorium, aplikacja nie ustawia własnego.
 
-### M69 — edytor hooków
+### M70 — edytor hooków
 
 Hooki są dziś wstrzykiwane przez Suflera dla własnych potrzeb; użytkownik swoich
 nie ma jak dodać inaczej niż ręczną edycją JSON-a.
@@ -261,7 +268,7 @@ nie ma jak dodać inaczej niż ręczną edycją JSON-a.
   częścią konfiguracji użytkownika. Wymieszanie obu źródeł skończy się tym, że ktoś
   skasuje z UI hooka, od którego zależy status kart.
 
-### M70 — diagnostyka bez LSP
+### M71 — diagnostyka bez LSP
 
 Edytor bez podkreślonych błędów jest notatnikiem. Pełne LSP zostaje poza zakresem
 (patrz niżej); tańszy substytut daje większość zysku:
@@ -274,7 +281,7 @@ Edytor bez podkreślonych błędów jest notatnikiem. Pełne LSP zostaje poza za
 - **To jest granica zakresu.** Jeśli w trakcie pojawi się pokusa autouzupełniania
   albo „idź do definicji", to sygnał z sekcji „Cel", a nie materiał na kolejny kamień.
 
-### M71 — worktree'y
+### M72 — worktree'y
 
 Praca kilkoma sesjami naraz odbywa się dziś ręcznie, poza aplikacją.
 
@@ -287,7 +294,7 @@ Praca kilkoma sesjami naraz odbywa się dziś ręcznie, poza aplikacją.
 - Usunięcie karty pyta, czy sprzątnąć worktree (`git worktree remove`); domyślnie nie,
   bo tam mogą być niescommitowane zmiany.
 
-### M72 — historia zużycia
+### M73 — historia zużycia
 
 `UsageIndicator` pokazuje stan chwilowy, M57 dokłada prognozę. Brakuje przeszłości:
 transkrypty w `~/.claude/projects/<slug>/*.jsonl` mają zużycie każdej tury.
@@ -296,10 +303,10 @@ transkrypty w `~/.claude/projects/<slug>/*.jsonl` mają zużycie każdej tury.
 - Fixture'y `.jsonl` w `tests/` — nie czytać prawdziwego katalogu użytkownika w testach.
 - Katalog projektów nadpisywalny zmienną środowiskową, jak reszta ścieżek w e2e.
 
-### M73 — paleta komend
+### M74 — paleta komend
 
 `Cmd+P` otwiera pliki (M37). `Cmd+K` otwiera resztę: panele, przełączniki doków,
-motywy i akcenty, skille, komendy z M67. Przy tylu przełącznikach na pasku tytułu
+motywy i akcenty, skille, komendy z M68. Przy tylu przełącznikach na pasku tytułu
 klikanie przestało się skalować.
 
 ## Poza zakresem v1 (świadome decyzje)
@@ -307,7 +314,7 @@ klikanie przestało się skalować.
 - **LSP** — `monaco-languageclient` istnieje, ale zarządzanie cyklem życia serwerów
   językowych i mapowaniem dokumentów to osobny projekt. Do rozważenia po M7 jako M8,
   najpierw dla jednego języka (TypeScript).
-  *Rozstrzygnięcie: zostaje poza zakresem na stałe. Diagnostykę daje M70 przez
+  *Rozstrzygnięcie: zostaje poza zakresem na stałe. Diagnostykę daje M71 przez
   `tsc` i `eslint`, bez cyklu życia serwerów językowych.*
 - **Natywny czat zamiast pty** — przez `claude -p --output-format stream-json --verbose`
   dostajesz strumień JSON (jeden obiekt na linię, zaczynając od zdarzenia init),
