@@ -2319,6 +2319,24 @@ body.dragging-horizontal .splitter.horizontal::after {
   background: color-mix(in srgb, var(--accent, #d97757) 16%, transparent);
 }
 
+/* Paleta komend (M74) — nagłówki grup i skróty przy akcjach */
+.palette-group {
+  padding: 8px 9px 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.palette-hint {
+  margin-left: auto;
+  padding-left: 10px;
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
 .quick-open-path {
   overflow: hidden;
   text-overflow: ellipsis;

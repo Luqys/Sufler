@@ -1,6 +1,7 @@
-import { useState, type ReactElement } from 'react';
+import { type ReactElement } from 'react';
 import type { StringKey } from '../../../shared/i18n';
 import { useT } from '../i18n';
+import { selectSidebarView, useSidebarView, type SidebarView } from '../sidebar-view';
 import { useWorkspace } from '../workspace';
 import { FileTree } from './FileTree';
 import { GitPanel } from './GitPanel';
@@ -10,8 +11,6 @@ import { SearchPanel } from './SearchPanel';
 import { SessionsPanel } from './SessionsPanel';
 import { SkillsPanel } from './SkillsPanel';
 import { isDetachablePanel, isOutsideWindow } from '../../../shared/detached';
-
-type SidebarView = 'files' | 'search' | 'git' | 'sessions' | 'knowledge' | 'skills' | 'mcp';
 
 interface RailItem {
   id: SidebarView;
@@ -86,10 +85,10 @@ const RAIL_ITEMS: RailItem[] = [
 export function Sidebar(): ReactElement {
   const { root, openKnowledgeGraph } = useWorkspace();
   const t = useT();
-  const [view, setView] = useState<SidebarView>('files');
+  const view = useSidebarView();
 
   const selectView = (id: SidebarView): void => {
-    setView(id);
+    selectSidebarView(id);
     // Wiedza od razu pokazuje graf w obszarze edytora (panel zostaje w sidebarze).
     if (id === 'knowledge') {
       openKnowledgeGraph();

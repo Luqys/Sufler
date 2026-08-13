@@ -224,7 +224,7 @@ cztery komendy zielone plus zrzut ekranu ze scenariusza e2e.
 | M71 | Diagnostyka bez LSP — `tsc` i `eslint` w pasku, klik skacze do linii | test jedn.: parser wyjścia obu narzędzi → `{plik, linia, kolumna, treść}`; e2e: błąd składni pokazuje się w pasku i otwiera plik na właściwej linii |
 | M72 | Worktree'y — kilka sesji Claude na jednym zadaniu, porównanie i scalenie | test jedn.: mapowanie karta → worktree w `layout.json`; e2e: utworzenie worktree'a daje kartę z własnym `cwd`, usunięcie sprząta katalog |
 | M73 | Historia zużycia i kosztów z transkryptów `.jsonl` | test jedn.: sumowanie tokenów i kosztu na fixture'owych `.jsonl`; e2e: panel pokazuje sumy dla podstawionego katalogu projektów |
-| M74 | Paleta komend `Cmd+K` — panele, akcje doków, motywy, skille | test jedn.: ranking dopasowań rozmytych; e2e: `Cmd+K` + fraza otwiera właściwy panel |
+| ~~M74~~ | ~~Paleta komend `Cmd+K` — panele, akcje doków, motywy~~ (zrobione) | test jedn.: `tests/command-palette.test.ts`; e2e: `e2e/m74-paleta.spec.ts` |
 
 Kolejność sensowna, nie obowiązkowa: M68 i M69 są tanie i domykają rzeczy zaczęte
 (panel skilli, `DiffView`). M71 i M72 to jedyne dwa duże kamienie na tej liście.
@@ -366,11 +366,25 @@ transkrypty w `~/.claude/projects/<slug>/*.jsonl` mają zużycie każdej tury.
 - Fixture'y `.jsonl` w `tests/` — nie czytać prawdziwego katalogu użytkownika w testach.
 - Katalog projektów nadpisywalny zmienną środowiskową, jak reszta ścieżek w e2e.
 
-### M74 — paleta komend
+### M74 — paleta komend (zrobione)
 
-`Cmd+P` otwiera pliki (M37). `Cmd+K` otwiera resztę: panele, przełączniki doków,
-motywy i akcenty, skille, komendy z M68. Przy tylu przełącznikach na pasku tytułu
-klikanie przestało się skalować.
+`Cmd+P` otwiera pliki (M37). `Cmd+K` otwiera resztę: siedem paneli bocznych, nowa
+sesja Claude i nowy terminal, przełączniki trzech obszarów układu, motyw
+jasny/ciemny/systemowy, Ustawienia i Samouczek. Przy tylu przełącznikach na pasku
+tytułu klikanie przestało się skalować.
+
+- Bez wpisanej frazy paleta jest spisem treści aplikacji — pozycje w kolejności
+  katalogu, z nagłówkami grup. Fraza włącza ranking rozmyty (`src/shared/fuzzy.ts`,
+  ten sam co `Cmd+P`), a skróty klawiszowe są wyszukiwalne jako podpowiedź
+  („cmd+b" znajduje przełącznik panelu bocznego) — bez podświetlania, bo trafienie
+  poszło poza etykietę.
+- Akcja panelu pokazuje sidebar, jeśli był schowany; „Wiedza" dodatkowo otwiera graf,
+  tak samo jak klik w ikonę.
+- Aktywny widok paska bocznego przeniesiony do `src/renderer/src/sidebar-view.ts`,
+  bo zmienia go teraz i ikona, i paleta. Efekty uboczne zostają po stronie
+  wywołującego — sklep pilnuje wyłącznie tego, który panel jest widoczny.
+- Akcenty i skille świadomie poza paletą: akcenty są przy przełączniku motywu,
+  a skille mają własny panel z filtrem i `Cmd+klik`.
 
 ## Poza zakresem v1 (świadome decyzje)
 

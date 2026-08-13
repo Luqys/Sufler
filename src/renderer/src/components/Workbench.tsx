@@ -1,13 +1,19 @@
-import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import {
   clampSize,
   type LayoutSizeKey,
   type LayoutState,
   type LayoutVisibilityKey,
 } from '../../../shared/layout';
+import type { StringKey } from '../../../shared/i18n';
 import { baseName } from '../../../shared/paths';
+import type { ThemeMode } from '../../../shared/appearance';
+import { applyAppearance } from '../appearance-client';
+import { useDocks } from '../docks';
 import { useT } from '../i18n';
+import { selectSidebarView, type SidebarView } from '../sidebar-view';
 import { useWorkspace } from '../workspace';
+import { CommandPalette, type PaletteAction } from './CommandPalette';
 import { Dock } from './Dock';
 import { EditorArea } from './EditorArea';
 import { LayoutToggles } from './LayoutToggles';
@@ -74,10 +80,12 @@ const MIN_CENTER_WIDTH = 320;
 const MIN_EDITOR_HEIGHT = 160;
 
 export function Workbench({ initialLayout }: { initialLayout: LayoutState }): ReactElement {
-  const { root, openSettingsTab, openHelpTab } = useWorkspace();
+  const { root, openSettingsTab, openHelpTab, openKnowledgeGraph } = useWorkspace();
+  const { addTab } = useDocks();
   const t = useT();
   const [layout, setLayout] = useState(initialLayout);
   const [quickOpenVisible, setQuickOpenVisible] = useState(false);
+  const [paletteVisible, setPaletteVisible] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   // Lustro stanu aktualizowane synchronicznie — handlery wskaźnika nie mogą
   // czekać na cykl renderowania Reacta.
@@ -152,6 +160,10 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
         // Cmd+P — szybkie otwieranie pliku (M37).
         event.preventDefault();
         setQuickOpenVisible((current) => !current);
+      } else if (event.metaKey && !event.shiftKey && !event.ctrlKey && !event.altKey && key === 'k') {
+        // Cmd+K — paleta komend (M74).
+        event.preventDefault();
+        setPaletteVisible((current) => !current);
       }
     };
     window.addEventListener('keydown', onKeyDown, true);
@@ -163,6 +175,130 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
 
   const openSettingsTabRef = useRef(openSettingsTab);
   openSettingsTabRef.current = openSettingsTab;
+
+  /** Panel palety otwiera się nawet wtedy, gdy sidebar jest schowany. */
+  const showPanel = useCallback(
+    (view: SidebarView) => {
+      selectSidebarView(view);
+      if (!layoutRef.current.sidebarVisible) {
+        toggleVisibilityRef.current('sidebarVisible');
+      }
+      if (view === 'knowledge') {
+        openKnowledgeGraph();
+      }
+    },
+    [openKnowledgeGraph],
+  );
+
+  const setThemeMode = useCallback((mode: ThemeMode) => {
+    void window.api.getAppearance().then((appearance) => {
+      const next = { ...appearance, mode };
+      applyAppearance(next);
+      void window.api.setAppearance(next);
+    });
+  }, []);
+
+  /** Katalog akcji palety (M74) — panele, doki, widok, motyw, aplikacja. */
+  const paletteActions = useMemo((): PaletteAction[] => {
+    const panels = t('palette.groupPanels');
+    const docksGroup = t('palette.groupDocks');
+    const view = t('palette.groupView');
+    const theme = t('palette.groupTheme');
+    const app = t('palette.groupApp');
+    const panelViews: Array<{ id: SidebarView; labelKey: StringKey }> = [
+      { id: 'files', labelKey: 'sidebar.rail.files' },
+      { id: 'search', labelKey: 'sidebar.rail.search' },
+      { id: 'git', labelKey: 'sidebar.rail.git' },
+      { id: 'sessions', labelKey: 'sidebar.rail.sessions' },
+      { id: 'knowledge', labelKey: 'sidebar.rail.knowledge' },
+      { id: 'skills', labelKey: 'sidebar.rail.skills' },
+      { id: 'mcp', labelKey: 'sidebar.rail.mcp' },
+    ];
+    return [
+      ...panelViews.map(({ id, labelKey }) => ({
+        id: `panel:${id}`,
+        label: t(labelKey),
+        group: panels,
+        run: () => showPanel(id),
+      })),
+      {
+        id: 'dock:claude',
+        label: t('palette.newClaude'),
+        group: docksGroup,
+        run: () => {
+          if (!layoutRef.current.rightDockVisible) {
+            toggleVisibilityRef.current('rightDockVisible');
+          }
+          addTab('right', 'claude');
+        },
+      },
+      {
+        id: 'dock:terminal',
+        label: t('palette.newTerminal'),
+        group: docksGroup,
+        run: () => {
+          if (!layoutRef.current.bottomDockVisible) {
+            toggleVisibilityRef.current('bottomDockVisible');
+          }
+          addTab('bottom', 'terminal');
+        },
+      },
+      {
+        id: 'view:sidebar',
+        label: t('palette.toggleSidebar'),
+        group: view,
+        hint: 'Cmd+B',
+        run: () => toggleVisibilityRef.current('sidebarVisible'),
+      },
+      {
+        id: 'view:bottom',
+        label: t('palette.toggleBottom'),
+        group: view,
+        hint: 'Ctrl+`',
+        run: () => toggleVisibilityRef.current('bottomDockVisible'),
+      },
+      {
+        id: 'view:right',
+        label: t('palette.toggleRight'),
+        group: view,
+        hint: 'Cmd+Shift+C',
+        run: () => toggleVisibilityRef.current('rightDockVisible'),
+      },
+      {
+        id: 'theme:light',
+        label: t('palette.themeLight'),
+        group: theme,
+        run: () => setThemeMode('light'),
+      },
+      {
+        id: 'theme:dark',
+        label: t('palette.themeDark'),
+        group: theme,
+        run: () => setThemeMode('dark'),
+      },
+      {
+        id: 'theme:system',
+        label: t('palette.themeSystem'),
+        group: theme,
+        run: () => setThemeMode('system'),
+      },
+      {
+        id: 'app:settings',
+        label: t('tabs.settingsTitle'),
+        group: app,
+        hint: 'Cmd+,',
+        run: () => openSettingsTabRef.current(),
+      },
+      { id: 'app:help', label: t('tabs.helpTitle'), group: app, run: openHelpTab },
+      {
+        id: 'app:files',
+        label: t('palette.quickOpen'),
+        group: app,
+        hint: 'Cmd+P',
+        run: () => setQuickOpenVisible(true),
+      },
+    ];
+  }, [addTab, openHelpTab, setThemeMode, showPanel, t]);
 
   /** Ikonka Claude na pasku: widżet logowania (modal z `claude /login`). */
   const openClaudeLogin = useCallback(() => {
@@ -274,6 +410,9 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
       </div>
       {loginOpen && <LoginDialog onClose={() => setLoginOpen(false)} />}
       {quickOpenVisible && <QuickOpen onClose={() => setQuickOpenVisible(false)} />}
+      {paletteVisible && (
+        <CommandPalette actions={paletteActions} onClose={() => setPaletteVisible(false)} />
+      )}
     </div>
   );
 }

@@ -138,6 +138,24 @@ export const PL = {
   'quickOpen.placeholder': 'Szukaj pliku po nazwie…',
   'quickOpen.empty': 'Brak pasujących plików.',
 
+  // Paleta komend Cmd+K (M74)
+  'palette.placeholder': 'Wpisz komendę…',
+  'palette.empty': 'Brak pasujących komend.',
+  'palette.groupPanels': 'Panele',
+  'palette.groupDocks': 'Doki',
+  'palette.groupView': 'Widok',
+  'palette.groupTheme': 'Motyw',
+  'palette.groupApp': 'Aplikacja',
+  'palette.newClaude': 'Nowa sesja Claude',
+  'palette.newTerminal': 'Nowy terminal',
+  'palette.toggleSidebar': 'Pokaż/ukryj panel boczny',
+  'palette.toggleBottom': 'Pokaż/ukryj dolny dok',
+  'palette.toggleRight': 'Pokaż/ukryj prawy dok',
+  'palette.themeLight': 'Motyw jasny',
+  'palette.themeDark': 'Motyw ciemny',
+  'palette.themeSystem': 'Motyw systemowy',
+  'palette.quickOpen': 'Otwórz plik po nazwie',
+
   // Motywy i akcenty
   'theme.system': 'Systemowy',
   'theme.light': 'Jasny',
@@ -688,6 +706,24 @@ export const EN: Record<StringKey, string> = {
 
   'quickOpen.placeholder': 'Search files by name…',
   'quickOpen.empty': 'No matching files.',
+
+  // Command palette Cmd+K (M74)
+  'palette.placeholder': 'Type a command…',
+  'palette.empty': 'No matching commands.',
+  'palette.groupPanels': 'Panels',
+  'palette.groupDocks': 'Docks',
+  'palette.groupView': 'View',
+  'palette.groupTheme': 'Theme',
+  'palette.groupApp': 'Application',
+  'palette.newClaude': 'New Claude session',
+  'palette.newTerminal': 'New terminal',
+  'palette.toggleSidebar': 'Toggle sidebar',
+  'palette.toggleBottom': 'Toggle bottom dock',
+  'palette.toggleRight': 'Toggle right dock',
+  'palette.themeLight': 'Light theme',
+  'palette.themeDark': 'Dark theme',
+  'palette.themeSystem': 'System theme',
+  'palette.quickOpen': 'Open file by name',
 
   'theme.system': 'System',
   'theme.light': 'Light',
