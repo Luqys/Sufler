@@ -199,9 +199,10 @@ git log --all --oneline | grep -oE '^[0-9a-f]+ M[0-9]+' | grep -oE 'M[0-9]+' | s
 
 Stan na 2026-08-13: zajęte ciągiem M0–M63, gałęzie `m65-dystrybucja`
 i `m66-poprawki-zgloszenia`, M67 (panel „Sesje"), M68 (slash-komendy),
-M69 (commit z aplikacji) oraz M75 (pasek ikon — zgłoszenie z pracy
-z aplikacją). Wolne: M64 (luka w środku, zostawić), M70–M74 (propozycje
-z tabeli poniżej) i M76 w górę.
+M69 (commit z aplikacji), M74 (paleta komend), M75 (pasek ikon) oraz M76
+(ekran startowy tworzy folder) — dwa ostatnie ze zgłoszeń z pracy
+z aplikacją. Wolne: M64 (luka w środku, zostawić), M70–M73 (propozycje
+z tabeli poniżej) i M77 w górę.
 
 **Numer w tabeli poniżej jest propozycją, nie rezerwacją.** Sesja startująca kamień
 bierze pierwszy wolny numer z komendy wyżej i poprawia tu wiersz. Inaczej backlog
@@ -275,6 +276,33 @@ Warstwa danych to ta sama, co w M34 (`src/shared/claude-sessions.ts`,
 linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
+
+### M76 — ekran startowy tworzy folder roboczy (zrobione)
+
+Zgłoszenie z pracy z aplikacją: ekran startowy miał jeden przycisk „Otwórz
+folder…", więc nowy projekt trzeba było założyć w Finderze i wrócić do Suflera.
+Teraz start ma dwie równorzędne drogi — **Nowy projekt** (karta domyślna,
+w kolorze przewodnim) i **Otwórz folder…** — obie z jednowierszowym
+wyjaśnieniem, co robią.
+
+Formularz nowego projektu rozwija się w miejscu, bez skoku do osobnego okna:
+nazwa, lokalizacja (podpowiadana jako katalog obok ostatnio otwartego projektu,
+zmienialna wpisem albo dialogiem) i przełącznik `git init`. Trzy decyzje
+projektowe warte zapamiętania:
+
+- **Podgląd pełnej ścieżki** pod polami — bez niego „Utwórz" jest skokiem
+  w ciemno, bo nazwa folderu nie mówi, gdzie on powstanie.
+- **`git init` domyślnie włączony, z pierwszym commitem i README.** Punkty
+  przywracania (M55) i panel Git bez repozytorium nie mają czego pokazać,
+  a pusty katalog nie ma commita, do którego mogłyby się przyczepić. Brak gita
+  w systemie nie unieważnia folderu — projekt zostaje, wynik mówi `git: false`.
+- **`mkdir` bez `recursive`**, żeby istniejący katalog dał jawny błąd `exists`
+  zamiast zostać po cichu przyjęty jako „nowy" projekt.
+
+Walidacja nazwy siedzi w `src/shared/project-create.ts` (te same reguły
+w rendererze i w main): puste, ukośnik lub dwukropek, kropka na początku, znaki
+psujące ścieżki, znaki kontrolne, długość. Białe znaki na brzegach są obcinane,
+nie odrzucane.
 
 ### M75 — lewy pasek ikon (zrobione)
 

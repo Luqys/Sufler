@@ -778,7 +778,7 @@ body.dragging-horizontal .splitter.horizontal::after {
 }
 
 .welcome-hero,
-.welcome-open,
+.welcome-actions,
 .welcome-recents {
   animation: welcome-rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
@@ -787,7 +787,7 @@ body.dragging-horizontal .splitter.horizontal::after {
   animation-delay: 0.06s;
 }
 
-.welcome-open {
+.welcome-actions {
   animation-delay: 0.14s;
 }
 
@@ -894,43 +894,198 @@ body.dragging-horizontal .splitter.horizontal::after {
   margin-top: 2px;
 }
 
-.welcome-open {
+/*
+ * M76: dwie równorzędne drogi na start — nowy folder albo istniejący. Wcześniej
+ * ekran miał jeden przycisk „Otwórz folder…", więc założenie nowego projektu
+ * trzeba było zrobić w Finderze i wrócić.
+ */
+.welcome-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 620px) {
+  .welcome-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+.welcome-action {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
+  gap: 11px;
+  padding: 13px 15px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel-alt) 60%, transparent);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.welcome-action:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: color-mix(in srgb, var(--panel-alt) 85%, transparent);
+}
+
+/* Pierwsza karta to droga domyślna — dostaje kolor przewodni. */
+.welcome-action:first-child {
+  border-color: transparent;
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--accent) 86%, #fff),
     var(--accent)
   );
   color: #fff;
+  box-shadow:
+    0 4px 14px color-mix(in srgb, var(--accent) 32%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+
+.welcome-action:first-child:hover {
+  box-shadow:
+    0 8px 22px color-mix(in srgb, var(--accent) 42%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+
+.welcome-action.active {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+.welcome-action-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.welcome-action:first-child .welcome-action-icon {
+  background: rgb(255 255 255 / 0.18);
+}
+
+.welcome-action-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.welcome-action-label {
   font-size: 13px;
   font-weight: 600;
+}
+
+.welcome-action-hint {
+  font-size: 11.5px;
+  opacity: 0.75;
+}
+
+.welcome-new-form {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel-alt) 45%, transparent);
+  animation: welcome-rise 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.welcome-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.welcome-field-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.welcome-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.welcome-input:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 1px;
+}
+
+.welcome-parent-row {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+.welcome-check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 12.5px;
   cursor: pointer;
-  box-shadow:
-    0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent),
-    inset 0 1px 0 rgb(255 255 255 / 0.25);
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
 }
 
-.welcome-open:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    0 8px 22px color-mix(in srgb, var(--accent) 45%, transparent),
-    inset 0 1px 0 rgb(255 255 255 / 0.25);
+.welcome-check-hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--muted);
 }
 
-.welcome-open:active {
-  transform: translateY(0);
-  box-shadow:
-    0 3px 10px color-mix(in srgb, var(--accent) 35%, transparent),
-    inset 0 1px 0 rgb(255 255 255 / 0.18);
+.welcome-preview {
+  font-size: 11.5px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.welcome-error {
+  font-size: 12px;
+  color: var(--git-modified);
+}
+
+.welcome-new-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.welcome-submit {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.welcome-submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.welcome-recents-empty {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
 }
 
 .welcome-recents {

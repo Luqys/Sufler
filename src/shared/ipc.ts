@@ -24,6 +24,10 @@ export const IPC = {
   ProjectRecentRoots: 'project:recent-roots',
   ProjectIcon: 'project:icon',
   ProjectSetRoot: 'project:set-root',
+  /** Nowy folder roboczy z ekranu startowego (M76). */
+  ProjectCreate: 'project:create',
+  ProjectDefaultParent: 'project:default-parent',
+  ProjectChooseParent: 'project:choose-parent',
   PreviewGetPreloadPath: 'preview:get-preload-path',
   FsReadDir: 'fs:read-dir',
   FsReadFile: 'fs:read-file',
@@ -105,6 +109,19 @@ export const IPC = {
   ObsidianConfigSet: 'obsidian:config-set',
   ProjectListFiles: 'project:list-files',
 } as const;
+
+export interface ProjectCreateInput {
+  /** Katalog, w którym powstanie folder projektu. */
+  parent: string;
+  name: string;
+  /** `git init` + pierwszy commit z README — punkty przywracania wymagają repo. */
+  initGit: boolean;
+}
+
+export type ProjectCreateResult =
+  /** `git` mówi, czy repozytorium naprawdę powstało (brak gita nie unieważnia folderu). */
+  | { ok: true; path: string; git: boolean }
+  | { ok: false; error: 'invalid-name' | 'exists' | 'no-parent' | 'mkdir-failed' };
 
 /** Lista plików projektu (rg --files) — szybkie otwieranie Cmd+P. */
 export type ListFilesResult =
@@ -328,6 +345,12 @@ export interface WindowApi {
   getProjectIcon(root: string): Promise<string | null>;
   setProjectRoot(path: string): Promise<boolean>;
   openProjectDialog(): Promise<string | null>;
+  /** Tworzy nowy folder roboczy i otwiera go jako projekt (M76). */
+  createProject(input: ProjectCreateInput): Promise<ProjectCreateResult>;
+  /** Proponowana lokalizacja nowego projektu — obok ostatnio otwartego. */
+  getDefaultProjectParent(): Promise<string>;
+  /** Wybór lokalizacji nowego projektu (bez zmiany folderu roboczego). */
+  chooseProjectParent(): Promise<string | null>;
   /** Ścieżka file:// preloadu dla <webview> podglądu przeglądarki. */
   getWebviewPreloadPath(): Promise<string>;
   readDir(dirPath: string): Promise<ReadDirResult>;

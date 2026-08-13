@@ -47,6 +47,7 @@ import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFileCallback);
 import {
+  chooseProjectParent,
   chooseProjectRoot,
   chooseVaultPath,
   clearVaultPath,
@@ -55,6 +56,7 @@ import {
   getVaultPath,
   setProjectRoot,
 } from './project';
+import { adoptProject, createProject, defaultProjectParent } from './project-create';
 import { readProjectIcon } from './project-icon';
 import { resolveShellEnv } from './shell-env';
 import {
@@ -65,7 +67,12 @@ import {
   setAgentEnabled,
   setSkillEnabled,
 } from './skills';
-import type { AgentCreateInput, RuleCreateInput, SkillCreateInput } from '../shared/ipc';
+import type {
+  AgentCreateInput,
+  ProjectCreateInput,
+  RuleCreateInput,
+  SkillCreateInput,
+} from '../shared/ipc';
 import { closeSkillsWatcher, watchSkillsSources } from './skills-watcher';
 import { isSessionLogEnabled, setSessionLogEnabled } from './session-log';
 import { isGlobalSessionLogEnabled, setGlobalSessionLogEnabled } from './session-log-global';
@@ -168,6 +175,19 @@ void app.whenReady().then(() => {
     const changed = setProjectRoot(path);
     updateIdeWorkspaceFolders();
     return changed;
+  });
+  ipcMain.handle(IPC.ProjectDefaultParent, () => defaultProjectParent());
+  ipcMain.handle(IPC.ProjectChooseParent, async (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    return win ? await chooseProjectParent(win) : null;
+  });
+  ipcMain.handle(IPC.ProjectCreate, async (_event, input: ProjectCreateInput) => {
+    const result = await createProject(input.parent, input.name, input.initGit);
+    if (result.ok) {
+      adoptProject(result.path);
+      updateIdeWorkspaceFolders();
+    }
+    return result;
   });
   ipcMain.handle(IPC.ProjectOpenDialog, async (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);

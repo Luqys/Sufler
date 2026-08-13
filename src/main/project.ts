@@ -70,6 +70,18 @@ export async function chooseProjectRoot(win: BrowserWindow): Promise<string | nu
   return picked;
 }
 
+/**
+ * Wybór KATALOGU, w którym powstanie nowy projekt (M76). W odróżnieniu od
+ * `chooseProjectRoot` nie zmienia folderu roboczego — sam wskazuje miejsce.
+ */
+export async function chooseProjectParent(win: BrowserWindow): Promise<string | null> {
+  const result = await dialog.showOpenDialog(win, {
+    title: t('main.chooseParent'),
+    properties: ['openDirectory', 'createDirectory'],
+  });
+  return result.canceled ? null : (result.filePaths[0] ?? null);
+}
+
 /** Vault Obsidiana — źródło indeksu wikilinków (warstwa 3, M36). */
 export function getVaultPath(): string | null {
   const fromEnv = process.env['VISUALN3O_VAULT'];

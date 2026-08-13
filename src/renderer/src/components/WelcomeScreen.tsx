@@ -1,15 +1,29 @@
 import { useEffect, useState, type CSSProperties, type ReactElement } from 'react';
+import type { StringKey } from '../../../shared/i18n';
 import { baseName } from '../../../shared/paths';
 import { projectHue, projectMonogram } from '../../../shared/project-icon';
-import { useT } from '../i18n';
+import {
+  projectNameProblem,
+  projectTargetPath,
+  type ProjectNameProblem,
+} from '../../../shared/project-create';
+import { tf, useT } from '../i18n';
 
 interface WelcomeScreenProps {
   onPicked(root: string): void;
 }
 
 const ICON_OPEN = (
-  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M8 3.2v9.6M3.2 8h9.6" />
+  <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1.8 4.2a1 1 0 0 1 1-1h3.1l1.4 1.6h5.9a1 1 0 0 1 1 1v6.1a1 1 0 0 1-1 1H2.8a1 1 0 0 1-1-1V4.2Z" />
+  </svg>
+);
+
+/** Folder z plusem — nowy, pusty katalog roboczy. */
+const ICON_NEW = (
+  <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1.8 4.2a1 1 0 0 1 1-1h3.1l1.4 1.6h5.9a1 1 0 0 1 1 1v6.1a1 1 0 0 1-1 1H2.8a1 1 0 0 1-1-1V4.2Z" />
+    <path d="M8 7.3v4M6 9.3h4" />
   </svg>
 );
 
@@ -59,10 +73,32 @@ function ProjectMark({ path, icon }: { path: string; icon: string | null }): Rea
   );
 }
 
+const PROBLEM_KEYS: Record<ProjectNameProblem, StringKey> = {
+  empty: 'welcome.newErrorEmpty',
+  separator: 'welcome.newErrorSeparator',
+  dot: 'welcome.newErrorDot',
+  invalid: 'welcome.newErrorInvalid',
+  'too-long': 'welcome.newErrorTooLong',
+};
+
+const CREATE_ERROR_KEYS: Record<string, StringKey> = {
+  'invalid-name': 'welcome.newErrorInvalid',
+  exists: 'welcome.newErrorExists',
+  'no-parent': 'welcome.newErrorNoParent',
+  'mkdir-failed': 'welcome.newErrorFailed',
+};
+
 export function WelcomeScreen({ onPicked }: WelcomeScreenProps): ReactElement {
   const t = useT();
   const [recents, setRecents] = useState<string[]>([]);
   const [icons, setIcons] = useState<Record<string, string | null>>({});
+  /** Formularz nowego projektu rozwija się w miejscu — bez skoku do dialogu. */
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState('');
+  const [parent, setParent] = useState('');
+  const [initGit, setInitGit] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     void window.api.getRecentRoots().then((list) => {
@@ -93,6 +129,43 @@ export function WelcomeScreen({ onPicked }: WelcomeScreenProps): ReactElement {
     });
   };
 
+  const startCreating = (): void => {
+    setError(null);
+    setCreating(true);
+    // Lokalizacja domyślna: katalog obok ostatnio otwartego projektu.
+    void window.api.getDefaultProjectParent().then((suggested) => {
+      setParent((current) => (current === '' ? suggested : current));
+    });
+  };
+
+  const changeParent = (): void => {
+    void window.api.chooseProjectParent().then((picked) => {
+      if (picked) {
+        setParent(picked);
+        setError(null);
+      }
+    });
+  };
+
+  const problem = projectNameProblem(name);
+  const target = projectTargetPath(parent, name);
+
+  const submit = (): void => {
+    if (problem !== null) {
+      setError(t(PROBLEM_KEYS[problem]));
+      return;
+    }
+    setBusy(true);
+    void window.api.createProject({ parent, name: name.trim(), initGit }).then((result) => {
+      setBusy(false);
+      if (!result.ok) {
+        setError(t(CREATE_ERROR_KEYS[result.error] ?? 'welcome.newErrorFailed'));
+        return;
+      }
+      onPicked(result.path);
+    });
+  };
+
   return (
     <div className="shell">
       <header className="titlebar">Sufler</header>
@@ -111,10 +184,134 @@ export function WelcomeScreen({ onPicked }: WelcomeScreenProps): ReactElement {
             </span>
             <p className="welcome-sub">{t('welcome.sub')}</p>
           </div>
-          <button type="button" className="welcome-open" data-testid="welcome-open" onClick={browse}>
-            {ICON_OPEN}
-            {t('welcome.open')}
-          </button>
+          {/* Dwie równorzędne drogi na start: nowy folder albo istniejący. */}
+          <div className="welcome-actions">
+            <button
+              type="button"
+              className={`welcome-action${creating ? ' active' : ''}`}
+              data-testid="welcome-new"
+              onClick={startCreating}
+            >
+              <span className="welcome-action-icon">{ICON_NEW}</span>
+              <span className="welcome-action-text">
+                <span className="welcome-action-label">{t('welcome.new')}</span>
+                <span className="welcome-action-hint">{t('welcome.newHint')}</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className="welcome-action"
+              data-testid="welcome-open"
+              onClick={browse}
+            >
+              <span className="welcome-action-icon">{ICON_OPEN}</span>
+              <span className="welcome-action-text">
+                <span className="welcome-action-label">{t('welcome.open')}</span>
+                <span className="welcome-action-hint">{t('welcome.openHint')}</span>
+              </span>
+            </button>
+          </div>
+
+          {creating && (
+            <form
+              className="welcome-new-form"
+              data-testid="welcome-new-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                submit();
+              }}
+            >
+              <label className="welcome-field">
+                <span className="welcome-field-label">{t('welcome.newName')}</span>
+                <input
+                  type="text"
+                  className="welcome-input"
+                  data-testid="welcome-new-name"
+                  value={name}
+                  placeholder={t('welcome.newNamePlaceholder')}
+                  spellCheck={false}
+                  autoFocus
+                  onChange={(event) => {
+                    setName(event.target.value);
+                    setError(null);
+                  }}
+                />
+              </label>
+              <label className="welcome-field">
+                <span className="welcome-field-label">{t('welcome.newParent')}</span>
+                <span className="welcome-parent-row">
+                  <input
+                    type="text"
+                    className="welcome-input"
+                    data-testid="welcome-new-parent"
+                    value={parent}
+                    spellCheck={false}
+                    onChange={(event) => {
+                      setParent(event.target.value);
+                      setError(null);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="bar-btn"
+                    data-testid="welcome-new-parent-change"
+                    onClick={changeParent}
+                  >
+                    {t('welcome.newParentChange')}
+                  </button>
+                </span>
+              </label>
+              <label className="welcome-check">
+                <input
+                  type="checkbox"
+                  data-testid="welcome-new-git"
+                  checked={initGit}
+                  onChange={(event) => setInitGit(event.target.checked)}
+                />
+                <span>
+                  {t('welcome.newGit')}
+                  <span className="welcome-check-hint">{t('welcome.newGitHint')}</span>
+                </span>
+              </label>
+              {/* Podgląd ścieżki: „Utwórz" przestaje być skokiem w ciemno. */}
+              {target && (
+                <p className="welcome-preview" data-testid="welcome-new-preview">
+                  {tf('welcome.newPreview', { path: target })}
+                </p>
+              )}
+              {error && (
+                <p className="welcome-error" data-testid="welcome-new-error">
+                  {error}
+                </p>
+              )}
+              <div className="welcome-new-buttons">
+                <button
+                  type="button"
+                  className="bar-btn"
+                  data-testid="welcome-new-cancel"
+                  onClick={() => {
+                    setCreating(false);
+                    setError(null);
+                  }}
+                >
+                  {t('welcome.newCancel')}
+                </button>
+                <button
+                  type="submit"
+                  className="welcome-submit"
+                  data-testid="welcome-new-submit"
+                  disabled={busy || problem !== null || parent.trim() === ''}
+                >
+                  {t('welcome.newSubmit')}
+                </button>
+              </div>
+            </form>
+          )}
+          {recents.length === 0 && !creating && (
+            <p className="welcome-recents-empty" data-testid="welcome-recents-empty">
+              {t('welcome.recentsEmpty')}
+            </p>
+          )}
           {recents.length > 0 && (
             <div className="welcome-recents">
               <h3 className="welcome-recents-title">{t('welcome.recents')}</h3>

@@ -24,6 +24,8 @@ import {
   type KnowledgeFile,
   type ListFilesResult,
   type McpStatusResult,
+  type ProjectCreateInput,
+  type ProjectCreateResult,
   type PtyCreateResult,
   type PtyDataEvent,
   type PtyExitEvent,
@@ -65,6 +67,11 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.ProjectIcon, root),
   setProjectRoot: (path: string): Promise<boolean> => ipcRenderer.invoke(IPC.ProjectSetRoot, path),
   openProjectDialog: (): Promise<string | null> => ipcRenderer.invoke(IPC.ProjectOpenDialog),
+  createProject: (input: ProjectCreateInput): Promise<ProjectCreateResult> =>
+    ipcRenderer.invoke(IPC.ProjectCreate, input),
+  getDefaultProjectParent: (): Promise<string> => ipcRenderer.invoke(IPC.ProjectDefaultParent),
+  chooseProjectParent: (): Promise<string | null> =>
+    ipcRenderer.invoke(IPC.ProjectChooseParent),
   getWebviewPreloadPath: (): Promise<string> => ipcRenderer.invoke(IPC.PreviewGetPreloadPath),
   readDir: (dirPath: string): Promise<ReadDirResult> => ipcRenderer.invoke(IPC.FsReadDir, dirPath),
   readFile: (filePath: string): Promise<ReadFileResult> =>
