@@ -201,9 +201,10 @@ Stan na 2026-08-13: zajęte ciągiem M0–M63, gałęzie `m65-dystrybucja`
 i `m66-poprawki-zgloszenia`, M67 (panel „Sesje"), M68 (slash-komendy),
 M69 (commit z aplikacji), M70 (edytor hooków), M73 (historia zużycia),
 M74 (paleta komend), M75 (pasek ikon), M76 (ekran startowy tworzy folder)
-oraz M77 (szlif UI i podział przeciągnięciem) — trzy ostatnie ze zgłoszeń
-z pracy z aplikacją. Wolne: M64 (luka w środku, zostawić), M71–M72
-(propozycje z tabeli poniżej) i M78 w górę.
+M77 (szlif UI i podział przeciągnięciem) oraz M78 (uruchamianie `claude`
+na Windowsie) — cztery ostatnie ze zgłoszeń z pracy z aplikacją. Wolne:
+M64 (luka w środku, zostawić), M71–M72 (propozycje z tabeli poniżej)
+i M79 w górę.
 
 **Numer w tabeli poniżej jest propozycją, nie rezerwacją.** Sesja startująca kamień
 bierze pierwszy wolny numer z komendy wyżej i poprawia tu wiersz. Inaczej backlog
@@ -277,6 +278,35 @@ Warstwa danych to ta sama, co w M34 (`src/shared/claude-sessions.ts`,
 linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
+
+### M78 — uruchamianie `claude` na Windowsie (zrobione)
+
+Zgłoszenie z paczki Windows: „Nie udało się uruchomić `claude`: File not found".
+Trzy założenia z macOS zaszyte w starcie pseudoterminala:
+
+1. **`claude` z npm to na Windowsie `claude.cmd`**, a `CreateProcess` (pod
+   ConPTY) nie uruchamia plików wsadowych. Rozwiązana ścieżka z rozszerzeniem
+   `.cmd`/`.bat` idzie teraz przez `cmd.exe /d /s /c`, `.ps1` przez
+   `powershell.exe -File`, a `.exe` wprost.
+2. **Rozwiązanie nazwy wymaga PATHEXT**, nie samego PATH — kandydatów składa
+   `executableCandidates` (`src/shared/exec-path.ts`), z `.exe` przed `.cmd`.
+   Nazwa jest sprawdzana PRZED spawnem, więc brak `claude` kończy się zdaniem
+   „Nie znaleziono polecenia `claude` w PATH… `npm i -g @anthropic-ai/claude-code`"
+   zamiast komunikatu z wnętrza node-pty.
+3. **Domyślna powłoka `/bin/zsh` nie istnieje** — na Windowsie bierze się
+   `COMSPEC`. Sonda logowanej powłoki (`$SHELL -ilc env`) jest tam pomijana:
+   `cmd.exe` nie ma plików rc, a próba kosztowała sekundy zwłoki. `PATH`
+   sklejany jest separatorem systemu, nie dwukropkiem.
+
+Przy okazji **hooki**: komenda budowana dla `sh` (`$ZMIENNA`, `>/dev/null`,
+`|| true`) na Windowsie nie zadziałałaby po cichu — status kart spadłby na
+heurystykę strumienia, a dziennik sesji przestałby powstawać. `buildHookSettings`
+dostało wariant `win32` (`%VISUALN3O_TAB_ID%`, `curl.exe`, `>NUL`, `exit /b 0`).
+
+**Czego NIE zweryfikowano:** samego Windowsa — cała maszyneria zmian jest pokryta
+testami jednostkowymi dla obu platform (`tests/exec-path.test.ts`,
+`tests/claude-hooks.test.ts`), a e2e sprawdza wspólną ścieżkę błędu przy pustym
+PATH. Potwierdzenie na Windowsie wymaga uruchomienia paczki na tym systemie.
 
 ### M77 — szlif interfejsu i podział doku przeciągnięciem (zrobione)
 

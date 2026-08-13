@@ -20,6 +20,20 @@ describe('buildHookSettings', () => {
     );
     expect(settings.hooks['Stop']?.[0]?.hooks[0]?.command).toContain('x-sufler-event: stop');
   });
+
+  it('na Windowsie komenda mówi po cmd-owemu: %ZMIENNA%, curl.exe, NUL', () => {
+    const settings = buildHookSettings(41234, 'sekret', 'win32') as {
+      hooks: Record<string, Array<{ hooks: Array<{ command: string }> }>>;
+    };
+    const command = settings.hooks['Stop']?.[0]?.hooks[0]?.command ?? '';
+    expect(command).toContain('curl.exe');
+    expect(command).toContain('%VISUALN3O_TAB_ID%');
+    expect(command).toContain('>NUL');
+    expect(command).toContain('exit /b 0');
+    // Składnia POSIX-owa nie ma tu czego robić — `$ZMIENNA` zostałaby dosłowna.
+    expect(command).not.toContain('$VISUALN3O_TAB_ID');
+    expect(command).not.toContain('|| true');
+  });
 });
 
 describe('parseHookRequest', () => {

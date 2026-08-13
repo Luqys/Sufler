@@ -283,7 +283,8 @@ function writeHookSettings(): void {
     return;
   }
   hookSettingsPath = join(tmpdir(), `sufler-hooks-${process.pid}.json`);
-  writeFileSync(hookSettingsPath, JSON.stringify(buildHookSettings(port, authToken)), {
+  const hookPlatform = process.platform === 'win32' ? 'win32' : 'posix';
+  writeFileSync(hookSettingsPath, JSON.stringify(buildHookSettings(port, authToken, hookPlatform)), {
     mode: 0o600,
   });
 }

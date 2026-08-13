@@ -1,4 +1,7 @@
 import { execFile } from 'node:child_process';
+import { pathDelimiter, type Platform } from '../shared/exec-path';
+
+const PLATFORM: Platform = process.platform === 'win32' ? 'win32' : 'posix';
 
 /**
  * Ryzyko nr 1 ze SPEC.md: Electron uruchomiony z Findera nie dziedziczy PATH
@@ -32,13 +35,21 @@ export function parseShellEnvOutput(output: string): Record<string, string> {
 function applyPathPrepend(env: Record<string, string>): Record<string, string> {
   const prepend = process.env['VISUALN3O_PATH_PREPEND'];
   if (prepend) {
-    env['PATH'] = `${prepend}:${env['PATH'] ?? ''}`;
+    // Separator zależy od systemu — na Windowsie dwukropek scaliłby ścieżki
+    // w jedną, nieistniejącą (M78).
+    env['PATH'] = `${prepend}${pathDelimiter(PLATFORM)}${env['PATH'] ?? ''}`;
   }
   return env;
 }
 
 export function resolveShellEnv(): Promise<Record<string, string>> {
   if (cached) {
+    return cached;
+  }
+  // Windows nie ma logowanej powłoki z rc-plikami: `cmd.exe` dziedziczy PATH
+  // z systemu, a próba `zsh -ilc` kończy się błędem i sekundami zwłoki (M78).
+  if (PLATFORM === 'win32') {
+    cached = Promise.resolve(applyPathPrepend({ ...process.env } as Record<string, string>));
     return cached;
   }
   cached = new Promise((resolve) => {

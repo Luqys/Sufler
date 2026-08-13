@@ -1,7 +1,16 @@
 import { BrowserWindow } from 'electron';
+import { statSync } from 'node:fs';
 import { spawn, type IPty } from 'node-pty';
 import { IPC, type PtyCreateResult } from '../shared/ipc';
 import type { TabKind } from '../shared/dock-tabs';
+import {
+  defaultShell,
+  executableCandidates,
+  shellTitle,
+  spawnPlanFor,
+  type Platform,
+} from '../shared/exec-path';
+import { t, tf } from './i18n';
 import { ideEnvForClaude, ideHookSettingsArgs } from './ide-server';
 import { resolveShellEnv } from './shell-env';
 
@@ -21,12 +30,31 @@ function broadcast(channel: string, payload: unknown): void {
  * Kluczowa zasada ze SPEC.md: zakładki `terminal` i `claude` różnią się
  * WYŁĄCZNIE komendą startową pseudoterminala.
  */
+const PLATFORM: Platform = process.platform === 'win32' ? 'win32' : 'posix';
+
+/** Pierwszy istniejący plik z listy kandydatów (PATH × PATHEXT). */
+function resolveExecutable(
+  command: string,
+  env: Record<string, string | undefined>,
+): string | null {
+  for (const candidate of executableCandidates(command, env, PLATFORM)) {
+    try {
+      if (statSync(candidate).isFile()) {
+        return candidate;
+      }
+    } catch {
+      // Kandydat nie istnieje — próbujemy dalej.
+    }
+  }
+  return null;
+}
+
 export async function createPty(
   options: { kind: TabKind; cwd: string; args?: string[] },
 ): Promise<PtyCreateResult> {
   const env = { ...(await resolveShellEnv()) };
-  const shell = env['SHELL'] || '/bin/zsh';
-  const command = options.kind === 'claude' ? 'claude' : shell;
+  const shell = defaultShell(env, PLATFORM);
+  const wanted = options.kind === 'claude' ? 'claude' : shell;
   const ptyId = nextPtyId++;
   let args = options.args ?? [];
   if (options.kind === 'claude') {
@@ -37,8 +65,23 @@ export async function createPty(
     Object.assign(env, await ideEnvForClaude(), { VISUALN3O_TAB_ID: String(ptyId) });
     args = [...args, ...ideHookSettingsArgs()];
   }
+  // Rozwiązanie nazwy PRZED spawnem: node-pty zwraca wtedy „File not found"
+  // bez wskazówki, czego brakuje. Na Windowsie dochodzi PATHEXT i to, że
+  // `claude` jest plikiem wsadowym (`claude.cmd`), którego nie da się
+  // uruchomić bez `cmd.exe` (zgłoszenie z Windowsa, M78).
+  const resolved = resolveExecutable(wanted, env);
+  if (!resolved) {
+    return {
+      ok: false,
+      error:
+        options.kind === 'claude'
+          ? t('main.claudeMissing')
+          : tf('main.shellMissing', { shell: wanted }),
+    };
+  }
+  const plan = spawnPlanFor(resolved, args, env, PLATFORM);
   try {
-    const session = spawn(command, args, {
+    const session = spawn(plan.command, plan.args, {
       name: 'xterm-256color',
       cols: 80,
       rows: 24,
@@ -57,7 +100,7 @@ export async function createPty(
       ok: true,
       ptyId,
       pid: session.pid,
-      title: options.kind === 'claude' ? 'Claude' : (shell.split('/').pop() ?? 'shell'),
+      title: options.kind === 'claude' ? 'Claude' : shellTitle(shell),
     };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : String(error) };

@@ -621,6 +621,9 @@ export const PL = {
   // Proces główny (dialogi systemowe, błędy IPC)
   'main.openProject': 'Otwórz folder projektu',
   'main.chooseParent': 'Gdzie utworzyć nowy projekt',
+  'main.claudeMissing':
+    'Nie znaleziono polecenia `claude` w PATH. Zainstaluj Claude Code (`npm i -g @anthropic-ai/claude-code`) i uruchom aplikację ponownie.',
+  'main.shellMissing': 'Nie znaleziono powłoki `{shell}` — sprawdź zmienne SHELL i PATH.',
   'main.chooseVault': 'Wybierz vault Obsidiana',
   'main.mcpRegistered': 'Zarejestrowano serwer „wiedza-graf" w Claude (scope user).',
   'main.mcpAlready': 'Serwer „wiedza-graf" był już zarejestrowany.',
@@ -1219,6 +1222,9 @@ export const EN: Record<StringKey, string> = {
 
   'main.openProject': 'Open project folder',
   'main.chooseParent': 'Where to create the new project',
+  'main.claudeMissing':
+    'Could not find the `claude` command in PATH. Install Claude Code (`npm i -g @anthropic-ai/claude-code`) and restart the app.',
+  'main.shellMissing': 'Could not find the `{shell}` shell — check your SHELL and PATH.',
   'main.chooseVault': 'Choose an Obsidian vault',
   'main.mcpRegistered': 'Registered the "wiedza-graf" server in Claude (user scope).',
   'main.mcpAlready': 'The "wiedza-graf" server was already registered.',
