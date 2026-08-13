@@ -209,7 +209,7 @@ export const PL = {
   'git.changesTitle': 'Zmiany robocze',
 
   // Commit z aplikacji (M69) — zaznaczenie plików, opis, zatwierdzenie
-  'git.selectAll': 'Zaznacz wszystkie',
+  'git.selectAll': 'Wszystkie',
   'git.selectFile': 'Zaznacz do commita: {path}',
   'git.commitPlaceholder': 'Opis zmiany…',
   'git.commit': 'Zatwierdź ({count})',
@@ -751,7 +751,7 @@ export const EN: Record<StringKey, string> = {
   'git.changesTitle': 'Working changes',
 
   // Commit from the app (M69) — pick files, describe, commit
-  'git.selectAll': 'Select all',
+  'git.selectAll': 'All',
   'git.selectFile': 'Select for commit: {path}',
   'git.commitPlaceholder': 'Describe the change…',
   'git.commit': 'Commit ({count})',
