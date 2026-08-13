@@ -16,6 +16,7 @@ import type { WorklogEntry } from './knowledge/worklog';
 import type { HookEntry, HookEvent } from './skills/hooks-config';
 import type { UsageScan } from './claude/usage-history';
 import type { DiagnosticsResult } from './editor/diagnostics';
+import type { Worktree } from './git/worktrees';
 import type { SkillOverrideState } from './skills/skills';
 
 export const IPC = {
@@ -102,6 +103,10 @@ export const IPC = {
   GitCommit: 'git:commit',
   UsageHistoryGet: 'usage:history',
   DiagnosticsRun: 'diagnostics:run',
+  WorktreeList: 'worktree:list',
+  WorktreeAdd: 'worktree:add',
+  WorktreeRemove: 'worktree:remove',
+  WorktreeMerge: 'worktree:merge',
   HooksList: 'hooks:list',
   HooksAdd: 'hooks:add',
   HooksRemove: 'hooks:remove',
@@ -306,6 +311,20 @@ export interface ClaudeMdEntry {
   lines: number;
 }
 
+/** Wynik operacji na worktree (M72). */
+export type WorktreeWriteResult =
+  | { ok: true; path: string }
+  | { ok: false; error: 'invalid-name' | 'exists' | 'dirty' | 'failed'; detail?: string };
+
+export type WorktreeMergeResult =
+  | { ok: true; into: string }
+  | {
+      ok: false;
+      error: 'invalid-name' | 'conflict' | 'dirty' | 'failed';
+      into: string;
+      detail?: string;
+    };
+
 /** Warstwa settings, z której pochodzi hook (M70). */
 export type HookLayer = 'local' | 'project' | 'user';
 
@@ -458,6 +477,11 @@ export interface WindowApi {
   gitShowFile(root: string, rev: string, path: string): Promise<GitShowFileResult>;
   /** Zatwierdzenie zaznaczonych plików z panelu Git (M69). */
   gitCommit(root: string, paths: string[], message: string): Promise<GitCommitResult>;
+  /** Worktree'y gita — kilka sesji nad jednym zadaniem (M72). */
+  listWorktrees(root: string): Promise<Worktree[]>;
+  addWorktree(root: string, name: string): Promise<WorktreeWriteResult>;
+  removeWorktree(root: string, path: string): Promise<WorktreeWriteResult>;
+  mergeWorktree(root: string, branch: string): Promise<WorktreeMergeResult>;
   /** `tsc` + `eslint` na żądanie — diagnostyka bez LSP (M71). */
   runDiagnostics(root: string): Promise<DiagnosticsResult>;
   /** Zużycie tokenów policzone z transkryptów projektu (M73). */

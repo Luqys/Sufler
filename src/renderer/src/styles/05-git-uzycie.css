@@ -807,3 +807,74 @@
 .usage-note {
   font-size: 10.5px;
 }
+
+/* Worktree'y w panelu Git (M72) */
+.worktrees {
+  padding: 6px 0 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.worktrees > summary {
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.worktree-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+}
+
+.worktree-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.worktree-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Akcje worktree'a są ciasne — przyciski schodzą do rozmiaru plakietki. */
+.worktree-actions .bar-btn {
+  padding: 1px 5px;
+  font-size: 11px;
+}
+
+.worktree-form {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.worktree-input {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 11.5px;
+}
+
+.worktree-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.worktree-new:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

@@ -221,7 +221,7 @@ cztery komendy zielone plus zrzut ekranu ze scenariusza e2e.
 | ~~M69~~ | ~~Commit z aplikacji — wybór plików i wiadomość obok istniejącego `DiffView`~~ (zrobione) | test jedn.: `tests/git-commit.test.ts`; e2e: `e2e/m69-commit.spec.ts` |
 | ~~M70~~ | ~~Edytor hooków w Ustawieniach — te same warstwy co `skillOverrides`~~ (zrobione) | test jedn.: `tests/hooks-config.test.ts`; e2e: `e2e/m70-hooki.spec.ts` |
 | ~~M71~~ | ~~Diagnostyka bez LSP — `tsc` i `eslint` w pasku, klik skacze do linii~~ (zrobione) | test jedn.: `tests/editor/diagnostics.test.ts`; e2e: `e2e/editor/m71-diagnostyka.spec.ts` |
-| M72 | Worktree'y — kilka sesji Claude na jednym zadaniu, porównanie i scalenie | test jedn.: mapowanie karta → worktree w `layout.json`; e2e: utworzenie worktree'a daje kartę z własnym `cwd`, usunięcie sprząta katalog |
+| ~~M72~~ | ~~Worktree'y — kilka sesji Claude na jednym zadaniu, porównanie i scalenie~~ (zrobione) | test jedn.: `tests/git/worktrees.test.ts`; e2e: `e2e/panele/m72-worktree.spec.ts` |
 | ~~M73~~ | ~~Historia zużycia z transkryptów `.jsonl`~~ (zrobione) | test jedn.: `tests/usage-history.test.ts`; e2e: `e2e/m73-zuzycie.spec.ts` |
 | ~~M74~~ | ~~Paleta komend `Cmd+K` — panele, akcje doków, motywy~~ (zrobione) | test jedn.: `tests/command-palette.test.ts`; e2e: `e2e/m74-paleta.spec.ts` |
 
@@ -532,6 +532,32 @@ miał jak dodać inaczej niż ręczną edycją JSON-a. Ustawienia mają teraz se
   sprząta pustą grupę, puste zdarzenie i pustą mapę `hooks`.
 - Logika w `src/shared/hooks-config.ts`, zapis w `src/main/hooks-config.ts`.
 
+### M72 — worktree'y (zrobione)
+
+Praca kilkoma sesjami naraz odbywała się poza aplikacją: `git worktree add`
+w terminalu, druga instancja Suflera, ręczne scalanie. Panel Git ma teraz sekcję
+„Worktree'y" — listę katalogów roboczych z gałęziami i formularz nazwy.
+
+- Sufler robi `git worktree add -b <nazwa>` **sam**, zamiast używać
+  `claude --worktree`: tam katalog wybiera CLI, a drzewo plików i panel Git nie
+  wiedzą o nowym korzeniu.
+- Katalog powstaje **obok** projektu (`<korzeń>-worktrees/<nazwa>`), nigdy w środku
+  — inaczej chokidar, drzewo plików i `rg` widziałyby kopię repozytorium
+  w repozytorium. Ukośnik w nazwie gałęzi nie tworzy zagnieżdżeń.
+- Zaraz po utworzeniu startuje w nim sesja Claude (`AddTabOptions.cwd`, dołożone
+  w tym kamieniu) — po to się ten katalog zakłada.
+- „Scal" to `git merge --no-ff --no-edit` w katalogu głównym. **Konflikt kończy się
+  przerwaniem** (`merge --abort`) i komunikatem: rozwiązywanie zostaje przy
+  człowieku w terminalu, żaden automat nie dotyka cudzych zmian.
+- Usunięcie pyta o zgodę i idzie bez `--force`; worktree z niezapisanymi zmianami
+  zostaje nietknięty wraz z osobnym komunikatem. Gałąź zostaje zawsze.
+- Logika w `src/shared/git/worktrees.ts` (parser `--porcelain`, walidacja nazw,
+  ścieżki), operacje w `src/main/git/worktrees.ts`.
+- **Poza zakresem tego kamienia:** widok porównawczy diff worktree ↔ gałąź bazowa.
+  Pierwotny plan go zakładał, ale `DiffView` porównuje rewizje jednego repozytorium,
+  a tu potrzebny jest diff między katalogami roboczymi — to osobna mechanika
+  i osobny kamień, jeśli okaże się potrzebny w praktyce.
+
 ### M71 — diagnostyka bez LSP (zrobione)
 
 Edytor bez podkreślonych błędów jest notatnikiem. Pełne LSP zostaje poza zakresem
@@ -558,19 +584,6 @@ z której klik otwiera plik na właściwej linii; otwarte bufory dostają falki 
 - Wynik jako `monaco.editor.setModelMarkers` plus licznik w pasku pod edytorem.
 - **To jest granica zakresu.** Jeśli w trakcie pojawi się pokusa autouzupełniania
   albo „idź do definicji", to sygnał z sekcji „Cel", a nie materiał na kolejny kamień.
-
-### M72 — worktree'y
-
-Praca kilkoma sesjami naraz odbywa się dziś ręcznie, poza aplikacją.
-
-- Sufler sam robi `git worktree add` i otwiera kartę z `cwd` na nowym katalogu.
-  Nie używać `claude --worktree`: wtedy katalog wybiera CLI, a drzewo plików
-  i panel Git nie wiedzą o nowym korzeniu.
-- Widok porównawczy: diff worktree ↔ gałąź bazowa przez istniejący `DiffView`.
-- „Scal ten" = `git merge --no-ff` do gałęzi bazowej. Konflikt kończy się komunikatem
-  i pozostawieniem stanu do ręcznego rozwiązania — żadnej automatyki na konfliktach.
-- Usunięcie karty pyta, czy sprzątnąć worktree (`git worktree remove`); domyślnie nie,
-  bo tam mogą być niescommitowane zmiany.
 
 ### M73 — historia zużycia (zrobione)
 

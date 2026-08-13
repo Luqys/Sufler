@@ -1,0 +1,174 @@
+import { useCallback, useEffect, useState, type ReactElement } from 'react';
+import {
+  validateWorktreeName,
+  worktreeLabel,
+  type Worktree,
+} from '../../../../shared/git/worktrees';
+import { tf, useT } from '../../i18n';
+import { useDocks } from '../../docks';
+import { useDialogs } from '../../ui-dialogs';
+
+const ICON_CLAUDE = <span aria-hidden>✳</span>;
+
+/**
+ * Worktree'y projektu (M72): kilka sesji Claude nad jednym zadaniem, każda
+ * w osobnym katalogu roboczym. Aplikacja tworzy katalog sama (`git worktree
+ * add`), bo `claude --worktree` wybrałby go po swojemu i drzewo plików ani
+ * panel Git nie wiedziałyby o nowym korzeniu.
+ */
+export function Worktrees({ root }: { root: string }): ReactElement | null {
+  const t = useT();
+  const { addTab } = useDocks();
+  const { confirmDialog, notify } = useDialogs();
+  const [items, setItems] = useState<Worktree[] | null>(null);
+  const [name, setName] = useState('');
+  const [creating, setCreating] = useState(false);
+
+  const refresh = useCallback(() => {
+    void window.api.listWorktrees(root).then(setItems);
+  }, [root]);
+
+  useEffect(refresh, [refresh]);
+
+  // Projekt bez repozytorium (albo bez dodatkowych worktree'ów) nie potrzebuje sekcji.
+  if (items === null || items.length === 0) {
+    return null;
+  }
+
+  const create = (): void => {
+    const trimmed = name.trim();
+    if (creating || validateWorktreeName(trimmed) !== null) {
+      return;
+    }
+    setCreating(true);
+    void window.api.addWorktree(root, trimmed).then((result) => {
+      setCreating(false);
+      if (result.ok) {
+        setName('');
+        notify(tf('worktree.created', { name: trimmed }), 'success');
+        // Nowy katalog od razu z sesją Claude — po to się go zakłada.
+        addTab('right', 'claude', { cwd: result.path, title: trimmed });
+      } else {
+        notify(t(result.error === 'exists' ? 'worktree.exists' : 'worktree.createFailed'), 'error');
+      }
+      refresh();
+    });
+  };
+
+  const merge = (worktree: Worktree): void => {
+    void confirmDialog({
+      title: t('worktree.mergeTitle'),
+      message: tf('worktree.mergeMessage', { branch: worktree.branch }),
+    }).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      void window.api.mergeWorktree(root, worktree.branch).then((result) => {
+        if (result.ok) {
+          notify(tf('worktree.merged', { branch: worktree.branch, into: result.into }), 'success');
+        } else if (result.error === 'conflict') {
+          // Konfliktów nie rozwiązuje automat — merge został przerwany.
+          notify(tf('worktree.conflict', { branch: worktree.branch }), 'error');
+        } else {
+          notify(t('worktree.mergeFailed'), 'error');
+        }
+        refresh();
+      });
+    });
+  };
+
+  const remove = (worktree: Worktree): void => {
+    void confirmDialog({
+      title: t('worktree.removeTitle'),
+      message: tf('worktree.removeMessage', { path: worktree.path }),
+    }).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      void window.api.removeWorktree(root, worktree.path).then((result) => {
+        if (!result.ok) {
+          notify(t(result.error === 'dirty' ? 'worktree.dirty' : 'worktree.removeFailed'), 'error');
+        }
+        refresh();
+      });
+    });
+  };
+
+  return (
+    <details className="worktrees" data-testid="worktrees" open>
+      <summary>
+        {t('worktree.title')} <span className="group-count">{items.length}</span>
+      </summary>
+      {items.map((worktree) => (
+        <div key={worktree.path} className="worktree-row" data-testid="worktree-row">
+          <span className="worktree-name" title={worktree.path}>
+            {worktreeLabel(worktree)}
+          </span>
+          {worktree.main ? (
+            <span className="badge">{t('worktree.mainBadge')}</span>
+          ) : (
+            <span className="worktree-actions">
+              <button
+                type="button"
+                className="bar-btn"
+                data-testid="worktree-session"
+                title={t('worktree.session')}
+                onClick={() =>
+                  addTab('right', 'claude', {
+                    cwd: worktree.path,
+                    title: worktreeLabel(worktree),
+                  })
+                }
+              >
+                {ICON_CLAUDE}
+              </button>
+              <button
+                type="button"
+                className="bar-btn"
+                data-testid="worktree-merge"
+                title={t('worktree.merge')}
+                onClick={() => merge(worktree)}
+              >
+                {t('worktree.mergeShort')}
+              </button>
+              <button
+                type="button"
+                className="bar-btn"
+                data-testid="worktree-remove"
+                title={t('worktree.remove')}
+                onClick={() => remove(worktree)}
+              >
+                ×
+              </button>
+            </span>
+          )}
+        </div>
+      ))}
+      <div className="worktree-form">
+        <input
+          type="text"
+          className="worktree-input"
+          data-testid="worktree-name"
+          placeholder={t('worktree.namePlaceholder')}
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              create();
+            }
+          }}
+        />
+        <button
+          type="button"
+          className="bar-btn worktree-new"
+          data-testid="worktree-new"
+          disabled={creating || validateWorktreeName(name.trim()) !== null}
+          title={t('worktree.newHint')}
+          onClick={create}
+        >
+          {t('worktree.new')}
+        </button>
+      </div>
+    </details>
+  );
+}

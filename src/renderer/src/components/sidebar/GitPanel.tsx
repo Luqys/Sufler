@@ -18,6 +18,7 @@ import { getLocale, t, tf, useT } from '../../i18n';
 import { fullDateTime, relativeTime } from '../../relative-time';
 import { useDialogs } from '../../ui-dialogs';
 import { useWorkspace } from '../../workspace';
+import { Worktrees } from './Worktrees';
 
 /** Paleta torów gałęzi (indeks kolumny → kolor). */
 const LANE_COLORS = ['#d97757', '#2563eb', '#16a34a', '#a855f7', '#db2777', '#0891b2', '#f59e0b'];
@@ -333,6 +334,7 @@ export function GitPanel(): ReactElement {
         </button>
       </div>
       <Checkpoints root={root} />
+      <Worktrees root={root} />
       {result === null && <p className="placeholder">{t('git.loading')}</p>}
       {result !== null && !result.ok && <p className="placeholder">{t('git.notRepo')}</p>}
       {result?.ok && result.commits.length === 0 && (

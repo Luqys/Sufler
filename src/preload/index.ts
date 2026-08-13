@@ -3,6 +3,8 @@ import type { Appearance } from '../shared/project/appearance';
 import type { HookEntry } from '../shared/skills/hooks-config';
 import type { UsageScan } from '../shared/claude/usage-history';
 import type { DiagnosticsResult } from '../shared/editor/diagnostics';
+import type { Worktree } from '../shared/git/worktrees';
+import type { WorktreeMergeResult, WorktreeWriteResult } from '../shared/ipc';
 import type { Checkpoint } from '../shared/git/checkpoints';
 import type { DetachedTarget } from '../shared/docks/detached';
 import type { WorklogEntry } from '../shared/knowledge/worklog';
@@ -215,6 +217,14 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.GitShowFile, root, rev, path),
   gitCommit: (root: string, paths: string[], message: string): Promise<GitCommitResult> =>
     ipcRenderer.invoke(IPC.GitCommit, root, paths, message),
+  listWorktrees: (root: string): Promise<Worktree[]> =>
+    ipcRenderer.invoke(IPC.WorktreeList, root),
+  addWorktree: (root: string, name: string): Promise<WorktreeWriteResult> =>
+    ipcRenderer.invoke(IPC.WorktreeAdd, root, name),
+  removeWorktree: (root: string, path: string): Promise<WorktreeWriteResult> =>
+    ipcRenderer.invoke(IPC.WorktreeRemove, root, path),
+  mergeWorktree: (root: string, branch: string): Promise<WorktreeMergeResult> =>
+    ipcRenderer.invoke(IPC.WorktreeMerge, root, branch),
   runDiagnostics: (root: string): Promise<DiagnosticsResult> =>
     ipcRenderer.invoke(IPC.DiagnosticsRun, root),
   getUsageHistory: (root: string): Promise<UsageScan> =>

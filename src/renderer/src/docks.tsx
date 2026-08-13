@@ -40,6 +40,8 @@ interface AddTabOptions {
   paneId?: string;
   /** Podział przestrzeni: nowa sesja ląduje w świeżym panelu tuż za wskazanym. */
   splitAfterPaneId?: string;
+  /** Katalog startowy pty — domyślnie korzeń projektu (worktree'y, M72). */
+  cwd?: string;
 }
 
 interface DocksValue {
@@ -95,7 +97,8 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
 
   const addTab = useCallback(
     (dock: DockId, kind: TabKind, options?: AddTabOptions) => {
-      void window.api.ptyCreate({ kind, cwd: root, args: options?.args }).then((result) => {
+      const cwd = options?.cwd ?? root;
+      void window.api.ptyCreate({ kind, cwd, args: options?.args }).then((result) => {
         if (!result.ok) {
           notify(tf('dock.spawnFailed', { error: result.error }), 'error');
           return;
@@ -131,7 +134,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
               id,
               kind,
               title: options?.title ?? result.title,
-              cwd: root,
+              cwd,
               ptyId: result.ptyId,
               status: 'running',
             },
