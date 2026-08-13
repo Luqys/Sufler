@@ -107,6 +107,24 @@ export const PL = {
   'knowledge.summarizeShort': 'Dziennik jest za krótki na streszczenie.',
   'knowledge.summarizeFailed': 'Nie udało się uruchomić `claude -p` — sprawdź logowanie i limity.',
   'knowledge.summarizeError': 'Nie udało się zapisać podsumowania.',
+  // Edytor hooków (M70)
+  'settings.hooks': 'Hooki Claude Code',
+  'settings.hooksHint':
+    'Komendy uruchamiane przez Claude Code na zdarzeniach sesji. Lista pokazuje wszystkie trzy warstwy ustawień.',
+  'settings.hooksEmpty': 'Brak hooków w żadnej warstwie.',
+  'settings.hooksWriteHint':
+    'Nowe wpisy trafiają do `.claude/settings.local.json` projektu — warstwy o najwyższym priorytecie, którą aplikacja ma prawo zmieniać.',
+  'settings.hooksFailed': 'Nie udało się zapisać hooka.',
+  'settings.hookEvent': 'Zdarzenie',
+  'settings.hookMatcher': 'Wzorzec narzędzia (opcjonalny)',
+  'settings.hookCommand': 'Komenda',
+  'settings.hookAdd': 'Dodaj hooka',
+  'settings.hookRemove': 'Usuń',
+  'settings.hookManagedHint': 'Wpis dziennika sesji — właścicielem jest przełącznik wyżej.',
+  'settings.hookLayer.local': 'projekt (local)',
+  'settings.hookLayer.project': 'projekt',
+  'settings.hookLayer.user': 'użytkownik',
+
   'settings.sessionLog': 'Dziennik sesji Claude',
   'settings.sessionLogHint':
     'Sufler dopisuje przebieg pracy (polecenia, edytowane pliki, komendy) do pliku .md w katalogu dziennik-sesji/. Po `/clear` wczytaj ten plik, aby wrócić do wątku bez odtwarzania całej rozmowy — to najprostszy sposób na oszczędzanie kontekstu.',
@@ -679,6 +697,24 @@ export const EN: Record<StringKey, string> = {
   'knowledge.summarizeShort': 'The log is too short to summarize.',
   'knowledge.summarizeFailed': 'Could not run `claude -p` — check your login and limits.',
   'knowledge.summarizeError': 'Could not save the summary.',
+  // Hooks editor (M70)
+  'settings.hooks': 'Claude Code hooks',
+  'settings.hooksHint':
+    'Commands Claude Code runs on session events. The list shows all three settings layers.',
+  'settings.hooksEmpty': 'No hooks in any layer.',
+  'settings.hooksWriteHint':
+    'New entries go to the project `.claude/settings.local.json` — the highest-priority layer the app may change.',
+  'settings.hooksFailed': 'Could not save the hook.',
+  'settings.hookEvent': 'Event',
+  'settings.hookMatcher': 'Tool matcher (optional)',
+  'settings.hookCommand': 'Command',
+  'settings.hookAdd': 'Add hook',
+  'settings.hookRemove': 'Remove',
+  'settings.hookManagedHint': 'Session journal entry — owned by the switch above.',
+  'settings.hookLayer.local': 'project (local)',
+  'settings.hookLayer.project': 'project',
+  'settings.hookLayer.user': 'user',
+
   'settings.sessionLog': 'Claude session log',
   'settings.sessionLogHint':
     'Sufler appends the course of work (prompts, edited files, commands) to a .md file in the dziennik-sesji/ folder. After `/clear`, open that file to pick up the thread without replaying the whole conversation — the simplest way to save context.',

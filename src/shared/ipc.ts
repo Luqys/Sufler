@@ -12,6 +12,7 @@ import type { Checkpoint } from './checkpoints';
 import type { DetachedTarget } from './detached';
 import type { ImportSkip } from './import-drop';
 import type { WorklogEntry } from './worklog';
+import type { HookEntry, HookEvent } from './hooks-config';
 import type { SkillOverrideState } from './skills';
 
 export const IPC = {
@@ -90,6 +91,9 @@ export const IPC = {
   IdeStatusGet: 'ide:status',
   GitShowFile: 'git:show-file',
   GitCommit: 'git:commit',
+  HooksList: 'hooks:list',
+  HooksAdd: 'hooks:add',
+  HooksRemove: 'hooks:remove',
   ClaudeSessionsList: 'claude-sessions:list',
   ClaudeSessionsDetails: 'claude-sessions:details',
   ClaudeHookEvent: 'claude-hooks:event',
@@ -273,6 +277,22 @@ export interface ClaudeMdEntry {
   lines: number;
 }
 
+/** Warstwa settings, z której pochodzi hook (M70). */
+export type HookLayer = 'local' | 'project' | 'user';
+
+export interface HookListEntry {
+  event: HookEvent;
+  matcher: string;
+  command: string;
+  layer: HookLayer;
+  /** Wpis dziennika sesji wpięty przez Suflera — do wglądu, nie do kasowania. */
+  managed: boolean;
+}
+
+export type HookWriteResult =
+  | { ok: true }
+  | { ok: false; error: 'invalid-hook' | 'managed-hook' | 'settings-unreadable' | 'write-failed' };
+
 /** Slash-komenda z `.claude/commands` (M68). */
 export interface CommandEntry {
   /** Nazwa wywołania bez ukośnika; podkatalogi jako `przestrzeń:nazwa`. */
@@ -401,6 +421,10 @@ export interface WindowApi {
   gitShowFile(root: string, rev: string, path: string): Promise<GitShowFileResult>;
   /** Zatwierdzenie zaznaczonych plików z panelu Git (M69). */
   gitCommit(root: string, paths: string[], message: string): Promise<GitCommitResult>;
+  /** Hooki Claude Code z trzech warstw settings (M70). */
+  listHooks(root: string): Promise<HookListEntry[]>;
+  addHook(root: string, entry: HookEntry): Promise<HookWriteResult>;
+  removeHook(root: string, layer: HookLayer, entry: HookEntry): Promise<HookWriteResult>;
   /** Zapisane sesje Claude projektu — menu „Wznów sesję" i panel „Sesje". */
   listClaudeSessions(root: string, limit?: number): Promise<ClaudeSessionSummary[]>;
   /** Rozliczenie sesji (liczniki, ostatnie wymiany); null, gdy transkrypt zniknął. */

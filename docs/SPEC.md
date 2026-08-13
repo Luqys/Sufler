@@ -222,7 +222,7 @@ cztery komendy zielone plus zrzut ekranu ze scenariusza e2e.
 |---|---|---|
 | ~~M68~~ | ~~Slash-komendy z `.claude/commands` jako czwarta grupa panelu skilli~~ (zrobione) | test jedn.: `tests/commands.test.ts`; e2e: `e2e/m68-komendy.spec.ts` |
 | ~~M69~~ | ~~Commit z aplikacji — wybór plików i wiadomość obok istniejącego `DiffView`~~ (zrobione) | test jedn.: `tests/git-commit.test.ts`; e2e: `e2e/m69-commit.spec.ts` |
-| M70 | Edytor hooków w Ustawieniach — te same warstwy co `skillOverrides` | test jedn.: zapis/kasowanie wpisu w trzech warstwach `settings.json`; e2e: dodanie hooka przez UI zapisuje się do `settings.local.json` |
+| ~~M70~~ | ~~Edytor hooków w Ustawieniach — te same warstwy co `skillOverrides`~~ (zrobione) | test jedn.: `tests/hooks-config.test.ts`; e2e: `e2e/m70-hooki.spec.ts` |
 | M71 | Diagnostyka bez LSP — `tsc` i `eslint` w pasku, klik skacze do linii | test jedn.: parser wyjścia obu narzędzi → `{plik, linia, kolumna, treść}`; e2e: błąd składni pokazuje się w pasku i otwiera plik na właściwej linii |
 | M72 | Worktree'y — kilka sesji Claude na jednym zadaniu, porównanie i scalenie | test jedn.: mapowanie karta → worktree w `layout.json`; e2e: utworzenie worktree'a daje kartę z własnym `cwd`, usunięcie sprząta katalog |
 | M73 | Historia zużycia i kosztów z transkryptów `.jsonl` | test jedn.: sumowanie tokenów i kosztu na fixture'owych `.jsonl`; e2e: panel pokazuje sumy dla podstawionego katalogu projektów |
@@ -332,10 +332,12 @@ zatwierdzenia z licznikiem zaznaczonych plików.
   zatwierdzony w terminalu albo cofnięty nie wjedzie do commita z rozpędu.
 - Logika w `src/shared/git-commit.ts`, wykonanie w `src/main/git-commit.ts`.
 
-### M70 — edytor hooków
+### M70 — edytor hooków (zrobione)
 
-Hooki są dziś wstrzykiwane przez Suflera dla własnych potrzeb; użytkownik swoich
-nie ma jak dodać inaczej niż ręczną edycją JSON-a.
+Hooki były wstrzykiwane przez Suflera dla własnych potrzeb; użytkownik swoich nie
+miał jak dodać inaczej niż ręczną edycją JSON-a. Ustawienia mają teraz sekcję
+„Hooki Claude Code": lista wpisów ze wszystkich trzech warstw plus formularz
+(zdarzenie, opcjonalny wzorzec narzędzia, komenda).
 
 - Warstwy identyczne jak przy `skillOverrides`: `.claude/settings.local.json` >
   `.claude/settings.json` > `~/.claude/settings.json`. Ta sama zasada zapisu do
@@ -346,10 +348,17 @@ nie ma jak dodać inaczej niż ręczną edycją JSON-a.
 - Payload na stdin hooka, przydatny w podpowiedziach UI: `hook_event_name`,
   `session_id`, `transcript_path`, `cwd`, `tool_name`, `tool_input`, `tool_response`,
   `permission_mode`, `stop_hook_active`.
-- **Hooki własne Suflera nie pojawiają się na tej liście** — idą osobną drogą przez
+- **Hooki statusu kart nie pojawiają się na tej liście** — idą osobną drogą przez
   `claude --settings '<JSON>'` (flaga przyjmuje ciąg JSON, nie tylko ścieżkę) i nie są
-  częścią konfiguracji użytkownika. Wymieszanie obu źródeł skończy się tym, że ktoś
+  częścią konfiguracji użytkownika. Wymieszanie obu źródeł skończyłoby się tym, że ktoś
   skasuje z UI hooka, od którego zależy status kart.
+- Wyjątkiem jest **globalny dziennik sesji** (M53), który naprawdę siedzi
+  w `~/.claude/settings.json`. Takie wpisy lista pokazuje z plakietką „Sufler"
+  i bez przycisku usuwania: właścicielem jest przełącznik dziennika wyżej,
+  a skasowanie ich tutaj rozjechałoby oba miejsca.
+- Grupy o tym samym wzorcu są łączone zamiast mnożone; usunięcie ostatniej komendy
+  sprząta pustą grupę, puste zdarzenie i pustą mapę `hooks`.
+- Logika w `src/shared/hooks-config.ts`, zapis w `src/main/hooks-config.ts`.
 
 ### M71 — diagnostyka bez LSP
 
