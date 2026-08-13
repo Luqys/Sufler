@@ -48,9 +48,29 @@ drzewa w osobnym refie gita — bez dotykania twoich commitów, gałęzi i indek
 Jedno kliknięcie cofa pliki do wybranego stanu; bieżący stan trafia najpierw do
 nowej migawki, więc cofnięcie też da się cofnąć.
 
-**Skille, agenci i reguły.** Przegląd tego, co widzi Claude, z przełącznikami
-włącz/wyłącz (zapisywanymi w `.claude/settings.local.json`) i kreatorami nowych.
+**Skille, agenci, reguły i slash-komendy.** Przegląd tego, co widzi Claude,
+z przełącznikami włącz/wyłącz (zapisywanymi w `.claude/settings.local.json`)
+i kreatorami nowych. Komendy z `.claude/commands` mają przestrzenie nazw
+(`/frontend:build`), a `Cmd+klik` wstawia wywołanie do aktywnej sesji.
 Sesje Claude mogą tworzyć skille same, przez MCP.
+
+**Git bez wychodzenia do terminala.** Zaznaczasz zmienione pliki albo
+pojedyncze fragmenty, piszesz opis i zatwierdzasz. Commit fragmentów idzie
+przez tymczasowy indeks, więc to, co zastage'owałeś wcześniej, zostaje
+nietknięte. Do tego worktree'y: kilka sesji Claude nad jednym zadaniem,
+porównanie „co ta gałąź wniosła" i scalenie jednym kliknięciem.
+
+**Problemy projektu.** `tsc` i `eslint` na żądanie — przycisk na pasku tytułu
+uruchamia sprawdzenie i otwiera kartę z listą, z której klik skacze do linii.
+Otwarte pliki dostają podkreślenia Monaco. Opcjonalnie po każdym zapisie,
+z dławikiem. Bez serwerów językowych i bez trybu ciągłego.
+
+**Paleta komend.** `Cmd+K` otwiera panele, doki, motywy, ustawienia
+i przełącza projekty; `Cmd+P` szuka plików po nazwie.
+
+**Historia sesji.** Rozmowy z Claude pogrupowane po dniach, z czasem, gałęzią
+i szukajką — działającą także w **treści** rozmów, nie tylko w tytułach.
+Zużycie tokenów liczone z transkryptów.
 
 **Limity planu.** Zużycie okna 5-godzinnego i tygodnia prosto z tego samego
 źródła, którego używa `/usage`, wraz z prognozą wyczerpania i ostrzeżeniem przy
@@ -115,12 +135,18 @@ Zmiana jest gotowa, gdy wszystkie cztery komendy są zielone.
 ### Struktura
 
 ```
-src/main       proces główny Electrona — okna, IPC, git, MCP, hooki
+src/main       proces główny Electrona; index.ts to okno i rejestracja IPC,
+               reszta w obszarach: claude/ project/ git/ knowledge/ skills/
+               mcp/ window/ system/
 src/preload    most contextBridge (window.api)
 src/shared     typy i czysta logika współdzielona, testowana jednostkowo
-src/renderer   interfejs w React
-tests          testy jednostkowe (vitest)
-e2e            scenariusze Playwright
+               (claude/ docks/ editor/ git/ knowledge/ mcp/ skills/ project/
+               system/ + ipc.ts i i18n/ jako kontrakty całej aplikacji)
+src/renderer   interfejs w React — components/ z podziałem na dock, editor,
+               sidebar, graph, dialogs, views, shell; styles/ w modułach
+tests          testy jednostkowe (vitest), lustrzanie do src/shared
+e2e            scenariusze Playwright pogrupowane: start dock editor panele
+               wiedza ustawienia
 build          ikony aplikacji wraz ze źródłami wektorowymi
 docs           specyfikacja i decyzje projektowe
 .github        automaty CI i wydań
@@ -128,8 +154,13 @@ docs           specyfikacja i decyzje projektowe
 
 Logika, którą da się przetestować bez Electrona, mieszka w `src/shared` —
 procesy główny i renderer korzystają z niej wspólnie. Teksty interfejsu idą
-wyłącznie przez słownik `src/shared/i18n.ts` (polski i angielski, typ wymusza
-komplet tłumaczeń).
+wyłącznie przez słownik `src/shared/i18n/` (`pl.ts` i `en.ts`; typ wywodzi się
+z polskiego, więc brak tłumaczenia zatrzymuje typecheck).
+
+Wygląd trzymają trzy poziomy przycisku (`.btn-primary` — jedna akcja główna
+na rząd, `.bar-btn` — cichy, `--danger` — destrukcyjny) i tokeny motywu
+w `styles/01-podstawy.css`. Kolor stanu zapisany na sztywno zamiast tokenem
+przestaje działać w motywie ciemnym i matrixowym.
 
 Zrzut w README odświeża generator: `npx playwright test -c scripts/zrzut.config.ts`.
 
