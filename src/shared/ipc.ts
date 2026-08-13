@@ -13,6 +13,7 @@ import type { DetachedTarget } from './detached';
 import type { ImportSkip } from './import-drop';
 import type { WorklogEntry } from './worklog';
 import type { HookEntry, HookEvent } from './hooks-config';
+import type { UsageScan } from './usage-history';
 import type { SkillOverrideState } from './skills';
 
 export const IPC = {
@@ -91,6 +92,7 @@ export const IPC = {
   IdeStatusGet: 'ide:status',
   GitShowFile: 'git:show-file',
   GitCommit: 'git:commit',
+  UsageHistoryGet: 'usage:history',
   HooksList: 'hooks:list',
   HooksAdd: 'hooks:add',
   HooksRemove: 'hooks:remove',
@@ -421,6 +423,8 @@ export interface WindowApi {
   gitShowFile(root: string, rev: string, path: string): Promise<GitShowFileResult>;
   /** Zatwierdzenie zaznaczonych plików z panelu Git (M69). */
   gitCommit(root: string, paths: string[], message: string): Promise<GitCommitResult>;
+  /** Zużycie tokenów policzone z transkryptów projektu (M73). */
+  getUsageHistory(root: string): Promise<UsageScan>;
   /** Hooki Claude Code z trzech warstw settings (M70). */
   listHooks(root: string): Promise<HookListEntry[]>;
   addHook(root: string, entry: HookEntry): Promise<HookWriteResult>;

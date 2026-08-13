@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import type { Appearance } from '../shared/appearance';
 import type { HookEntry } from '../shared/hooks-config';
+import type { UsageScan } from '../shared/usage-history';
 import type { Checkpoint } from '../shared/checkpoints';
 import type { DetachedTarget } from '../shared/detached';
 import type { WorklogEntry } from '../shared/worklog';
@@ -202,6 +203,8 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.GitShowFile, root, rev, path),
   gitCommit: (root: string, paths: string[], message: string): Promise<GitCommitResult> =>
     ipcRenderer.invoke(IPC.GitCommit, root, paths, message),
+  getUsageHistory: (root: string): Promise<UsageScan> =>
+    ipcRenderer.invoke(IPC.UsageHistoryGet, root),
   listHooks: (root: string): Promise<HookListEntry[]> => ipcRenderer.invoke(IPC.HooksList, root),
   addHook: (root: string, entry: HookEntry): Promise<HookWriteResult> =>
     ipcRenderer.invoke(IPC.HooksAdd, root, entry),

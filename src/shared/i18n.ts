@@ -108,6 +108,15 @@ export const PL = {
   'knowledge.summarizeFailed': 'Nie udało się uruchomić `claude -p` — sprawdź logowanie i limity.',
   'knowledge.summarizeError': 'Nie udało się zapisać podsumowania.',
   // Edytor hooków (M70)
+  // Historia zużycia (M73)
+  'usage.history': 'Zużycie tokenów',
+  'usage.historyLoading': 'Liczę zużycie z transkryptów…',
+  'usage.input': 'wejście',
+  'usage.output': 'wyjście',
+  'usage.cacheWrite': 'zapis cache',
+  'usage.cacheRead': 'odczyt cache',
+  'usage.dayTitle': '{day}: {tokens} tokenów',
+
   'settings.hooks': 'Hooki Claude Code',
   'settings.hooksHint':
     'Komendy uruchamiane przez Claude Code na zdarzeniach sesji. Lista pokazuje wszystkie trzy warstwy ustawień.',
@@ -698,6 +707,15 @@ export const EN: Record<StringKey, string> = {
   'knowledge.summarizeFailed': 'Could not run `claude -p` — check your login and limits.',
   'knowledge.summarizeError': 'Could not save the summary.',
   // Hooks editor (M70)
+  // Usage history (M73)
+  'usage.history': 'Token usage',
+  'usage.historyLoading': 'Counting usage from transcripts…',
+  'usage.input': 'input',
+  'usage.output': 'output',
+  'usage.cacheWrite': 'cache write',
+  'usage.cacheRead': 'cache read',
+  'usage.dayTitle': '{day}: {tokens} tokens',
+
   'settings.hooks': 'Claude Code hooks',
   'settings.hooksHint':
     'Commands Claude Code runs on session events. The list shows all three settings layers.',

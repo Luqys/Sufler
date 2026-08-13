@@ -21,6 +21,7 @@ import { migrateLegacyConfigDir, readLayout, writeLayout } from './layout-store'
 import { runGitLog, runGitShowCommit } from './git-log';
 import { runGitCommit } from './git-commit';
 import { addHook, listHooks, removeHook } from './hooks-config';
+import { readUsageHistory } from './usage-history';
 import { runGitShowFile } from './git-show';
 import { runGitStatus } from './git-status';
 import { startIdeServer, stopIdeServer, updateIdeWorkspaceFolders } from './ide-server';
@@ -290,6 +291,7 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.GitCommit, (_event, root: string, paths: string[], message: string) =>
     runGitCommit(root, paths, message),
   );
+  ipcMain.handle(IPC.UsageHistoryGet, (_event, root: string) => readUsageHistory(root));
   ipcMain.handle(IPC.HooksList, (_event, root: string) => listHooks(root));
   ipcMain.handle(IPC.HooksAdd, (_event, root: string, entry: HookEntry) => addHook(root, entry));
   ipcMain.handle(IPC.HooksRemove, (_event, root: string, layer: HookLayer, entry: HookEntry) =>

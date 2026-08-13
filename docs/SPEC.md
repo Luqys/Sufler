@@ -225,7 +225,7 @@ cztery komendy zielone plus zrzut ekranu ze scenariusza e2e.
 | ~~M70~~ | ~~Edytor hooków w Ustawieniach — te same warstwy co `skillOverrides`~~ (zrobione) | test jedn.: `tests/hooks-config.test.ts`; e2e: `e2e/m70-hooki.spec.ts` |
 | M71 | Diagnostyka bez LSP — `tsc` i `eslint` w pasku, klik skacze do linii | test jedn.: parser wyjścia obu narzędzi → `{plik, linia, kolumna, treść}`; e2e: błąd składni pokazuje się w pasku i otwiera plik na właściwej linii |
 | M72 | Worktree'y — kilka sesji Claude na jednym zadaniu, porównanie i scalenie | test jedn.: mapowanie karta → worktree w `layout.json`; e2e: utworzenie worktree'a daje kartę z własnym `cwd`, usunięcie sprząta katalog |
-| M73 | Historia zużycia i kosztów z transkryptów `.jsonl` | test jedn.: sumowanie tokenów i kosztu na fixture'owych `.jsonl`; e2e: panel pokazuje sumy dla podstawionego katalogu projektów |
+| ~~M73~~ | ~~Historia zużycia z transkryptów `.jsonl`~~ (zrobione) | test jedn.: `tests/usage-history.test.ts`; e2e: `e2e/m73-zuzycie.spec.ts` |
 | ~~M74~~ | ~~Paleta komend `Cmd+K` — panele, akcje doków, motywy~~ (zrobione) | test jedn.: `tests/command-palette.test.ts`; e2e: `e2e/m74-paleta.spec.ts` |
 
 Kolejność sensowna, nie obowiązkowa: M68 i M69 są tanie i domykają rzeczy zaczęte
@@ -386,14 +386,25 @@ Praca kilkoma sesjami naraz odbywa się dziś ręcznie, poza aplikacją.
 - Usunięcie karty pyta, czy sprzątnąć worktree (`git worktree remove`); domyślnie nie,
   bo tam mogą być niescommitowane zmiany.
 
-### M73 — historia zużycia
+### M73 — historia zużycia (zrobione)
 
-`UsageIndicator` pokazuje stan chwilowy, M57 dokłada prognozę. Brakuje przeszłości:
-transkrypty w `~/.claude/projects/<slug>/*.jsonl` mają zużycie każdej tury.
+`UsageIndicator` pokazywał stan chwilowy, M57 prognozę wyczerpania limitu —
+brakowało przeszłości. Panel „Sesje" ma teraz na górze zwijaną sekcję „Zużycie
+tokenów": suma projektu, wykres ostatnich czternastu dni i rozbicie na modele.
 
-- Sumowanie per sesja, per dzień i per projekt; wykres w panelu, nie na pasku.
-- Fixture'y `.jsonl` w `tests/` — nie czytać prawdziwego katalogu użytkownika w testach.
-- Katalog projektów nadpisywalny zmienną środowiskową, jak reszta ścieżek w e2e.
+- Liczone z `message.usage` wpisów `assistant` w transkryptach
+  (`input_tokens`, `output_tokens`, `cache_creation_input_tokens`,
+  `cache_read_input_tokens` — schemat sprawdzony na prawdziwym pliku).
+- Skaner jest **strumieniowy** i karmiony linia po linii, bo transkrypty sięgają
+  trzydziestu megabajtów; liczymy na żądanie panelu, bez pollingu.
+- Podział na dni idzie po **dacie lokalnej**, nie UTC — inaczej wieczorna praca
+  lądowałaby w następnym dniu. Testy liczą oczekiwane daty tą samą funkcją,
+  więc przechodzą w każdej strefie (sprawdzone w UTC i Pacific/Auckland).
+- Zakres dni jest ciągły: dni bez pracy dostają zera i rysują się kreską tła,
+  żeby przerwy było widać zamiast ściskać słupki obok siebie.
+- Projekt bez ani jednej odpowiedzi modelu nie pokazuje sekcji w ogóle.
+- Katalog transkryptów bierze się z `CLAUDE_CONFIG_DIR`, więc e2e podstawia własny
+  zamiast czytać katalog użytkownika.
 
 ### M74 — paleta komend (zrobione)
 

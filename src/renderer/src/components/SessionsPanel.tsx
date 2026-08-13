@@ -7,6 +7,7 @@ import { tf, tp, useT } from '../i18n';
 import { clockTime, compactDateTime, fullDateTime, relativeTime } from '../relative-time';
 import { useDocks } from '../docks';
 import { useWorkspace } from '../workspace';
+import { UsageHistory } from './UsageHistory';
 
 /** Ile sesji trzyma lista — panel jest przeglądarką historii, nie menu. */
 const LIST_LIMIT = 60;
@@ -165,6 +166,7 @@ export function SessionsPanel(): ReactElement {
           {ICON_REFRESH}
         </button>
       </div>
+      <UsageHistory root={root} reloadKey={reloads} />
       {sessions === null && <p className="placeholder">{t('sessions.loading')}</p>}
       {sessions !== null && sessions.length === 0 && (
         <p className="placeholder">{t('sessions.empty')}</p>
