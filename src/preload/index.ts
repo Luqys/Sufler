@@ -23,6 +23,7 @@ import {
   type IdeStatus,
   type KnowledgeFile,
   type ListFilesResult,
+  type McpAddResult,
   type McpStatusResult,
   type ProjectCreateInput,
   type ProjectCreateResult,
@@ -55,6 +56,7 @@ import type { IdeSelection } from '../shared/ide-protocol';
 import type { LayoutState } from '../shared/layout';
 import type { UsageLimitsResult } from '../shared/limits';
 import type { McpConfigServer, McpDetail } from '../shared/mcp';
+import type { McpAddInput } from '../shared/mcp-add';
 import type { ObsidianRestConfig } from '../shared/obsidian-rest';
 import type { SendToNoteResult } from '../shared/ipc';
 
@@ -144,6 +146,8 @@ const api: WindowApi = {
   getMcpDetails: (root: string, name: string): Promise<McpDetail[]> =>
     ipcRenderer.invoke(IPC.McpGetDetails, root, name),
   watchMcp: (root: string): Promise<void> => ipcRenderer.invoke(IPC.McpWatch, root),
+  addMcpServer: (root: string, input: McpAddInput): Promise<McpAddResult> =>
+    ipcRenderer.invoke(IPC.McpAdd, root, input),
   onMcpChanged: (listener: () => void): void => {
     ipcRenderer.on(IPC.McpChanged, () => listener());
   },

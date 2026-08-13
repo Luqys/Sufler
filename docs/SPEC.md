@@ -201,10 +201,10 @@ Stan na 2026-08-13: zajęte ciągiem M0–M63, gałęzie `m65-dystrybucja`
 i `m66-poprawki-zgloszenia`, M67 (panel „Sesje"), M68 (slash-komendy),
 M69 (commit z aplikacji), M70 (edytor hooków), M73 (historia zużycia),
 M74 (paleta komend), M75 (pasek ikon), M76 (ekran startowy tworzy folder)
-M77 (szlif UI i podział przeciągnięciem) oraz M78 (uruchamianie `claude`
-na Windowsie) — cztery ostatnie ze zgłoszeń z pracy z aplikacją. Wolne:
-M64 (luka w środku, zostawić), M71–M72 (propozycje z tabeli poniżej)
-i M79 w górę.
+M77 (szlif UI i podział przeciągnięciem), M78 (uruchamianie `claude`
+na Windowsie) oraz M79 (dodawanie serwera MCP) — pięć ostatnich ze zgłoszeń
+z pracy z aplikacją. Wolne: M64 (luka w środku, zostawić), M71–M72
+(propozycje z tabeli poniżej) i M80 w górę.
 
 **Numer w tabeli poniżej jest propozycją, nie rezerwacją.** Sesja startująca kamień
 bierze pierwszy wolny numer z komendy wyżej i poprawia tu wiersz. Inaczej backlog
@@ -278,6 +278,34 @@ Warstwa danych to ta sama, co w M34 (`src/shared/claude-sessions.ts`,
 linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
+
+### M79 — dodawanie serwera MCP z aplikacji (zrobione)
+
+Panel MCP tylko czytał: konfigurację z plików i stan z `claude mcp list`. Nowy
+serwer trzeba było dopisać w terminalu albo ręcznie w JSON-ie. Teraz w pasku
+panelu jest „+", a kreator ma dokładnie te pola, które przyjmuje CLI: nazwę,
+transport (HTTP / SSE / lokalny stdio), adres albo komendę, nagłówki i zakres.
+
+Zapis idzie przez **`claude mcp add`**, nie przez własne pisanie do `.mcp.json`
+i `~/.claude.json`. Powód: to CLI zna układ pól i zakresów, a aplikacja i tak
+czyta stan z `claude mcp list` — samodzielny zapis oznaczałby dwa źródła prawdy
+i cichą rozbieżność przy zmianie formatu. Tą samą drogą aplikacja rejestruje
+własny serwer `wiedza-graf` (M20).
+
+Rozstrzygnięcia warte zapamiętania:
+
+- **Komenda stdio idzie po `--`**, inaczej jej własne flagi (`-y`, `--port`)
+  zjadłoby CLI. Podział na argumenty szanuje cudzysłowy.
+- **Nagłówki wpisuje się po jednym w wierszu** (`Nazwa: wartość`); wiersz bez
+  dwukropka wraca jako błąd, zamiast po cichu zgubić token uwierzytelniający.
+- **Zakres ma zdanie wyjaśniające pod polem** — różnica między `.mcp.json`
+  (widzi zespół) a `~/.claude.json` (widzę ja, we wszystkich projektach) jest
+  nieoczywista, a myłka kosztuje wyciek tokenu do repozytorium.
+- Po dodaniu main rozgłasza `mcp:changed`, bo zakres `user` zapisuje plik poza
+  projektem, którego obserwator drzewa nie widzi.
+
+Czysta logika (walidacja, budowa argumentów) w `src/shared/mcp-add.ts`; e2e
+przechodzi całą drogę na atrapie CLI, która zapisuje otrzymane argumenty.
 
 ### M78 — uruchamianie `claude` na Windowsie (zrobione)
 

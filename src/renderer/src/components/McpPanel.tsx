@@ -8,7 +8,9 @@ import {
   type McpServerView,
 } from '../../../shared/mcp';
 import { tf, useT } from '../i18n';
+import { useDialogs } from '../ui-dialogs';
 import { useWorkspace } from '../workspace';
+import { McpCreateDialog } from './McpCreateDialog';
 import { mcpIconFor } from './mcp-icons';
 
 /** Klucze tłumaczeń stanów — etykietę pobiera t() w momencie renderu. */
@@ -18,6 +20,12 @@ const STATE_KEY: Record<McpServerView['state'], StringKey> = {
   pending: 'mcp.statePending',
   unknown: 'mcp.stateUnknown',
 };
+
+const ICON_ADD = (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+    <path d="M8 3.4v9.2M3.4 8h9.2" />
+  </svg>
+);
 
 const ICON_REFRESH = (
   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
@@ -29,10 +37,12 @@ const ICON_REFRESH = (
 export function McpPanel(): ReactElement {
   const t = useT();
   const { root } = useWorkspace();
+  const { notify } = useDialogs();
   const [config, setConfig] = useState<McpConfigServer[]>([]);
   const [status, setStatus] = useState<McpListEntry[] | null>(null);
   const [cliError, setCliError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [details, setDetails] = useState<ReadonlyMap<string, McpDetail[] | 'loading'>>(new Map());
   const rootRef = useRef(root);
@@ -99,6 +109,15 @@ export function McpPanel(): ReactElement {
         <button
           type="button"
           className="tree-toolbtn"
+          data-testid="mcp-add"
+          title={t('mcp.add.title')}
+          onClick={() => setCreating(true)}
+        >
+          {ICON_ADD}
+        </button>
+        <button
+          type="button"
+          className="tree-toolbtn"
           data-testid="mcp-refresh"
           title={t('mcp.refresh')}
           onClick={refresh}
@@ -106,6 +125,20 @@ export function McpPanel(): ReactElement {
           {ICON_REFRESH}
         </button>
       </div>
+      {creating && (
+        <McpCreateDialog
+          onClose={() => setCreating(false)}
+          onSubmit={async (input) => {
+            const result = await window.api.addMcpServer(rootRef.current, input);
+            if (result.ok) {
+              setCreating(false);
+              notify(tf('mcp.add.added', { name: input.name }), 'success');
+              refresh();
+            }
+            return result;
+          }}
+        />
+      )}
       {cliError && <p className="mcp-error">{tf('mcp.cliError', { error: cliError })}</p>}
       {servers.length === 0 && <p className="placeholder">{t('mcp.empty')}</p>}
       {servers.map((server) => {

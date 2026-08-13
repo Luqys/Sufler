@@ -7,6 +7,7 @@ import type { KnowledgeGraph } from './graph';
 import type { LayoutState, LayoutVisibilityKey } from './layout';
 import type { UsageLimitsResult } from './limits';
 import type { McpConfigServer, McpDetail, McpListEntry } from './mcp';
+import type { McpAddInput } from './mcp-add';
 import type { ObsidianRestConfig } from './obsidian-rest';
 import type { Checkpoint } from './checkpoints';
 import type { DetachedTarget } from './detached';
@@ -65,6 +66,8 @@ export const IPC = {
   McpGetDetails: 'mcp:get-details',
   McpWatch: 'mcp:watch',
   McpChanged: 'mcp:changed',
+  /** Dodanie serwera MCP z aplikacji (M79) — przez `claude mcp add`. */
+  McpAdd: 'mcp:add',
   GitStatusGet: 'git:status',
   TreeWatchDirs: 'tree:watch-dirs',
   TreeChanged: 'tree:changed',
@@ -122,6 +125,11 @@ export type ProjectCreateResult =
   /** `git` mówi, czy repozytorium naprawdę powstało (brak gita nie unieważnia folderu). */
   | { ok: true; path: string; git: boolean }
   | { ok: false; error: 'invalid-name' | 'exists' | 'no-parent' | 'mkdir-failed' };
+
+export type McpAddResult =
+  | { ok: true }
+  /** `cli` niesie wyjście `claude`, gdy zawiodło z innego powodu niż duplikat. */
+  | { ok: false; error: 'exists' | 'claude-missing' | 'failed'; cli?: string };
 
 /** Lista plików projektu (rg --files) — szybkie otwieranie Cmd+P. */
 export type ListFilesResult =
@@ -404,6 +412,8 @@ export interface WindowApi {
   listMcpStatus(root: string): Promise<McpStatusResult>;
   getMcpDetails(root: string, name: string): Promise<McpDetail[]>;
   watchMcp(root: string): Promise<void>;
+  /** Dodaje serwer MCP poleceniem `claude mcp add` i odświeża panel (M79). */
+  addMcpServer(root: string, input: McpAddInput): Promise<McpAddResult>;
   onMcpChanged(listener: () => void): void;
   gitStatus(root: string): Promise<GitStatusFile[]>;
   watchTreeDirs(dirs: string[]): Promise<void>;

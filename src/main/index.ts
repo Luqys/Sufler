@@ -69,10 +69,16 @@ import {
 } from './skills';
 import type {
   AgentCreateInput,
+  McpAddResult,
   ProjectCreateInput,
   RuleCreateInput,
   SkillCreateInput,
 } from '../shared/ipc';
+import {
+  buildMcpAddArgs,
+  isAlreadyExistsError,
+  type McpAddInput,
+} from '../shared/mcp-add';
 import { closeSkillsWatcher, watchSkillsSources } from './skills-watcher';
 import { isSessionLogEnabled, setSessionLogEnabled } from './session-log';
 import { isGlobalSessionLogEnabled, setGlobalSessionLogEnabled } from './session-log-global';
@@ -304,6 +310,37 @@ void app.whenReady().then(() => {
       watchMcpConfig(win, root);
     }
   });
+  ipcMain.handle(
+    IPC.McpAdd,
+    async (_event, root: string, input: McpAddInput): Promise<McpAddResult> => {
+      const env = await resolveShellEnv();
+      try {
+        await execFileAsync('claude', buildMcpAddArgs(input), {
+          cwd: root,
+          env,
+          timeout: 30_000,
+          encoding: 'utf8',
+        });
+      } catch (error) {
+        const message = String((error as Error).message ?? error);
+        if (isAlreadyExistsError(message)) {
+          return { ok: false, error: 'exists' };
+        }
+        if (/ENOENT|not found/i.test(message)) {
+          return { ok: false, error: 'claude-missing' };
+        }
+        return { ok: false, error: 'failed', cli: message.slice(0, 400) };
+      }
+      // Zakres `user` idzie do ~/.claude.json, którego obserwator projektu nie
+      // widzi — panel dostaje sygnał wprost, żeby nowy serwer pojawił się od razu.
+      for (const win of BrowserWindow.getAllWindows()) {
+        if (!win.isDestroyed()) {
+          win.webContents.send(IPC.McpChanged);
+        }
+      }
+      return { ok: true };
+    },
+  );
   ipcMain.handle(IPC.GitStatusGet, (_event, root: string) => runGitStatus(root));
   ipcMain.handle(IPC.GitShowFile, (_event, root: string, rev: string, path: string) =>
     runGitShowFile(root, rev, path),
