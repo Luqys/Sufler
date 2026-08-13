@@ -256,36 +256,66 @@ body.dragging-horizontal .splitter.horizontal::after {
   background: color-mix(in srgb, var(--panel) 78%, transparent);
 }
 
+/*
+ * Pasek ikon (M75): 20-pikselowe ikony w 40-pikselowych celach. Poprzednie
+ * 17 px w kolorze --muted było i za małe do trafienia, i za słabe do
+ * odczytania — na ciemnym motywie ikony ledwo odcinały się od tła.
+ */
 .icon-rail {
-  width: 44px;
+  width: 52px;
   flex: none;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding-top: 10px;
-  background: color-mix(in srgb, var(--panel-alt) 70%, transparent);
+  gap: 6px;
+  padding-top: 12px;
+  background: color-mix(in srgb, var(--panel-alt) 92%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
 
 .rail-btn {
-  width: 32px;
-  height: 32px;
+  position: relative;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
   border: none;
-  border-radius: 7px;
+  border-radius: 10px;
   background: transparent;
-  color: var(--muted);
+  /* Wyraźniejsze od --muted, ale wciąż spokojniejsze niż tekst treści. */
+  color: color-mix(in srgb, var(--text) 66%, transparent);
   cursor: pointer;
+  transition:
+    color 120ms ease,
+    background 120ms ease;
 }
 
 .rail-btn:hover {
   color: var(--text);
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+}
+
+.rail-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 65%, transparent);
+  outline-offset: 1px;
 }
 
 .rail-btn.active {
   color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+/* Pigułka przy krawędzi paska — otwarty panel widać kątem oka, bez czytania ikony. */
+.rail-btn.active::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 22px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
 }
 
 .sidebar-view {

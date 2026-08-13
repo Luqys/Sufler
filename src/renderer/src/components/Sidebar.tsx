@@ -19,20 +19,20 @@ interface RailItem {
 }
 
 const ICON_FILES = (
-  <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
+  <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
     <path d="M4 1.8h5.2L13.5 6v7.2a1 1 0 0 1-1 1h-8.5a1 1 0 0 1-1-1V2.8a1 1 0 0 1 1-1Z" />
     <path d="M9.2 1.8V6h4.3" />
   </svg>
 );
 
 const ICON_SKILLS = (
-  <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round">
+  <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round">
     <path d="M8 1.5l1.7 4 4.3 1.7-4.3 1.7-1.7 4-1.7-4-4.3-1.7 4.3-1.7 1.7-4Z" />
   </svg>
 );
 
 const ICON_MCP = (
-  <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+  <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
     <path d="M5.8 1.5v3.2M10.2 1.5v3.2" />
     <path d="M4.2 4.7h7.6v2.8a3.8 3.8 0 0 1-7.6 0V4.7Z" />
     <path d="M8 11.3v3.2" />
@@ -40,14 +40,14 @@ const ICON_MCP = (
 );
 
 const ICON_SEARCH = (
-  <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+  <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
     <circle cx="7" cy="7" r="4.4" />
     <path d="M10.4 10.4L14 14" />
   </svg>
 );
 
 const ICON_KNOWLEDGE = (
-  <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round">
+  <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round">
     <path d="M2.6 3.4A1.9 1.9 0 0 1 4.5 1.5h9v11.1h-9a1.9 1.9 0 0 0-1.9 1.9V3.4Z" />
     <path d="M13.5 12.6v1.9H4.4" strokeLinecap="round" />
     <path d="M5.6 4.8h5M5.6 7.2h5" strokeLinecap="round" />
@@ -55,7 +55,7 @@ const ICON_KNOWLEDGE = (
 );
 
 const ICON_GIT = (
-  <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
+  <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
     <circle cx="4.5" cy="3.5" r="2" />
     <circle cx="4.5" cy="12.5" r="2" />
     <circle cx="11.5" cy="5.5" r="2" />
@@ -65,7 +65,7 @@ const ICON_GIT = (
 
 /** Zegar z zawrotką — ta sama rodzina co ↺ „wznów" w doku i w panelu. */
 const ICON_SESSIONS = (
-  <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
     <path d="M2.6 8a5.4 5.4 0 1 0 1.6-3.8" />
     <path d="M2.4 1.9v2.8h2.8" />
     <path d="M8 5.1V8.2l2.1 1.3" />

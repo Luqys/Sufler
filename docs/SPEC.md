@@ -198,8 +198,10 @@ git log --all --oneline | grep -oE '^[0-9a-f]+ M[0-9]+' | grep -oE 'M[0-9]+' | s
 ```
 
 Stan na 2026-08-13: zajęte ciągiem M0–M63, gałęzie `m65-dystrybucja`
-i `m66-poprawki-zgloszenia`, oraz M67 (panel „Sesje" w lewym pasku, w toku).
-Wolne: M64 (luka w środku, zostawić) i M68 w górę.
+i `m66-poprawki-zgloszenia`, M67 (panel „Sesje"), M68 (slash-komendy),
+M69 (commit z aplikacji) oraz M75 (pasek ikon — zgłoszenie z pracy
+z aplikacją). Wolne: M64 (luka w środku, zostawić), M70–M74 (propozycje
+z tabeli poniżej) i M76 w górę.
 
 **Numer w tabeli poniżej jest propozycją, nie rezerwacją.** Sesja startująca kamień
 bierze pierwszy wolny numer z komendy wyżej i poprawia tu wiersz. Inaczej backlog
@@ -273,6 +275,24 @@ Warstwa danych to ta sama, co w M34 (`src/shared/claude-sessions.ts`,
 linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
+
+### M75 — lewy pasek ikon (zrobione)
+
+Zgłoszenie z pracy z aplikacją: ikony przełączające panele są za małe i zbyt
+mało widoczne. Były to kwadraty 32 px z ikoną 17 px w kolorze `--muted`, więc
+na ciemnym motywie ledwo odcinały się od tła paska. Po zmianie: pasek 52 px,
+cel 40 px, ikona 22 px, kolor `--text` zmieszany do 66% (zamiast `--muted`),
+tło pod kursorem i jednoznaczny stan aktywny — tło w kolorze przewodnim plus
+pigułka przy krawędzi paska, żeby otwarty panel dało się rozpoznać kątem oka.
+
+Widoczność jest sprawdzana na FAKTYCZNYCH pikselach zrzutu (`decodePng`
++ `extremeContrast` w `e2e/utils.ts`), a nie na deklaracjach CSS — `color-mix()`
+liczy się do `oklab()` z alfą, więc realny kontrast powstaje dopiero po
+złożeniu z tłem. Próg w teście: 3:1, tyle WCAG wymaga od elementów graficznych
+interfejsu. Motyw w teście bierze się z zapisanego `state.json`
+(`makeConfigHomeWithMode`), nie z `emulateMedia` — przy tym drugim watcher
+trybu „systemowego" (M58) przełącza paletę asynchronicznie i pomiar łapie stan
+w trakcie zmiany.
 
 ### M68 — slash-komendy w panelu (zrobione)
 

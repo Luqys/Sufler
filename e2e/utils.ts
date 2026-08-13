@@ -2,6 +2,7 @@ import { execSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { inflateSync } from 'node:zlib';
 import { _electron as electron, type ElectronApplication } from 'playwright';
 
 /** Projekt-fixture: repo git z .gitignore, kilkoma plikami i katalogiem node_modules. */
@@ -81,6 +82,127 @@ while IFS= read -r line; do
 done
 `;
   writeFileSync(join(dir, 'claude'), script, { mode: 0o755 });
+  return dir;
+}
+
+export interface DecodedPng {
+  width: number;
+  height: number;
+  /** Kanały R, G, B piksela (alfa pomijamy — zrzuty są nieprzezroczyste). */
+  pixel(x: number, y: number): [number, number, number];
+}
+
+/**
+ * Minimalny czytnik PNG (8 bitów na kanał, RGB/RGBA, bez interlace) — tyle
+ * wystarcza dla zrzutów Playwrighta. Potrzebny, bo o widoczności ikon
+ * decydują FAKTYCZNE piksele: deklaracje CSS z `color-mix()` liczą się do
+ * `oklab()`, a przezroczystość składa się dopiero z tłem pod spodem.
+ */
+export function decodePng(bytes: Buffer): DecodedPng {
+  if (bytes.subarray(1, 4).toString('latin1') !== 'PNG') {
+    throw new Error('to nie PNG');
+  }
+  let width = 0;
+  let height = 0;
+  let colorType = 6;
+  const data: Buffer[] = [];
+  let offset = 8;
+  while (offset < bytes.length) {
+    const length = bytes.readUInt32BE(offset);
+    const type = bytes.subarray(offset + 4, offset + 8).toString('latin1');
+    const body = bytes.subarray(offset + 8, offset + 8 + length);
+    if (type === 'IHDR') {
+      width = body.readUInt32BE(0);
+      height = body.readUInt32BE(4);
+      if (body[8] !== 8) {
+        throw new Error('obsługiwane tylko 8 bitów na kanał');
+      }
+      colorType = body[9] ?? 6;
+      if (body[12] !== 0) {
+        throw new Error('obsługiwany tylko PNG bez interlace');
+      }
+    } else if (type === 'IDAT') {
+      data.push(body);
+    } else if (type === 'IEND') {
+      break;
+    }
+    offset += 12 + length;
+  }
+  const channels = colorType === 2 ? 3 : 4;
+  const raw = inflateSync(Buffer.concat(data));
+  const stride = width * channels;
+  const pixels = Buffer.alloc(stride * height);
+  // Odwrócenie filtrów PNG — każdy wiersz zaczyna się bajtem typu filtra.
+  for (let row = 0; row < height; row += 1) {
+    const filter = raw[row * (stride + 1)] ?? 0;
+    const source = raw.subarray(row * (stride + 1) + 1, (row + 1) * (stride + 1));
+    const target = pixels.subarray(row * stride, (row + 1) * stride);
+    const previous = row === 0 ? null : pixels.subarray((row - 1) * stride, row * stride);
+    for (let index = 0; index < stride; index += 1) {
+      const rawByte = source[index] ?? 0;
+      const left = index >= channels ? (target[index - channels] ?? 0) : 0;
+      const up = previous ? (previous[index] ?? 0) : 0;
+      const upLeft = previous && index >= channels ? (previous[index - channels] ?? 0) : 0;
+      let value = rawByte;
+      if (filter === 1) {
+        value = rawByte + left;
+      } else if (filter === 2) {
+        value = rawByte + up;
+      } else if (filter === 3) {
+        value = rawByte + ((left + up) >> 1);
+      } else if (filter === 4) {
+        const p = left + up - upLeft;
+        const distances = [Math.abs(p - left), Math.abs(p - up), Math.abs(p - upLeft)];
+        const nearest = Math.min(...distances);
+        value = rawByte + (nearest === distances[0] ? left : nearest === distances[1] ? up : upLeft);
+      }
+      target[index] = value & 0xff;
+    }
+  }
+  return {
+    width,
+    height,
+    pixel(x: number, y: number): [number, number, number] {
+      const base = y * stride + x * channels;
+      return [pixels[base] ?? 0, pixels[base + 1] ?? 0, pixels[base + 2] ?? 0];
+    },
+  };
+}
+
+/** Luminancja względna wg WCAG. */
+function luminance([r, g, b]: [number, number, number]): number {
+  const channel = (value: number): number => {
+    const c = value / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+}
+
+/**
+ * Kontrast najciemniejszego do najjaśniejszego piksela zrzutu — dla wycinka
+ * z jedną ikoną na jednolitym tle to wprost kontrast ikony do tła.
+ */
+export function extremeContrast(png: DecodedPng): number {
+  let darkest = 1;
+  let lightest = 0;
+  for (let y = 0; y < png.height; y += 1) {
+    for (let x = 0; x < png.width; x += 1) {
+      const value = luminance(png.pixel(x, y));
+      darkest = Math.min(darkest, value);
+      lightest = Math.max(lightest, value);
+    }
+  }
+  return Number(((lightest + 0.05) / (darkest + 0.05)).toFixed(2));
+}
+
+/** Konfiguracja z zapisanym motywem — renderer barwi się od startu (M58). */
+export function makeConfigHomeWithMode(mode: 'dark' | 'light' | 'matrix'): string {
+  const dir = makeConfigHome();
+  mkdirSync(join(dir, 'sufler'), { recursive: true });
+  writeFileSync(
+    join(dir, 'sufler', 'state.json'),
+    JSON.stringify({ appearance: { mode, accent: 'clay', language: 'pl' } }, null, 2),
+  );
   return dir;
 }
 
