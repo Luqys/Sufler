@@ -12,6 +12,7 @@ import { applyAppearance } from '../../appearance-client';
 import { useDocks } from '../../docks';
 import { useT } from '../../i18n';
 import { selectSidebarView, type SidebarView } from '../../sidebar-view';
+import { projectHint, recentProjectsFor } from '../../../../shared/project/recent-projects';
 import { useWorkspace } from '../../workspace';
 import { CommandPalette, type PaletteAction } from '../dialogs/CommandPalette';
 import { Dock } from '../dock/Dock';
@@ -80,12 +81,16 @@ const MIN_CENTER_WIDTH = 320;
 const MIN_EDITOR_HEIGHT = 160;
 
 export function Workbench({ initialLayout }: { initialLayout: LayoutState }): ReactElement {
-  const { root, openSettingsTab, openHelpTab, openKnowledgeGraph } = useWorkspace();
+  const { root, openSettingsTab, openHelpTab, openKnowledgeGraph, chooseProject, switchProject } =
+    useWorkspace();
   const { addTab } = useDocks();
   const t = useT();
   const [layout, setLayout] = useState(initialLayout);
   const [quickOpenVisible, setQuickOpenVisible] = useState(false);
   const [paletteVisible, setPaletteVisible] = useState(false);
+  /** Ostatnie projekty do palety (M87) — czytane raz na otwarcie nakładki. */
+  const [recentRoots, setRecentRoots] = useState<string[]>([]);
+  const [home, setHome] = useState('');
   const [loginOpen, setLoginOpen] = useState(false);
   // Lustro stanu aktualizowane synchronicznie — handlery wskaźnika nie mogą
   // czekać na cykl renderowania Reacta.
@@ -198,6 +203,15 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
     });
   }, []);
 
+  // Lista projektów bywa nieaktualna po przełączeniu — odświeżamy przy otwarciu.
+  useEffect(() => {
+    if (!paletteVisible) {
+      return;
+    }
+    void window.api.getRecentRoots().then(setRecentRoots);
+    void window.api.getHomeDir().then(setHome);
+  }, [paletteVisible]);
+
   /** Katalog akcji palety (M74) — panele, doki, widok, motyw, aplikacja. */
   const paletteActions = useMemo((): PaletteAction[] => {
     const panels = t('palette.groupPanels');
@@ -290,6 +304,19 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
         run: () => openSettingsTabRef.current(),
       },
       { id: 'app:help', label: t('tabs.helpTitle'), group: app, run: openHelpTab },
+      ...recentProjectsFor(recentRoots, root).map((project) => ({
+        id: `project:${project.path}`,
+        label: project.name,
+        group: t('palette.groupProjects'),
+        hint: projectHint(project, home),
+        run: () => switchProject(project.path),
+      })),
+      {
+        id: 'project:open',
+        label: t('palette.openProject'),
+        group: t('palette.groupProjects'),
+        run: chooseProject,
+      },
       {
         id: 'app:files',
         label: t('palette.quickOpen'),
@@ -298,7 +325,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
         run: () => setQuickOpenVisible(true),
       },
     ];
-  }, [addTab, openHelpTab, setThemeMode, showPanel, t]);
+  }, [addTab, chooseProject, home, openHelpTab, recentRoots, root, setThemeMode, showPanel, switchProject, t]);
 
   /** Ikonka Claude na pasku: widżet logowania (modal z `claude /login`). */
   const openClaudeLogin = useCallback(() => {

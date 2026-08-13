@@ -108,6 +108,8 @@ interface WorkspaceValue {
   reloadActiveFromDisk(): void;
   keepMyVersion(): void;
   chooseProject(): void;
+  /** Przełączenie projektu na znany korzeń bez powrotu na ekran startowy. */
+  switchProject(path: string): void;
 }
 
 const WorkspaceContext = createContext<WorkspaceValue | null>(null);
@@ -395,6 +397,19 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     markKeptMine(path);
     patchBuffers((next) => next.set(path, { ...buffer, external: null }));
   }, [patchBuffers]);
+
+  /** Przełączenie na znany korzeń (paleta komend, M87). */
+  const switchProject = useCallback(
+    (path: string) => {
+      void window.api.setProjectRoot(path).then((ok) => {
+        if (ok) {
+          applyGroups(() => initialGroupsState());
+          setRoot(path);
+        }
+      });
+    },
+    [applyGroups],
+  );
 
   const chooseProject = useCallback(() => {
     void window.api.openProjectDialog().then((picked) => {
@@ -711,6 +726,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         reloadActiveFromDisk,
         keepMyVersion,
         chooseProject,
+        switchProject,
       }}
     >
       {children}

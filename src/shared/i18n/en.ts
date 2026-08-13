@@ -167,6 +167,8 @@ export const EN: Record<StringKey, string> = {
   'palette.themeLight': 'Light theme',
   'palette.themeDark': 'Dark theme',
   'palette.themeSystem': 'System theme',
+  'palette.groupProjects': 'Projects',
+  'palette.openProject': 'Open another project…',
   'palette.quickOpen': 'Open file by name',
 
   'theme.system': 'System',

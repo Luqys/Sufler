@@ -178,6 +178,8 @@ export const PL = {
   'palette.themeLight': 'Motyw jasny',
   'palette.themeDark': 'Motyw ciemny',
   'palette.themeSystem': 'Motyw systemowy',
+  'palette.groupProjects': 'Projekty',
+  'palette.openProject': 'Otwórz inny projekt…',
   'palette.quickOpen': 'Otwórz plik po nazwie',
 
   // Motywy i akcenty

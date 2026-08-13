@@ -28,6 +28,7 @@ export const IPC = {
   ProjectGetRoot: 'project:get-root',
   ProjectOpenDialog: 'project:open-dialog',
   ProjectRecentRoots: 'project:recent-roots',
+  ProjectHomeDir: 'project:home-dir',
   ProjectIcon: 'project:icon',
   ProjectSetRoot: 'project:set-root',
   /** Nowy folder roboczy z ekranu startowego (M76). */
@@ -383,6 +384,8 @@ export interface WindowApi {
   /** null → pokaż ekran startowy z wyborem folderu. */
   getProjectRoot(): Promise<string | null>;
   getRecentRoots(): Promise<string[]>;
+  /** Katalog domowy — skracanie ścieżek do `~` w palecie (M87). */
+  getHomeDir(): Promise<string>;
   /** „Favicon" projektu jako data URI; null → renderer rysuje monogram. */
   getProjectIcon(root: string): Promise<string | null>;
   setProjectRoot(path: string): Promise<boolean>;

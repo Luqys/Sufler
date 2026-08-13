@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
+import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { TabKind } from '../shared/docks/dock-tabs';
@@ -181,6 +182,7 @@ void app.whenReady().then(() => {
   });
   ipcMain.handle(IPC.ProjectGetRoot, () => getProjectRoot());
   ipcMain.handle(IPC.ProjectRecentRoots, () => getRecentRoots());
+  ipcMain.handle(IPC.ProjectHomeDir, () => homedir());
   ipcMain.handle(IPC.ProjectIcon, (_event, root: string) => readProjectIcon(root));
   ipcMain.handle(IPC.ProjectSetRoot, (_event, path: string) => {
     const changed = setProjectRoot(path);

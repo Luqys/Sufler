@@ -195,7 +195,7 @@ bo numer wziął panel „Sesje".
 | M84 | Diagnostyka po zapisie — opcjonalna, dławiona, z filtrem listy problemów | test jedn.: dławik i scalanie wyników kolejnych przebiegów; e2e: `Cmd+S` odświeża pasek bez klikania „Sprawdź projekt" |
 | ~~M85~~ | ~~Commit po kawałkach — zaznaczanie fragmentów pliku~~ (zrobione) | test jedn.: `tests/git/hunks.test.ts`, `tests/git/hunk-commit.test.ts`; e2e: `e2e/panele/m85-fragmenty.spec.ts` |
 | ~~M86~~ | ~~Diff worktree ↔ gałąź bazowa — dokończenie M72~~ (zrobione) | test jedn.: `tests/git/branch-diff.test.ts`; e2e: `e2e/panele/m86-worktree-diff.spec.ts` |
-| M87 | Przełącznik projektów w palecie `Cmd+K` z ostatnimi korzeniami i ikonami | test jedn.: ranking ostatnich projektów; e2e: paleta przełącza projekt bez restartu aplikacji |
+| ~~M87~~ | ~~Przełącznik projektów w palecie `Cmd+K` z ostatnimi korzeniami~~ (zrobione) | test jedn.: `tests/project/recent-projects.test.ts`; e2e: `e2e/ustawienia/m87-projekty-paleta.spec.ts` |
 | M88 | Wydajność na dużym repozytorium — pomiar i twarde limity | test jedn.: limity obserwatora i wyników; e2e: repo z 5000 plików nie blokuje drzewa ani szukania |
 
 Kolejność sensowna, nie obowiązkowa: M83 i M84 są tanie i domykają rzeczy zaczęte
@@ -245,6 +245,26 @@ Warstwa danych to ta sama, co w M34 (`src/shared/claude-sessions.ts`,
 linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
+
+### M87 — projekty w palecie komend (zrobione)
+
+Przełączenie projektu wymagało powrotu na ekran startowy albo wycieczki do
+Ustawień, choć przy pracy nad kilkoma repozytoriami to jedna z najczęstszych
+czynności. `Cmd+K` ma teraz grupę „Projekty": ostatnio otwarte korzenie plus
+„Otwórz inny projekt…".
+
+- Przełączenie idzie tą samą drogą co wybór z ekranu startowego
+  (`setProjectRoot` → reset grup edytora → nowy korzeń), więc dzieje się
+  **w tym samym oknie**, bez restartu aplikacji.
+- Bieżący projekt wypada z listy — wpis prowadzący donikąd tylko zajmowałby
+  miejsce. Porównanie znosi końcowe ukośniki, żeby ten sam katalog zapisany
+  na dwa sposoby nie przeszedł.
+- Podpowiedź przy nazwie to skrócony katalog nadrzędny (`~` zamiast katalogu
+  domowego, `…/rodzic`), bo dwa projekty często nazywają się tak samo, a pełna
+  ścieżka nie mieści się w palecie.
+- Lista ostatnich projektów zapełnia się dopiero jawnym przełączeniem —
+  uruchomienie z `VISUALN3O_ROOT` jej nie dotyka. Scenariusz e2e wpisuje ją
+  wprost do `state.json`, tak samo jak inne spece podstawiają motyw.
 
 ### M86 — diff worktree ↔ gałąź bazowa (zrobione)
 
