@@ -294,6 +294,23 @@ kilkunastu przebiegów, czyli około godziny pracy maszyny. Po to jednak jest:
 serię może puścić ktokolwiek i kiedykolwiek, a wynik będzie rozkładem, nie
 anegdotą.
 
+### M93 — historia git znów widoczna (zrobione)
+
+Zgłoszenie ze zrzutu: w projekcie z 87 commitami i kilkudziesięcioma zmienionymi
+plikami panel „Historia git" **nie pokazywał ani jednego commita**.
+
+- Przyczyna była układowa: `.git-changes` nie miało sufitu wysokości, a widok gita
+  w pasku bocznym miał `overflow` na zewnętrznym kontenerze. Lista zmian rosła bez
+  końca i spychała historię poza panel. Przy dwóch zmianach nikt tego nie widzi;
+  przy czterdziestu funkcja przestaje istnieć.
+- Lista zmian dostaje **własne przewijanie i sufit 42%** wysokości panelu, historia
+  **gwarantowane minimum**, a nagłówek listy jest lepki i ma licznik.
+- Przycisk fragmentów (`±` z M85) przestał być ramką — przy czterdziestu plikach
+  robił ścianę prostokątów; teraz jest wyszarzony i wyostrza się pod kursorem.
+- Scenariusz e2e sprawdza to **mierzalnie**: repo z historią i 40 zmianami, asercje
+  na widoczność pierwszego commita, udział listy w wysokości panelu (<60%) i realną
+  wysokość historii (>90 px).
+
 ### M90 — diagnostyka po zapisie (zrobione)
 
 Ostatnia pozycja z backlogu po v1. Miała numer M84 i wypadła, gdy ten numer

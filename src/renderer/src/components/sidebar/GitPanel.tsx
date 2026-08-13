@@ -421,7 +421,9 @@ export function GitPanel(): ReactElement {
       {result?.ok && changes.length > 0 && (
         <div className="git-changes" data-testid="git-changes">
           <div className="view-title git-changes-title">
-            <span>{t('git.changesTitle')}</span>
+            <span>
+              {t('git.changesTitle')} <span className="group-count">{changes.length}</span>
+            </span>
             <label className="git-select-all">
               <input
                 type="checkbox"

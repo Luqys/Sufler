@@ -135,7 +135,7 @@ export function Sidebar(): ReactElement {
           <h2 className="view-title">{t('sidebar.view.search')}</h2>
           <SearchPanel />
         </div>
-        <div className={`view-panel pad scroll${view === 'git' ? '' : ' hidden'}`}>
+        <div className={`view-panel pad${view === 'git' ? '' : ' hidden'}`}>
           <h2 className="view-title">{t('sidebar.view.git')}</h2>
           <GitPanel key={root} />
         </div>

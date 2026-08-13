@@ -352,12 +352,35 @@
 }
 
 /* M33: zmiany robocze + klikalne pliki commitów → zakładki diffów */
+/*
+ * M93: lista zmian roboczych ma WŁASNE przewijanie i sufit wysokości.
+ * Bez tego przy kilkudziesięciu zmienionych plikach rosła bez końca
+ * i spychała historię commitów poza widok — panel „Historia git" nie
+ * pokazywał ani jednego commita.
+ */
 .git-changes {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 42%;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: 6px 10px 8px;
   border-bottom: 1px solid var(--border);
+}
+
+/* Nagłówek listy zostaje w polu widzenia przy przewijaniu zmian. */
+.git-changes-title {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg);
+}
+
+/* Historia nigdy nie schodzi poniżej kilku wierszy, choćby zmian było sto. */
+.git-list {
+  min-height: 96px;
 }
 
 .git-changes-title {
@@ -882,8 +905,18 @@
 /* Commit po kawałkach (M85) — fragmenty pod wierszem pliku */
 .git-hunks-toggle {
   flex: none;
-  padding: 0 5px;
-  font-size: 11px;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+  opacity: 0.55;
+}
+
+.git-change-row:hover .git-hunks-toggle,
+.git-hunks-toggle:focus-visible {
+  opacity: 1;
+  color: var(--text);
 }
 
 .git-hunks {
