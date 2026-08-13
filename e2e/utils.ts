@@ -35,6 +35,10 @@ export function makeFixtureProject(): string {
  * w moment przełączania, znak ląduje w niewłaściwym celu albo poza kolejnością
  * — w przebiegu z 13 sierpnia terminal dostał `techo …` zamiast `echo …`.
  *
+ * Druga przyczyna, wykryta po M82 (pad m19 mimo helpera, przeżył retry):
+ * scenariusz z DWOMA oknami. Fokus w dokumencie nie znaczy, że to okno jest
+ * aktywne w systemie — stąd `bringToFront()` przed klikiem.
+ *
  * Dlatego: czekamy na klasę `focus` na TYM terminalu, a przed Enterem
  * sprawdzamy, że pty dostało CAŁE polecenie. Niedostarczony znak wychodzi
  * natychmiast i w miejscu, w którym powstał, zamiast po 15 sekundach jako
@@ -45,6 +49,11 @@ export async function wpiszPolecenie(
   terminal: Locator,
   polecenie: string,
 ): Promise<void> {
+  // Okno docelowe na wierzch PRZED klikiem (M82b). Klasa `focus` mówi tylko
+  // o fokusie w dokumencie; gdy scenariusz pracuje na dwóch oknach naraz
+  // (m19: okno główne + odczepione), aktywne w systemie bywa to drugie
+  // i klawisze trafiają nie tam. Sam fokus elementu tego nie wyklucza.
+  await page.bringToFront();
   await terminal.click();
   await expect(terminal).toHaveClass(/(^|\s)focus(\s|$)/);
   await page.keyboard.type(polecenie);
