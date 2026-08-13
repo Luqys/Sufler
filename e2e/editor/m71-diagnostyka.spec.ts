@@ -84,9 +84,15 @@ test('M71: pasek diagnostyki liczy błędy z tsc i eslint, a klik skacze do lini
   await items.first().click();
   await expect(page.getByTestId('tab-active')).toContainText('app.ts');
 
-  // Plik otwarty PO sprawdzeniu też dostaje podkreślenia — model powstaje
-  // dopiero przy otwarciu, więc sprawdzamy to, co widzi człowiek: falkę Monaco.
-  await expect(page.locator('.squiggly-error').first()).toBeVisible({ timeout: 10_000 });
+  /*
+   * Plik otwarty PO sprawdzeniu też dostaje podkreślenia — model powstaje
+   * dopiero przy otwarciu. Sprawdzamy OBECNOŚĆ falki, nie jej widoczność:
+   * przy równolegle działającym drugim przebiegu e2e okno bywa w tle i test
+   * padał na warunku widoczności, choć dekoracja była w DOM.
+   */
+  await expect
+    .poll(() => page.locator('.squiggly-error').count(), { timeout: 10_000 })
+    .toBeGreaterThan(0);
 
   await page.screenshot({ path: 'e2e-artifacts/m71-diagnostyka-skok.png' });
   await app.close();
