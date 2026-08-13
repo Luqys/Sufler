@@ -9,6 +9,7 @@ import { GitPanel } from './GitPanel';
 import { KnowledgePanel } from './KnowledgePanel';
 import { McpPanel } from './McpPanel';
 import { SearchPanel } from './SearchPanel';
+import { SessionsPanel } from './SessionsPanel';
 import { SkillsPanel } from './SkillsPanel';
 
 /** Panel boczny w oderwanym oknie — bez railu, na pełnej wysokości. */
@@ -31,6 +32,14 @@ function PanelBody({ panel }: { panel: string }): ReactElement {
       <>
         <h2 className="view-title">{t('sidebar.view.git')}</h2>
         <GitPanel key={root} />
+      </>
+    );
+  }
+  if (panel === 'sessions') {
+    return (
+      <>
+        <h2 className="view-title">{t('sidebar.view.sessions')}</h2>
+        <SessionsPanel key={root} />
       </>
     );
   }

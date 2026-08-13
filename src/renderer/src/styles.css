@@ -3918,3 +3918,201 @@ button.worklog-link:hover {
   display: grid;
   grid-template-rows: minmax(0, 1fr);
 }
+
+/* Panel „Sesje" (M67): historia rozmów z Claude — lista jak historia commitów,
+   z rozwijanym podglądem ostatnich wymian i przyciskiem wznowienia. */
+.sessions-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sessions-toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.sessions-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.session-item {
+  border-radius: 7px;
+}
+
+.session-item.open {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.session-head {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.session-row {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 4px 5px 6px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.session-row:hover {
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+
+.session-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.session-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.session-meta {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* W wąskim pasku najpierw ustępuje nazwa gałęzi, nigdy czas. */
+.session-when {
+  flex: none;
+  white-space: nowrap;
+}
+
+.session-branch {
+  flex: 0 1 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-branch svg {
+  flex: none;
+}
+
+.session-resume {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.session-item:hover .session-resume,
+.session-resume:focus-visible {
+  opacity: 1;
+}
+
+.session-resume:hover {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--text);
+}
+
+.session-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 8px 10px 12px;
+}
+
+.session-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.session-detail-date {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.session-preview-title {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.session-message {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 5px 7px;
+  border-radius: 6px;
+  border-left: 2px solid transparent;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.session-message.user {
+  border-left-color: color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.session-message.assistant {
+  border-left-color: color-mix(in srgb, var(--muted) 45%, transparent);
+}
+
+.session-message-who {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 10.5px;
+}
+
+.session-message-time {
+  font-variant-numeric: tabular-nums;
+}
+
+.session-message-text {
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

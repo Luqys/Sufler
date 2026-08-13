@@ -4,6 +4,7 @@ import type { StringKey } from '../../../shared/i18n';
 import type { Checkpoint } from '../../../shared/checkpoints';
 import type { GitCommit, GitCommitFile, GitLogResult, GitStatusFile } from '../../../shared/ipc';
 import { getLocale, t, tf, useT } from '../i18n';
+import { fullDateTime, relativeTime } from '../relative-time';
 import { useDialogs } from '../ui-dialogs';
 import { useWorkspace } from '../workspace';
 
@@ -99,37 +100,9 @@ function statusLabel(status: string): string {
   return key ? t(key) : status;
 }
 
-function fullDate(iso: string): string {
-  const then = new Date(iso);
-  if (Number.isNaN(then.getTime())) {
-    return '';
-  }
-  return then.toLocaleString(getLocale(), { dateStyle: 'long', timeStyle: 'short' });
-}
-
-function relativeDate(iso: string): string {
-  const then = Date.parse(iso);
-  if (Number.isNaN(then)) {
-    return '';
-  }
-  const seconds = Math.max(0, Math.round((Date.now() - then) / 1000));
-  if (seconds < 60) {
-    return t('git.justNow');
-  }
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) {
-    return tf('git.minutesAgo', { minutes });
-  }
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) {
-    return tf('git.hoursAgo', { hours });
-  }
-  const days = Math.round(hours / 24);
-  if (days < 30) {
-    return tf('git.daysAgo', { days });
-  }
-  return new Date(then).toLocaleDateString(getLocale());
-}
+/** Daty commitów przychodzą jako ISO 8601 (%aI) — helpery liczą na milisekundach. */
+const fullDate = (iso: string): string => fullDateTime(Date.parse(iso));
+const relativeDate = (iso: string): string => relativeTime(Date.parse(iso));
 
 /** Historia commitów repozytorium projektu (git log + diff-tree) + zmiany robocze. */
 /** Punkty przywracania (M55): migawki drzewa sprzed tur Claude. */

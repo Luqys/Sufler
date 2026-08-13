@@ -41,7 +41,7 @@ import {
   type WriteFileResult,
 } from '../shared/ipc';
 import type { ClaudeHookEvent } from '../shared/claude-hooks';
-import type { ClaudeSessionEntry } from '../shared/claude-sessions';
+import type { ClaudeSessionDetails, ClaudeSessionSummary } from '../shared/claude-sessions';
 import type { KnowledgeGraph } from '../shared/graph';
 import type { IdeSelection } from '../shared/ide-protocol';
 import type { LayoutState } from '../shared/layout';
@@ -195,8 +195,10 @@ const api: WindowApi = {
   getIdeStatus: (): Promise<IdeStatus> => ipcRenderer.invoke(IPC.IdeStatusGet),
   gitShowFile: (root: string, rev: string, path: string): Promise<GitShowFileResult> =>
     ipcRenderer.invoke(IPC.GitShowFile, root, rev, path),
-  listClaudeSessions: (root: string): Promise<ClaudeSessionEntry[]> =>
-    ipcRenderer.invoke(IPC.ClaudeSessionsList, root),
+  listClaudeSessions: (root: string, limit?: number): Promise<ClaudeSessionSummary[]> =>
+    ipcRenderer.invoke(IPC.ClaudeSessionsList, root, limit),
+  getClaudeSessionDetails: (root: string, id: string): Promise<ClaudeSessionDetails | null> =>
+    ipcRenderer.invoke(IPC.ClaudeSessionsDetails, root, id),
   onClaudeHookEvent: (listener: (event: ClaudeHookEvent) => void): void => {
     ipcRenderer.on(IPC.ClaudeHookEvent, (_event, payload: ClaudeHookEvent) =>
       listener(payload),

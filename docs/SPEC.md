@@ -258,6 +258,22 @@ Pięć rzeczy z listy zgłoszonej przez użytkowników. Wszystkie były błędam
    końca życia okna. Teraz main rozgłasza zmianę stanu, a zajęty port (szybki
    restart aplikacji) jest ponawiany kilka razy zamiast gasnąć na stałe.
 
+### M67 — panel „Sesje" w lewym pasku (zrobione)
+
+Wznawianie sesji (M34) siedziało wyłącznie w menu przy ✳ w doku — dobre do
+„wróć do ostatniej rozmowy", za ciasne do przeglądania historii. Panel `Sesje`
+w lewym pasku pokazuje zapisane rozmowy projektu jak `Historia git` pokazuje
+commity: tytuł z pierwszego polecenia, czas ostatniej aktywności, gałąź z czasu
+rozmowy, a po rozwinięciu liczniki (polecenia, odpowiedzi, użycia narzędzi)
+i podgląd ostatnich wymian. Przycisk ↺ w wierszu startuje `claude --resume <id>`
+w dolnym doku.
+
+Warstwa danych to ta sama, co w M34 (`src/shared/claude-sessions.ts`,
+`src/main/claude-sessions.ts`) — rozszerzona o skaner transkryptu karmiony
+linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
+tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
+robi się strumieniowo dopiero po rozwinięciu wiersza.
+
 ### M68 — slash-komendy w panelu
 
 Panel zna skille, subagentów i reguły; komendy z `.claude/commands/*.md` (oraz

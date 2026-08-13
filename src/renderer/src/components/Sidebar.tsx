@@ -7,10 +7,11 @@ import { GitPanel } from './GitPanel';
 import { KnowledgePanel } from './KnowledgePanel';
 import { McpPanel } from './McpPanel';
 import { SearchPanel } from './SearchPanel';
+import { SessionsPanel } from './SessionsPanel';
 import { SkillsPanel } from './SkillsPanel';
 import { isDetachablePanel, isOutsideWindow } from '../../../shared/detached';
 
-type SidebarView = 'files' | 'search' | 'git' | 'knowledge' | 'skills' | 'mcp';
+type SidebarView = 'files' | 'search' | 'git' | 'sessions' | 'knowledge' | 'skills' | 'mcp';
 
 interface RailItem {
   id: SidebarView;
@@ -63,10 +64,20 @@ const ICON_GIT = (
   </svg>
 );
 
+/** Zegar z zawrotką — ta sama rodzina co ↺ „wznów" w doku i w panelu. */
+const ICON_SESSIONS = (
+  <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.6 8a5.4 5.4 0 1 0 1.6-3.8" />
+    <path d="M2.4 1.9v2.8h2.8" />
+    <path d="M8 5.1V8.2l2.1 1.3" />
+  </svg>
+);
+
 const RAIL_ITEMS: RailItem[] = [
   { id: 'files', labelKey: 'sidebar.rail.files', icon: ICON_FILES },
   { id: 'search', labelKey: 'sidebar.rail.search', icon: ICON_SEARCH },
   { id: 'git', labelKey: 'sidebar.rail.git', icon: ICON_GIT },
+  { id: 'sessions', labelKey: 'sidebar.rail.sessions', icon: ICON_SESSIONS },
   { id: 'knowledge', labelKey: 'sidebar.rail.knowledge', icon: ICON_KNOWLEDGE },
   { id: 'skills', labelKey: 'sidebar.rail.skills', icon: ICON_SKILLS },
   { id: 'mcp', labelKey: 'sidebar.rail.mcp', icon: ICON_MCP },
@@ -128,6 +139,10 @@ export function Sidebar(): ReactElement {
         <div className={`view-panel pad scroll${view === 'git' ? '' : ' hidden'}`}>
           <h2 className="view-title">{t('sidebar.view.git')}</h2>
           <GitPanel key={root} />
+        </div>
+        <div className={`view-panel pad scroll${view === 'sessions' ? '' : ' hidden'}`}>
+          <h2 className="view-title">{t('sidebar.view.sessions')}</h2>
+          <SessionsPanel key={root} />
         </div>
         <div className={`view-panel pad scroll${view === 'knowledge' ? '' : ' hidden'}`}>
           <h2 className="view-title">{t('sidebar.view.knowledge')}</h2>

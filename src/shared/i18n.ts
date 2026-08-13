@@ -25,11 +25,13 @@ export const PL = {
   'sidebar.rail.knowledge': 'Wiedza (pliki MD)',
   'sidebar.rail.skills': 'Skille i agenci',
   'sidebar.rail.mcp': 'Serwery MCP',
+  'sidebar.rail.sessions': 'Historia sesji Claude',
   'sidebar.view.search': 'Szukaj',
   'sidebar.view.git': 'Historia git',
   'sidebar.view.knowledge': 'Wiedza',
   'sidebar.view.skills': 'Skille i agenci',
   'sidebar.view.mcp': 'Serwery MCP',
+  'sidebar.view.sessions': 'Sesje',
 
   // Doki
   'dock.right': 'Prawy dok',
@@ -169,6 +171,10 @@ export const PL = {
   'unit.matches': 'trafienie|trafienia|trafień',
   'unit.files': 'plik|pliki|plików',
   'unit.items': 'element|elementy|elementów',
+  'unit.sessions': 'sesja|sesje|sesji',
+  'unit.prompts': 'polecenie|polecenia|poleceń',
+  'unit.replies': 'odpowiedź|odpowiedzi|odpowiedzi',
+  'unit.tools': 'narzędzie|narzędzia|narzędzi',
 
   // Drzewo plików
   'ft.noAccess': 'Brak dostępu',
@@ -201,6 +207,23 @@ export const PL = {
   'git.loadingFiles': 'Wczytywanie zmian…',
   'git.noFiles': 'Brak zmian plików.',
   'git.changesTitle': 'Zmiany robocze',
+
+  // Panel „Sesje" (M67) — historia rozmów z Claude w tym projekcie
+  'sessions.refresh': 'Odśwież listę sesji',
+  'sessions.loading': 'Czytam zapisane sesje…',
+  'sessions.empty':
+    'Brak zapisanych sesji dla tego projektu — pojawią się po pierwszej rozmowie z Claude.',
+  'sessions.resume': 'Wznów tę rozmowę w nowej karcie (claude --resume)',
+  'sessions.detailsLoading': 'Czytam transkrypt…',
+  'sessions.detailsFailed': 'Nie udało się odczytać transkryptu sesji.',
+  'sessions.started': 'Początek: {when}',
+  'sessions.lastActivity': 'Ostatnia aktywność: {when}',
+  'sessions.previewTitle': 'Ostatnie wymiany',
+  'sessions.previewTruncated': 'Wcześniejsze wiadomości pominięte.',
+  'sessions.previewEmpty': 'Ta sesja nie ma wiadomości do pokazania.',
+  'sessions.you': 'Ty',
+  'sessions.claude': 'Claude',
+  'sessions.branch': 'Gałąź w czasie rozmowy: {branch}',
   'checkpoints.title': 'Punkty przywracania',
   'checkpoints.hint':
     'Migawka drzewa zapisywana przed każdą turą Claude. Przywrócenie zapisuje najpierw stan bieżący, więc cofnięcie też da się cofnąć.',
@@ -544,11 +567,13 @@ export const EN: Record<StringKey, string> = {
   'sidebar.rail.knowledge': 'Knowledge (MD files)',
   'sidebar.rail.skills': 'Skills and agents',
   'sidebar.rail.mcp': 'MCP servers',
+  'sidebar.rail.sessions': 'Claude session history',
   'sidebar.view.search': 'Search',
   'sidebar.view.git': 'Git history',
   'sidebar.view.knowledge': 'Knowledge',
   'sidebar.view.skills': 'Skills and agents',
   'sidebar.view.mcp': 'MCP servers',
+  'sidebar.view.sessions': 'Sessions',
 
   'dock.right': 'Right dock',
   'dock.bottom': 'Bottom dock',
@@ -678,6 +703,10 @@ export const EN: Record<StringKey, string> = {
   'unit.matches': 'match|matches',
   'unit.files': 'file|files',
   'unit.items': 'item|items',
+  'unit.sessions': 'session|sessions',
+  'unit.prompts': 'prompt|prompts',
+  'unit.replies': 'reply|replies',
+  'unit.tools': 'tool|tools',
 
   'ft.noAccess': 'No access',
   'ft.empty': '(empty)',
@@ -708,6 +737,23 @@ export const EN: Record<StringKey, string> = {
   'git.loadingFiles': 'Loading changes…',
   'git.noFiles': 'No file changes.',
   'git.changesTitle': 'Working changes',
+
+  // Sessions panel (M67) — history of Claude conversations in this project
+  'sessions.refresh': 'Refresh session list',
+  'sessions.loading': 'Reading saved sessions…',
+  'sessions.empty':
+    'No saved sessions for this project — they appear after your first conversation with Claude.',
+  'sessions.resume': 'Resume this conversation in a new tab (claude --resume)',
+  'sessions.detailsLoading': 'Reading transcript…',
+  'sessions.detailsFailed': 'Could not read the session transcript.',
+  'sessions.started': 'Started: {when}',
+  'sessions.lastActivity': 'Last activity: {when}',
+  'sessions.previewTitle': 'Last exchanges',
+  'sessions.previewTruncated': 'Earlier messages omitted.',
+  'sessions.previewEmpty': 'This session has no messages to show.',
+  'sessions.you': 'You',
+  'sessions.claude': 'Claude',
+  'sessions.branch': 'Branch at the time: {branch}',
   'checkpoints.title': 'Restore points',
   'checkpoints.hint':
     'A snapshot of the tree taken before each Claude turn. Restoring saves the current state first, so undoing can be undone too.',

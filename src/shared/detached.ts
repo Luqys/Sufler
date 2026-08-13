@@ -5,7 +5,15 @@
  */
 
 /** Panele boczne, które da się wyciągnąć do osobnego okna. */
-export const DETACHABLE_PANELS = ['files', 'search', 'git', 'knowledge', 'skills', 'mcp'] as const;
+export const DETACHABLE_PANELS = [
+  'files',
+  'search',
+  'git',
+  'sessions',
+  'knowledge',
+  'skills',
+  'mcp',
+] as const;
 export type DetachablePanel = (typeof DETACHABLE_PANELS)[number];
 
 export type DetachedKind = 'panel' | 'view';

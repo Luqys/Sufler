@@ -1,6 +1,6 @@
 import type { Appearance } from './appearance';
 import type { ClaudeHookEvent } from './claude-hooks';
-import type { ClaudeSessionEntry } from './claude-sessions';
+import type { ClaudeSessionDetails, ClaudeSessionSummary } from './claude-sessions';
 import type { TabKind } from './dock-tabs';
 import type { IdeSelection } from './ide-protocol';
 import type { KnowledgeGraph } from './graph';
@@ -90,6 +90,7 @@ export const IPC = {
   IdeStatusGet: 'ide:status',
   GitShowFile: 'git:show-file',
   ClaudeSessionsList: 'claude-sessions:list',
+  ClaudeSessionsDetails: 'claude-sessions:details',
   ClaudeHookEvent: 'claude-hooks:event',
   ObsidianResolveLinks: 'obsidian:resolve-links',
   ObsidianSendDaily: 'obsidian:send-daily',
@@ -383,8 +384,10 @@ export interface WindowApi {
   getIdeStatus(): Promise<IdeStatus>;
   /** Treść pliku z rewizji gita (`git show rev:ścieżka`) — do zakładek diffów. */
   gitShowFile(root: string, rev: string, path: string): Promise<GitShowFileResult>;
-  /** Zapisane sesje Claude projektu — menu „Wznów sesję" (claude --resume). */
-  listClaudeSessions(root: string): Promise<ClaudeSessionEntry[]>;
+  /** Zapisane sesje Claude projektu — menu „Wznów sesję" i panel „Sesje". */
+  listClaudeSessions(root: string, limit?: number): Promise<ClaudeSessionSummary[]>;
+  /** Rozliczenie sesji (liczniki, ostatnie wymiany); null, gdy transkrypt zniknął. */
+  getClaudeSessionDetails(root: string, id: string): Promise<ClaudeSessionDetails | null>;
   /** Hooki Notification/Stop sesji Claude → deterministyczny status karty. */
   onClaudeHookEvent(listener: (event: ClaudeHookEvent) => void): void;
   /** Wikilinki: nazwy notatek → ścieżki absolutne w vaultcie (null = brak). */
