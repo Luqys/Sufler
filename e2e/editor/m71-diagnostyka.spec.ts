@@ -60,20 +60,21 @@ test('M71: pasek diagnostyki liczy błędy z tsc i eslint, a klik skacze do lini
   });
   const page = await app.firstWindow();
 
-  const bar = page.getByTestId('diagnostics-bar');
-  await expect(bar).toBeVisible();
-  // Zanim ktoś poprosi, pasek milczy — to nie jest druga konsola.
-  await expect(page.getByTestId('diagnostics-counts')).toHaveCount(0);
+  // M95: sprawdzanie uruchamia przycisk w pasku tytułu, a wyniki są kartą
+  // w obszarze edytora — nie paskiem nad dolnym dokiem.
+  await expect(page.getByTestId('diagnostics-button')).toBeVisible();
+  await expect(page.getByTestId('problems-view')).toHaveCount(0);
 
-  await page.getByTestId('diagnostics-run').click();
+  await page.getByTestId('diagnostics-button').click();
+  await expect(page.getByTestId('problems-view')).toBeVisible();
 
-  const counts = page.getByTestId('diagnostics-counts');
+  const counts = page.getByTestId('problems-counts');
   await expect(counts).toBeVisible({ timeout: 15_000 });
   // Dwa błędy (tsc + eslint) i jedno ostrzeżenie — z polską odmianą.
   await expect(counts).toContainText('2 błędy');
   await expect(counts).toContainText('1 ostrzeżenie');
 
-  const items = page.getByTestId('diagnostics-item');
+  const items = page.getByTestId('problems-item');
   await expect(items).toHaveCount(3);
   await expect(items.first()).toContainText('src/app.ts:3');
   await expect(items.first()).toContainText('Cannot find name');
@@ -106,8 +107,8 @@ test('M71: brak narzędzia mówi to wprost zamiast udawać czysty projekt', asyn
   });
   const page = await app.firstWindow();
 
-  await page.getByTestId('diagnostics-run').click();
-  const failed = page.getByTestId('diagnostics-failed');
+  await page.getByTestId('diagnostics-button').click();
+  const failed = page.getByTestId('problems-failed');
   await expect(failed.first()).toBeVisible({ timeout: 15_000 });
   await expect(failed).toHaveCount(2);
 

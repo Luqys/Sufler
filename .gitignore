@@ -8,3 +8,5 @@ e2e-artifacts/
 test-results/
 # Konspekt wiedzy generuje aplikacja przy każdej zmianie notatek.
 konspekt-wiedzy.md
+# Artefakt budowania w korzeniu (prawdziwy punkt wejścia to out/main/index.js).
+/index.js

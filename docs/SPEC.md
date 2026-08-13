@@ -294,6 +294,28 @@ kilkunastu przebiegów, czyli około godziny pracy maszyny. Po to jednak jest:
 serię może puścić ktokolwiek i kiedykolwiek, a wynik będzie rozkładem, nie
 anegdotą.
 
+### M95 — diagnostyka jako karta, nie pasek (zrobione)
+
+Trzy prośby ze zrzutów, wszystkie o to samo miejsce: przycisk „Sprawdź projekt"
+w innym miejscu, animacja potwierdzająca uruchomienie i wyniki „w środkowym doku".
+
+- **Wyniki są kartą** `vn3o://problemy` w obszarze edytora — taką samą jak
+  Ustawienia, Samouczek i Historia pracy. Wcześniej sześć rodzajów kontrolek
+  tłoczyło się w pasie 26 px nad dolnym dokiem, a lista nie miała gdzie się
+  rozwinąć.
+- **Przycisk przeniesiony do paska tytułu** (✓ obok zębatki): jeden klik
+  uruchamia sprawdzenie i otwiera kartę.
+- **Animacja**: w trakcie przebiegu ikona wiruje (`diag-spin`), przycisk w karcie
+  pulsuje, a po zakończeniu przy ikonie zostaje **licznik błędów** — widać wynik
+  bez otwierania karty. Wszystko wyłączone przy `prefers-reduced-motion`.
+- Stan wyszedł z komponentu do `src/renderer/src/diagnostics-store.ts`, bo dzielą
+  go trzy miejsca: przycisk, karta i automat po zapisie. Drugie uruchomienie
+  w trakcie trwania jest pomijane — dwa równoległe `tsc` tylko zabrałyby procesor.
+- Przełącznik „po zapisie" (M90) przeniesiony do Ustawień, gdzie mieszkają inne
+  ustawienia trwałe.
+- Scenariusz sprawdza **samą animację**, nie tylko wynik: nazwę uruchomionej
+  animacji CSS w trakcie przebiegu i jej zniknięcie po zakończeniu.
+
 ### M94 — fundamenty wyglądu: hierarchia zamiast obwódek (zrobione)
 
 Zgłoszenie czterema zrzutami: „dużo elementów w aplikacji nie wygląda dobrze".

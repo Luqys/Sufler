@@ -38,6 +38,7 @@ import {
   HELP_PATH,
   KNOWLEDGE_GRAPH_PATH,
   nextBrowserPreviewPath,
+  PROBLEMS_PATH,
   SETTINGS_PATH,
   WORKLOG_PATH,
 } from '../../shared/editor/preview';
@@ -90,6 +91,8 @@ interface WorkspaceValue {
   openSettingsTab(): void;
   openHelpTab(): void;
   openWorklogTab(): void;
+  /** Karta „Problemy" z wynikami tsc/eslint (M95). */
+  openProblemsTab(): void;
   /** Zakładka diffa (M33): zmiany robocze, zmiana z commita albo propozycja CLI. */
   openDiffTab(descriptor: DiffDescriptor): void;
   /** Zapis propozycji openDiff (null → treść z rejestru) i odpowiedź FILE_SAVED do CLI. */
@@ -669,6 +672,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
     applyGroups((state) => openTabInActiveGroup(state, HELP_PATH, t('tabs.helpTitle'), true));
   }, [applyGroups]);
 
+  const openProblemsTab = useCallback(() => {
+    applyGroups((state) =>
+      openTabInActiveGroup(state, PROBLEMS_PATH, t('tabs.problemsTitle'), true),
+    );
+  }, [applyGroups]);
+
   const openWorklogTab = useCallback(() => {
     applyGroups((state) => openTabInActiveGroup(state, WORKLOG_PATH, t('tabs.worklogTitle'), true));
   }, [applyGroups]);
@@ -717,6 +726,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): ReactE
         openSettingsTab,
         openHelpTab,
         openWorklogTab,
+        openProblemsTab,
         openDiffTab,
         acceptIdeDiff,
         rejectIdeDiff,

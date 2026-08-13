@@ -59,6 +59,9 @@ export const SETTINGS_PATH = 'vn3o://ustawienia';
 /** Karta Samouczka w obszarze edytora (M47). */
 export const HELP_PATH = 'vn3o://samouczek';
 
+/** Karta „Problemy" — wyniki tsc/eslint w obszarze edytora (M95). */
+export const PROBLEMS_PATH = 'vn3o://problemy';
+
 /** Karta Historii pracy w obszarze edytora (M56). */
 export const WORKLOG_PATH = 'vn3o://historia';
 

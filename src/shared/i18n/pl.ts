@@ -62,6 +62,7 @@ export const PL = {
   'tabs.settingsTitle': 'Ustawienia',
   'tabs.helpTitle': 'Samouczek',
   'tabs.worklogTitle': 'Historia pracy',
+  'tabs.problemsTitle': 'Problemy',
   'worklog.title': 'Historia pracy',
   'worklog.subtitle':
     'Commity i dzienniki sesji na jednej osi czasu — widać, która rozmowa doprowadziła do której zmiany.',
@@ -114,6 +115,10 @@ export const PL = {
   'usage.cacheWrite': 'zapis cache',
   'usage.cacheRead': 'odczyt cache',
 
+  'settings.diagnostics': 'Sprawdzanie projektu',
+  'settings.diagnosticsHint':
+    'Sprawdzenie uruchamia przycisk ✓ na pasku tytułu; wyniki otwierają się jako karta „Problemy". Poniżej można je włączyć automatycznie po zapisie pliku (z dławikiem: seria zapisów daje jeden przebieg).',
+  'settings.diagnosticsAuto': 'Sprawdzaj po zapisie pliku',
   'settings.hooks': 'Hooki Claude Code',
   'settings.hooksHint':
     'Komendy uruchamiane przez Claude Code na zdarzeniach sesji. Lista pokazuje wszystkie trzy warstwy ustawień.',
@@ -692,6 +697,9 @@ export const PL = {
   'diagnostics.autoHint': 'Sprawdzaj projekt automatycznie po zapisie pliku (z dławikiem)',
   'diagnostics.filter': 'filtruj problemy…',
   'diagnostics.onlyErrors': 'tylko błędy',
+  'diagnostics.problems': 'Problemy projektu',
+  'diagnostics.neverRun': 'Jeszcze nie sprawdzano — uruchom sprawdzenie przyciskiem na pasku tytułu.',
+  'diagnostics.checkTitle': 'Sprawdź projekt (tsc + eslint)',
   'diagnostics.clean': 'Bez błędów i ostrzeżeń.',
   'diagnostics.toolFailed': '{tool} nie wystartował',
 

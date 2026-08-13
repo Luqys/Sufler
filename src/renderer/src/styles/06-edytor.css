@@ -570,108 +570,9 @@
   font-size: 11.5px;
 }
 
-.diagnostics-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
-  min-height: 26px;
-}
-
-.diagnostics-run {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.diagnostics-counts {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: none;
-  background: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-  padding: 0;
-}
-
-.diagnostics-counts:disabled {
-  cursor: default;
-}
-
-.diagnostics-count {
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.diagnostics-count.has {
-  color: var(--danger);
-  font-weight: 600;
-}
-
-.diagnostics-count.warn.has {
-  color: var(--warn);
-}
-
-.diagnostics-clean {
-  color: var(--muted);
-}
-
-.diagnostics-failed {
-  color: var(--warn);
-}
-
-.diagnostics-list {
-  max-height: 168px;
-  overflow-y: auto;
-  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-}
-
-.diagnostics-item {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  width: 100%;
-  padding: 3px 8px;
-  border: none;
-  background: none;
-  color: var(--text);
-  font: inherit;
-  font-size: 11.5px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.diagnostics-item:hover {
-  background: color-mix(in srgb, var(--text) 6%, transparent);
-}
-
 /* Pasek koloru przy błędzie — ostrzeżenia zostają spokojne. */
 .diagnostics-item.error .diagnostics-where {
   color: var(--danger);
-}
-
-.diagnostics-item.warning .diagnostics-where {
-  color: var(--warn);
-}
-
-.diagnostics-where {
-  flex: none;
-  font-variant-numeric: tabular-nums;
-}
-
-.diagnostics-msg {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.diagnostics-code {
-  flex: none;
-  color: var(--muted);
 }
 
 /* Diagnostyka po zapisie i filtr problemów (M90) */
@@ -683,13 +584,6 @@
   color: var(--muted);
   cursor: pointer;
   white-space: nowrap;
-}
-
-.diagnostics-auto input,
-.diagnostics-only-errors input {
-  accent-color: var(--accent);
-  cursor: pointer;
-  margin: 0;
 }
 
 .diagnostics-filter {
@@ -712,4 +606,203 @@
 /* Przełącznik trybu trzyma się prawej krawędzi paska. */
 .diagnostics-auto {
   margin-left: auto;
+}
+
+/*
+ * M95: karta „Problemy" w obszarze edytora zamiast paska nad dolnym dokiem.
+ * Wcześniej sześć rodzajów kontrolek tłoczyło się w pasie 26 px, a lista nie
+ * miała gdzie się rozwinąć. Teraz to zwykła karta z miejscem na treść.
+ */
+.problems-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.problems-head {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.problems-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.problems-title {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.problems-counts {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.problems-count {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.problems-count.has {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.problems-count.warn.has {
+  color: var(--warn);
+}
+
+.problems-failed {
+  color: var(--warn);
+}
+
+.problems-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.problems-only-errors {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.problems-only-errors input {
+  accent-color: var(--accent);
+  cursor: pointer;
+  margin: 0;
+}
+
+.problems-empty {
+  flex: none;
+}
+
+.problems-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.problems-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  padding: 5px 8px;
+  border: none;
+  border-left: 2px solid transparent;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.problems-item:hover {
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+/* Ciężkość niesie listwa po lewej, nie kolor całego wiersza. */
+.problems-item.error {
+  border-left-color: var(--danger);
+}
+
+.problems-item.warning {
+  border-left-color: var(--warn);
+}
+
+.problems-where {
+  flex: none;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.problems-msg {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.problems-code {
+  flex: none;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* Przycisk sprawdzania w pasku tytułu: wirujący łuk i licznik błędów. */
+.diag-btn {
+  position: relative;
+}
+
+.diag-btn.running svg {
+  animation: diag-spin 0.9s linear infinite;
+}
+
+.diag-btn.has-errors {
+  color: var(--danger);
+}
+
+.diag-count {
+  position: absolute;
+  top: 1px;
+  right: 0;
+  min-width: 13px;
+  padding: 0 3px;
+  border-radius: 7px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 13px;
+  text-align: center;
+}
+
+/* Zakończony przebieg mruga raz — potwierdzenie, że coś się wydarzyło. */
+.problems-run.running {
+  animation: diag-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes diag-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes diag-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diag-btn.running svg,
+  .problems-run.running {
+    animation: none;
+  }
 }

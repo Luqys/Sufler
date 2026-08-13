@@ -12,6 +12,8 @@ import { applyAppearance } from '../../appearance-client';
 import { useDocks } from '../../docks';
 import { useT } from '../../i18n';
 import { selectSidebarView, type SidebarView } from '../../sidebar-view';
+import { resetDiagnostics, startDiagnostics, useDiagnostics } from '../../diagnostics-store';
+import { autoRunDelay } from '../../../../shared/editor/diagnostics-auto';
 import { projectHint, recentProjectsFor } from '../../../../shared/project/recent-projects';
 import { useWorkspace } from '../../workspace';
 import { CommandPalette, type PaletteAction } from '../dialogs/CommandPalette';
@@ -59,6 +61,19 @@ const ICON_SETTINGS = (
   </svg>
 );
 
+/* Kontrolka sprawdzania projektu: „odhaczenie" zamienia się w wirujący łuk. */
+const ICON_CHECK = (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.6 8.4l3 3 7.8-7.8" />
+  </svg>
+);
+
+const ICON_SPIN = (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+    <path d="M8 1.8a6.2 6.2 0 1 0 6.2 6.2" />
+  </svg>
+);
+
 const ICON_HELP = (
   <svg
     width="15"
@@ -81,8 +96,17 @@ const MIN_CENTER_WIDTH = 320;
 const MIN_EDITOR_HEIGHT = 160;
 
 export function Workbench({ initialLayout }: { initialLayout: LayoutState }): ReactElement {
-  const { root, openSettingsTab, openHelpTab, openKnowledgeGraph, chooseProject, switchProject } =
-    useWorkspace();
+  const {
+    root,
+    openSettingsTab,
+    openHelpTab,
+    openKnowledgeGraph,
+    openProblemsTab,
+    chooseProject,
+    switchProject,
+    savedTick,
+  } = useWorkspace();
+  const diagnostyka = useDiagnostics();
   const { addTab } = useDocks();
   const t = useT();
   const [layout, setLayout] = useState(initialLayout);
@@ -212,6 +236,35 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
     void window.api.getHomeDir().then(setHome);
   }, [paletteVisible]);
 
+  // Zmiana projektu unieważnia wynik — pokazywanie cudzych błędów myli (M95).
+  useEffect(() => resetDiagnostics(root), [root]);
+
+  /*
+   * Diagnostyka po zapisie (M90) mieszka teraz przy przycisku, nie w pasku pod
+   * edytorem: stan jest wspólny, więc automat i klik robią dokładnie to samo.
+   */
+  const [autoDiag, setAutoDiag] = useState(false);
+  useEffect(() => {
+    void window.api.getDiagnosticsAuto().then(setAutoDiag);
+  }, []);
+  useEffect(() => {
+    if (savedTick === 0) {
+      return;
+    }
+    const zwloka = autoRunDelay(
+      { lastFinishedMs: diagnostyka.lastFinishedMs, running: diagnostyka.running },
+      autoDiag,
+      Date.now(),
+    );
+    if (zwloka === null) {
+      return;
+    }
+    const timer = window.setTimeout(() => startDiagnostics(root), zwloka);
+    return () => window.clearTimeout(timer);
+    // Celowo bez `diagnostyka` w zależnościach: każdy zapis planuje jeden przebieg.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoDiag, root, savedTick]);
+
   /** Katalog akcji palety (M74) — panele, doki, widok, motyw, aplikacja. */
   const paletteActions = useMemo((): PaletteAction[] => {
     const panels = t('palette.groupPanels');
@@ -304,6 +357,15 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
         run: () => openSettingsTabRef.current(),
       },
       { id: 'app:help', label: t('tabs.helpTitle'), group: app, run: openHelpTab },
+      {
+        id: 'app:problems',
+        label: t('diagnostics.run'),
+        group: app,
+        run: () => {
+          startDiagnostics(root);
+          openProblemsTab();
+        },
+      },
       ...recentProjectsFor(recentRoots, root).map((project) => ({
         id: `project:${project.path}`,
         label: project.name,
@@ -325,7 +387,7 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
         run: () => setQuickOpenVisible(true),
       },
     ];
-  }, [addTab, chooseProject, home, openHelpTab, recentRoots, root, setThemeMode, showPanel, switchProject, t]);
+  }, [addTab, chooseProject, home, openHelpTab, openProblemsTab, recentRoots, root, setThemeMode, showPanel, switchProject, t]);
 
   /** Ikonka Claude na pasku: widżet logowania (modal z `claude /login`). */
   const openClaudeLogin = useCallback(() => {
@@ -357,6 +419,25 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
       <header className="titlebar">
         <span className="titlebar-title">Sufler — {baseName(root)}</span>
         <div className="titlebar-actions">
+          <button
+            type="button"
+            className={`titlebar-btn diag-btn${diagnostyka.running ? ' running' : ''}${
+              diagnostyka.result && diagnostyka.result.errors > 0 ? ' has-errors' : ''
+            }`}
+            data-testid="diagnostics-button"
+            title={t('diagnostics.checkTitle')}
+            onClick={() => {
+              startDiagnostics(root);
+              openProblemsTab();
+            }}
+          >
+            {diagnostyka.running ? ICON_SPIN : ICON_CHECK}
+            {diagnostyka.result !== null && diagnostyka.result.errors > 0 && (
+              <span className="diag-count" data-testid="diagnostics-button-count">
+                {diagnostyka.result.errors}
+              </span>
+            )}
+          </button>
           <button
             type="button"
             className="titlebar-btn"

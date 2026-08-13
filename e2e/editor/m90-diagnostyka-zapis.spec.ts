@@ -1,8 +1,20 @@
 import { expect, test } from '@playwright/test';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { launchApp, makeConfigHome, makeFixtureProject } from '../utils';
+
+/**
+ * Tryb „po zapisie" jest ustawieniem trwałym (state.json), więc podstawiamy go
+ * wprost zamiast klikać przez kartę Ustawień — test bada, czy ZAPIS uruchamia
+ * przebieg, a nie mechanikę przełącznika (tę sprawdza m95).
+ */
+function makeConfigHomeZAuto(): string {
+  const dir = makeConfigHome();
+  mkdirSync(join(dir, 'sufler'), { recursive: true });
+  writeFileSync(join(dir, 'sufler', 'state.json'), JSON.stringify({ diagnosticsAuto: true }));
+  return dir;
+}
 
 /** Atrapy narzędzi: `tsc` zgłasza błąd i ostrzeżenie, `eslint` jedno ostrzeżenie. */
 function makeFakeTools(project: string): { tsc: string; eslint: string } {
@@ -37,27 +49,27 @@ test('M90: zapis pliku uruchamia sprawdzenie, gdy tryb „po zapisie" jest włą
   const project = makeFixtureProject();
   const tools = makeFakeTools(project);
 
-  const app = await launchApp(makeConfigHome(), project, {
+  const app = await launchApp(makeConfigHomeZAuto(), project, {
     VISUALN3O_DIAG_TSC: tools.tsc,
     VISUALN3O_DIAG_ESLINT: tools.eslint,
   });
   const page = await app.firstWindow();
 
-  // Bez trybu automatycznego zapis niczego nie uruchamia.
+  // Zanim ktokolwiek zapisze, wyników nie ma.
   await page.getByTestId('file-tree').getByText('README.md').click();
   await expect(page.getByTestId('tab-active')).toContainText('README.md');
-  await page.keyboard.press('Meta+s');
-  await expect(page.getByTestId('diagnostics-counts')).toHaveCount(0);
+  await expect(page.getByTestId('problems-view')).toHaveCount(0);
 
-  // Włączenie trybu i zapis — pasek liczy sam, bez klikania „Sprawdź projekt".
-  await page.getByTestId('diagnostics-auto').check();
+  // Zapis sam uruchamia przebieg — bez klikania przycisku sprawdzania.
   // Wpisujemy tak jak m2-editor: klik w wiersze, nie w ukryte textarea.
   await page.locator('.monaco-editor .view-lines').click();
   await page.keyboard.press('End');
   await page.keyboard.type(' dopisek');
   await page.keyboard.press('Meta+s');
 
-  const counts = page.getByTestId('diagnostics-counts');
+  // Karta „Problemy" otwiera się sama z wynikiem — to jest cała funkcja.
+  await page.getByTestId('diagnostics-button').click();
+  const counts = page.getByTestId('problems-counts');
   await expect(counts).toBeVisible({ timeout: 20_000 });
   await expect(counts).toContainText('1 błąd');
 
@@ -75,17 +87,17 @@ test('M90: filtr i „tylko błędy" zawężają listę problemów', async () =>
   });
   const page = await app.firstWindow();
 
-  await page.getByTestId('diagnostics-run').click();
-  const items = page.getByTestId('diagnostics-item');
+  await page.getByTestId('diagnostics-button').click();
+  const items = page.getByTestId('problems-item');
   await expect(items).toHaveCount(3, { timeout: 20_000 });
 
   // Fraza po treści komunikatu.
-  await page.getByTestId('diagnostics-filter').fill('Cannot find');
+  await page.getByTestId('problems-filter').fill('Cannot find');
   await expect(items).toHaveCount(1);
 
   // Zawężenie do błędów odsiewa oba ostrzeżenia.
-  await page.getByTestId('diagnostics-filter').fill('');
-  await page.getByTestId('diagnostics-only-errors').check();
+  await page.getByTestId('problems-filter').fill('');
+  await page.getByTestId('problems-only-errors').check();
   await expect(items).toHaveCount(1);
   await expect(items.first()).toContainText('TS2304');
 

@@ -7,17 +7,18 @@ import {
   HELP_PATH,
   isBrowserPreviewPath,
   KNOWLEDGE_GRAPH_PATH,
+  PROBLEMS_PATH,
   SETTINGS_PATH,
   WORKLOG_PATH,
 } from '../../../../shared/editor/preview';
 import { useWorkspace } from '../../workspace';
 import { BrowserPreview } from './BrowserPreview';
-import { DiagnosticsBar } from './DiagnosticsBar';
 import { DiffView } from './DiffView';
 import { EditorTabs } from './EditorTabs';
 import { GraphView } from '../graph/GraphView';
 import { HelpView } from '../views/HelpView';
 import { SettingsView } from '../views/SettingsView';
+import { ProblemsView } from '../views/ProblemsView';
 import { WorklogView } from '../views/WorklogView';
 import { ImageViewer } from './ImageViewer';
 import { MonacoEditor } from './MonacoEditor';
@@ -58,6 +59,10 @@ function GroupContent({ group, focused }: { group: EditorGroup; focused: boolean
 
   if (activePath === WORKLOG_PATH) {
     return <WorklogView />;
+  }
+
+  if (activePath === PROBLEMS_PATH) {
+    return <ProblemsView />;
   }
 
   if (isDiffPath(activePath)) {
@@ -149,7 +154,6 @@ export function EditorArea(): ReactElement {
           );
         })}
       </div>
-      <DiagnosticsBar />
     </main>
   );
 }

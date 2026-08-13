@@ -55,6 +55,7 @@ export const EN: Record<StringKey, string> = {
   'tabs.settingsTitle': 'Settings',
   'tabs.helpTitle': 'Tutorial',
   'tabs.worklogTitle': 'Work history',
+  'tabs.problemsTitle': 'Problems',
   'worklog.title': 'Work history',
   'worklog.subtitle':
     'Commits and session logs on one timeline — you can see which conversation led to which change.',
@@ -106,6 +107,10 @@ export const EN: Record<StringKey, string> = {
   'usage.cacheWrite': 'cache write',
   'usage.cacheRead': 'cache read',
 
+  'settings.diagnostics': 'Project checking',
+  'settings.diagnosticsHint':
+    'The ✓ button in the title bar runs the check; results open as a “Problems” tab. Below you can run it automatically after saving a file (throttled: a burst of saves gives one run).',
+  'settings.diagnosticsAuto': 'Check after saving a file',
   'settings.hooks': 'Claude Code hooks',
   'settings.hooksHint':
     'Commands Claude Code runs on session events. The list shows all three settings layers.',
@@ -659,6 +664,9 @@ export const EN: Record<StringKey, string> = {
   'diagnostics.autoHint': 'Check the project automatically after saving a file (throttled)',
   'diagnostics.filter': 'filter problems…',
   'diagnostics.onlyErrors': 'errors only',
+  'diagnostics.problems': 'Project problems',
+  'diagnostics.neverRun': 'Not checked yet — run it from the title bar button.',
+  'diagnostics.checkTitle': 'Check project (tsc + eslint)',
   'diagnostics.clean': 'No errors or warnings.',
   'diagnostics.toolFailed': '{tool} failed to start',
 

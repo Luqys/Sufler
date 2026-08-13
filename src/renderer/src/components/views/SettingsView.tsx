@@ -27,6 +27,8 @@ export function SettingsView(): ReactElement {
   const [sessionLog, setSessionLog] = useState(true);
   const [globalLog, setGlobalLog] = useState(false);
   const [hooks, setHooks] = useState<HookListEntry[]>([]);
+  /** „Sprawdzaj po zapisie" (M90) — od M95 mieszka tu, bo to ustawienie trwałe. */
+  const [diagAuto, setDiagAuto] = useState(false);
   const [hookEvent, setHookEvent] = useState<HookEvent>('PreToolUse');
   const [hookMatcher, setHookMatcher] = useState('');
   const [hookCommand, setHookCommand] = useState('');
@@ -41,6 +43,7 @@ export function SettingsView(): ReactElement {
     void window.api.getObsidianConfig().then(setObsidian);
     void window.api.getSessionLogEnabled().then(setSessionLog);
     void window.api.getGlobalSessionLog().then(setGlobalLog);
+    void window.api.getDiagnosticsAuto().then(setDiagAuto);
   }, []);
 
   useEffect(refreshHooks, [refreshHooks]);
@@ -193,6 +196,24 @@ export function SettingsView(): ReactElement {
           <span>{t('settings.sessionLogGlobal')}</span>
         </label>
         <p className="settings-hint">{t('settings.sessionLogGlobalHint')}</p>
+      </section>
+      <section className="settings-section" data-testid="diagnostics-section">
+        <h3 className="view-title">{t('settings.diagnostics')}</h3>
+        <p className="settings-hint">{t('settings.diagnosticsHint')}</p>
+        <label className="settings-switch">
+          <input
+            type="checkbox"
+            role="switch"
+            data-testid="diagnostics-auto"
+            checked={diagAuto}
+            onChange={(event) => {
+              const next = event.target.checked;
+              setDiagAuto(next);
+              void window.api.setDiagnosticsAuto(next);
+            }}
+          />
+          <span>{t('settings.diagnosticsAuto')}</span>
+        </label>
       </section>
       <section className="settings-section" data-testid="hooks-section">
         <h3 className="view-title">{t('settings.hooks')}</h3>
