@@ -219,7 +219,7 @@ cztery komendy zielone plus zrzut ekranu ze scenariusza e2e.
 | # | Zakres | Sprawdzenie |
 |---|---|---|
 | M68 | Slash-komendy z `.claude/commands` jako czwarta grupa panelu skilli | test jedn.: parser frontmattera komendy, kolejność warstw projekt/osobiste; e2e: dodanie `.md` w `commands/` pojawia się bez restartu |
-| M69 | Commit z aplikacji — wybór plików i wiadomość obok istniejącego `DiffView` | test jedn.: budowa listy do commita z `git status --porcelain`; e2e: zmiana pliku → zaznaczenie → commit → plik znika z listy, `git log` ma wpis |
+| ~~M69~~ | ~~Commit z aplikacji — wybór plików i wiadomość obok istniejącego `DiffView`~~ (zrobione) | test jedn.: `tests/git-commit.test.ts`; e2e: `e2e/m69-commit.spec.ts` |
 | M70 | Edytor hooków w Ustawieniach — te same warstwy co `skillOverrides` | test jedn.: zapis/kasowanie wpisu w trzech warstwach `settings.json`; e2e: dodanie hooka przez UI zapisuje się do `settings.local.json` |
 | M71 | Diagnostyka bez LSP — `tsc` i `eslint` w pasku, klik skacze do linii | test jedn.: parser wyjścia obu narzędzi → `{plik, linia, kolumna, treść}`; e2e: błąd składni pokazuje się w pasku i otwiera plik na właściwej linii |
 | M72 | Worktree'y — kilka sesji Claude na jednym zadaniu, porównanie i scalenie | test jedn.: mapowanie karta → worktree w `layout.json`; e2e: utworzenie worktree'a daje kartę z własnym `cwd`, usunięcie sprząta katalog |
@@ -284,15 +284,24 @@ watcher, to samo `Cmd+klik` wstawiające `/nazwa` do aktywnej sesji.
 Pola frontmattera do pokazania: `description`, `argument-hint`, `model`,
 `allowed-tools`. Komenda bez `description` — sama nazwa, bez wiersza opisu.
 
-### M69 — commit z aplikacji
+### M69 — commit z aplikacji (zrobione)
 
-`DiffView` pokazuje zmianę, ale zatwierdzić ją trzeba w terminalu. Domknięcie pętli:
-lista zmienionych plików z zaznaczaniem, pole wiadomości, przycisk commita.
+`DiffView` pokazywał zmianę, ale zatwierdzić ją trzeba było w terminalu. Panel Git
+ma teraz przy każdej zmianie roboczej pole wyboru, pod listą opis i przycisk
+zatwierdzenia z licznikiem zaznaczonych plików.
 
+- Commit jest **częściowy** (`git add -- <ścieżki>` + `git commit -- <ścieżki>`), więc
+  bierze wyłącznie zaznaczone pliki. Co ktoś zastage'ował osobno, zostaje w indeksie —
+  aplikacja nie zmienia stanu repozytorium pod palcami pracującego człowieka.
 - Bez stage'owania po kawałkach (`git apply --cached` na hunkach) — to osobna
   mechanika i osobny kamień, jeśli w ogóle. Zaznaczenie jest per plik.
 - Bez `push` — świadomie. Wypychanie zostaje w terminalu.
-- Autor commita bierzemy z konfiguracji gita repozytorium, aplikacja nie ustawia własnego.
+- Autor commita bierzemy z konfiguracji gita repozytorium, aplikacja nie ustawia
+  własnego. Brak `user.name`/`user.email` ma własny komunikat, bo to najczęstsza
+  przyczyna odmowy w świeżym repozytorium.
+- Zaznaczenie jest uzgadniane z aktualną listą zmian (`plannedPaths`), więc plik
+  zatwierdzony w terminalu albo cofnięty nie wjedzie do commita z rozpędu.
+- Logika w `src/shared/git-commit.ts`, wykonanie w `src/main/git-commit.ts`.
 
 ### M70 — edytor hooków
 

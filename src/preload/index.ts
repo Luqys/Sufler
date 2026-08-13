@@ -10,6 +10,7 @@ import {
   type AgentCreateInput,
   type DetachedTerminalInfo,
   type GitCommitFile,
+  type GitCommitResult,
   type GitLogResult,
   type GitShowFileResult,
   type GitStatusFile,
@@ -195,6 +196,8 @@ const api: WindowApi = {
   getIdeStatus: (): Promise<IdeStatus> => ipcRenderer.invoke(IPC.IdeStatusGet),
   gitShowFile: (root: string, rev: string, path: string): Promise<GitShowFileResult> =>
     ipcRenderer.invoke(IPC.GitShowFile, root, rev, path),
+  gitCommit: (root: string, paths: string[], message: string): Promise<GitCommitResult> =>
+    ipcRenderer.invoke(IPC.GitCommit, root, paths, message),
   listClaudeSessions: (root: string, limit?: number): Promise<ClaudeSessionSummary[]> =>
     ipcRenderer.invoke(IPC.ClaudeSessionsList, root, limit),
   getClaudeSessionDetails: (root: string, id: string): Promise<ClaudeSessionDetails | null> =>

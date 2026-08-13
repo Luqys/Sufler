@@ -2051,6 +2051,78 @@ body.dragging-horizontal .splitter.horizontal::after {
   background: #0891b2;
 }
 
+/* Commit z aplikacji (M69): zaznaczanie plików, opis, przycisk */
+.git-changes-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.git-select-all {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.git-change-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.git-change-row .git-change {
+  flex: 1;
+  min-width: 0;
+}
+
+.git-change-check,
+.git-select-all input {
+  accent-color: var(--accent);
+  cursor: pointer;
+  margin: 0;
+}
+
+.git-commit-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.git-commit-message {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-input, var(--bg));
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.git-commit-message:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.git-commit-btn {
+  align-self: flex-end;
+}
+
+.git-commit-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .diff-view {
   display: flex;
   flex-direction: column;

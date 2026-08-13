@@ -17,6 +17,7 @@ import { readDirListing, readFileForEditor, readImageForPreview, writeTextFile }
 import { importDroppedPaths } from './import-drop';
 import { migrateLegacyConfigDir, readLayout, writeLayout } from './layout-store';
 import { runGitLog, runGitShowCommit } from './git-log';
+import { runGitCommit } from './git-commit';
 import { runGitShowFile } from './git-show';
 import { runGitStatus } from './git-status';
 import { startIdeServer, stopIdeServer, updateIdeWorkspaceFolders } from './ide-server';
@@ -282,6 +283,9 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.GitStatusGet, (_event, root: string) => runGitStatus(root));
   ipcMain.handle(IPC.GitShowFile, (_event, root: string, rev: string, path: string) =>
     runGitShowFile(root, rev, path),
+  );
+  ipcMain.handle(IPC.GitCommit, (_event, root: string, paths: string[], message: string) =>
+    runGitCommit(root, paths, message),
   );
   ipcMain.handle(IPC.ClaudeSessionsList, (_event, root: string, limit?: number) =>
     listClaudeSessions(root, limit),

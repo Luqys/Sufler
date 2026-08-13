@@ -208,6 +208,18 @@ export const PL = {
   'git.noFiles': 'Brak zmian plików.',
   'git.changesTitle': 'Zmiany robocze',
 
+  // Commit z aplikacji (M69) — zaznaczenie plików, opis, zatwierdzenie
+  'git.selectAll': 'Zaznacz wszystkie',
+  'git.selectFile': 'Zaznacz do commita: {path}',
+  'git.commitPlaceholder': 'Opis zmiany…',
+  'git.commit': 'Zatwierdź ({count})',
+  'git.commitHint': 'Zaznacz pliki i napisz opis, żeby zatwierdzić.',
+  'git.commitWorking': 'Zatwierdzam…',
+  'git.commitDone': 'Zatwierdzono {hash}: {subject}',
+  'git.commitFailed': 'Nie udało się zatwierdzić zmian.',
+  'git.commitIdentity': 'Git nie zna autora — ustaw `user.name` i `user.email` w terminalu.',
+  'git.commitNothing': 'Nie ma czego zatwierdzać — zaznaczone pliki zniknęły z listy.',
+
   // Panel „Sesje" (M67) — historia rozmów z Claude w tym projekcie
   'sessions.refresh': 'Odśwież listę sesji',
   'sessions.loading': 'Czytam zapisane sesje…',
@@ -737,6 +749,18 @@ export const EN: Record<StringKey, string> = {
   'git.loadingFiles': 'Loading changes…',
   'git.noFiles': 'No file changes.',
   'git.changesTitle': 'Working changes',
+
+  // Commit from the app (M69) — pick files, describe, commit
+  'git.selectAll': 'Select all',
+  'git.selectFile': 'Select for commit: {path}',
+  'git.commitPlaceholder': 'Describe the change…',
+  'git.commit': 'Commit ({count})',
+  'git.commitHint': 'Select files and write a description to commit.',
+  'git.commitWorking': 'Committing…',
+  'git.commitDone': 'Committed {hash}: {subject}',
+  'git.commitFailed': 'Could not commit the changes.',
+  'git.commitIdentity': 'Git has no author configured — set `user.name` and `user.email` in a terminal.',
+  'git.commitNothing': 'Nothing to commit — the selected files are gone from the list.',
 
   // Sessions panel (M67) — history of Claude conversations in this project
   'sessions.refresh': 'Refresh session list',

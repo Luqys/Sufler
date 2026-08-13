@@ -2,7 +2,18 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } 
 import { assignLanes, maxLaneCount, type LaneRow } from '../../../shared/git-graph';
 import type { StringKey } from '../../../shared/i18n';
 import type { Checkpoint } from '../../../shared/checkpoints';
-import type { GitCommit, GitCommitFile, GitLogResult, GitStatusFile } from '../../../shared/ipc';
+import {
+  canCommit,
+  commitSubject,
+  plannedPaths,
+} from '../../../shared/git-commit';
+import type {
+  GitCommit,
+  GitCommitFile,
+  GitCommitResult,
+  GitLogResult,
+  GitStatusFile,
+} from '../../../shared/ipc';
 import { getLocale, t, tf, useT } from '../i18n';
 import { fullDateTime, relativeTime } from '../relative-time';
 import { useDialogs } from '../ui-dialogs';
@@ -100,6 +111,18 @@ function statusLabel(status: string): string {
   return key ? t(key) : status;
 }
 
+/** Awarie commita, dla których mamy własny komunikat; reszta idzie ogólnym. */
+function commitErrorKey(error: Extract<GitCommitResult, { ok: false }>['error']): StringKey {
+  switch (error) {
+    case 'identity-missing':
+      return 'git.commitIdentity';
+    case 'nothing-to-commit':
+      return 'git.commitNothing';
+    default:
+      return 'git.commitFailed';
+  }
+}
+
 /** Daty commitów przychodzą jako ISO 8601 (%aI) — helpery liczą na milisekundach. */
 const fullDate = (iso: string): string => fullDateTime(Date.parse(iso));
 const relativeDate = (iso: string): string => relativeTime(Date.parse(iso));
@@ -176,9 +199,13 @@ function Checkpoints({ root }: { root: string }): ReactElement | null {
 
 export function GitPanel(): ReactElement {
   const t = useT();
+  const { notify } = useDialogs();
   const { root, openDiffTab, openWorklogTab } = useWorkspace();
   const [result, setResult] = useState<GitLogResult | null>(null);
   const [changes, setChanges] = useState<GitStatusFile[]>([]);
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+  const [message, setMessage] = useState('');
+  const [committing, setCommitting] = useState(false);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [details, setDetails] = useState<ReadonlyMap<string, GitCommitFile[] | 'loading'>>(
     new Map(),
@@ -233,6 +260,47 @@ export function GitPanel(): ReactElement {
     }
   };
 
+  const planned = plannedPaths(changes, selected);
+  const allSelected = changes.length > 0 && changes.every((file) => selected.has(file.path));
+
+  const toggleFile = (path: string): void => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) {
+        next.delete(path);
+      } else {
+        next.add(path);
+      }
+      return next;
+    });
+  };
+
+  const toggleAll = (): void => {
+    setSelected(allSelected ? new Set() : new Set(changes.map((file) => file.path)));
+  };
+
+  /** Zatwierdza wyłącznie zaznaczone ścieżki; reszta indeksu zostaje nietknięta. */
+  const commit = (): void => {
+    if (committing || !canCommit(changes, selected, message)) {
+      return;
+    }
+    setCommitting(true);
+    const subject = commitSubject(message);
+    void window.api
+      .gitCommit(rootRef.current, plannedPaths(changes, selected), message)
+      .then((commitResult) => {
+        setCommitting(false);
+        if (commitResult.ok) {
+          notify(tf('git.commitDone', { hash: commitResult.shortHash, subject }), 'success');
+          setMessage('');
+          setSelected(new Set());
+        } else {
+          notify(t(commitErrorKey(commitResult.error)), 'error');
+        }
+        refresh();
+      });
+  };
+
   return (
     <div className="git-panel" data-testid="git-panel">
       <div className="git-toolbar">
@@ -272,26 +340,66 @@ export function GitPanel(): ReactElement {
       )}
       {result?.ok && changes.length > 0 && (
         <div className="git-changes" data-testid="git-changes">
-          <div className="view-title git-changes-title">{t('git.changesTitle')}</div>
+          <div className="view-title git-changes-title">
+            <span>{t('git.changesTitle')}</span>
+            <label className="git-select-all">
+              <input
+                type="checkbox"
+                data-testid="git-select-all"
+                checked={allSelected}
+                onChange={toggleAll}
+              />
+              {t('git.selectAll')}
+            </label>
+          </div>
           {changes.map((file) => (
-            <button
-              key={file.path}
-              type="button"
-              className="git-file git-change"
-              data-testid="git-change-file"
-              title={
-                file.state === 'modified' ? t('git.statusModified') : t('git.statusUntracked')
-              }
-              onClick={() => openDiffTab({ kind: 'worktree', path: file.path })}
-            >
-              <span
-                className={`git-status git-status-${file.state === 'modified' ? 'M' : 'U'}`}
+            <div key={file.path} className="git-change-row">
+              <input
+                type="checkbox"
+                className="git-change-check"
+                data-testid="git-change-check"
+                aria-label={tf('git.selectFile', { path: file.path })}
+                checked={selected.has(file.path)}
+                onChange={() => toggleFile(file.path)}
+              />
+              <button
+                type="button"
+                className="git-file git-change"
+                data-testid="git-change-file"
+                title={
+                  file.state === 'modified' ? t('git.statusModified') : t('git.statusUntracked')
+                }
+                onClick={() => openDiffTab({ kind: 'worktree', path: file.path })}
               >
-                {file.state === 'modified' ? 'M' : 'U'}
-              </span>
-              <span className="git-file-path">{file.path}</span>
-            </button>
+                <span
+                  className={`git-status git-status-${file.state === 'modified' ? 'M' : 'U'}`}
+                >
+                  {file.state === 'modified' ? 'M' : 'U'}
+                </span>
+                <span className="git-file-path">{file.path}</span>
+              </button>
+            </div>
           ))}
+          <div className="git-commit-box">
+            <textarea
+              className="git-commit-message"
+              data-testid="git-commit-message"
+              rows={2}
+              placeholder={t('git.commitPlaceholder')}
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+            />
+            <button
+              type="button"
+              className="bar-btn git-commit-btn"
+              data-testid="git-commit-btn"
+              disabled={committing || !canCommit(changes, selected, message)}
+              title={t('git.commitHint')}
+              onClick={commit}
+            >
+              {committing ? t('git.commitWorking') : tf('git.commit', { count: planned.length })}
+            </button>
+          </div>
         </div>
       )}
       <div className="git-list">

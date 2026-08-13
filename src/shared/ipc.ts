@@ -89,6 +89,7 @@ export const IPC = {
   IdeSelectionChanged: 'ide:selection-changed',
   IdeStatusGet: 'ide:status',
   GitShowFile: 'git:show-file',
+  GitCommit: 'git:commit',
   ClaudeSessionsList: 'claude-sessions:list',
   ClaudeSessionsDetails: 'claude-sessions:details',
   ClaudeHookEvent: 'claude-hooks:event',
@@ -384,6 +385,8 @@ export interface WindowApi {
   getIdeStatus(): Promise<IdeStatus>;
   /** Treść pliku z rewizji gita (`git show rev:ścieżka`) — do zakładek diffów. */
   gitShowFile(root: string, rev: string, path: string): Promise<GitShowFileResult>;
+  /** Zatwierdzenie zaznaczonych plików z panelu Git (M69). */
+  gitCommit(root: string, paths: string[], message: string): Promise<GitCommitResult>;
   /** Zapisane sesje Claude projektu — menu „Wznów sesję" i panel „Sesje". */
   listClaudeSessions(root: string, limit?: number): Promise<ClaudeSessionSummary[]>;
   /** Rozliczenie sesji (liczniki, ostatnie wymiany); null, gdy transkrypt zniknął. */
@@ -409,6 +412,23 @@ export interface GitStatusFile {
   path: string;
   state: 'modified' | 'untracked';
 }
+
+/** Wynik zatwierdzenia zaznaczonych plików (M69). */
+export type GitCommitResult =
+  | { ok: true; shortHash: string; files: number }
+  | {
+      ok: false;
+      error:
+        | 'not-a-repo'
+        | 'nothing-selected'
+        | 'empty-message'
+        | 'bad-path'
+        | 'identity-missing'
+        | 'nothing-to-commit'
+        | 'commit-failed';
+      /** Surowy komunikat gita — tylko dla awarii bez własnego tłumaczenia. */
+      detail?: string;
+    };
 
 export interface TreeChangedEvent {
   /** Ścieżka zmienionego wpisu (dziecko obserwowanego katalogu). */
