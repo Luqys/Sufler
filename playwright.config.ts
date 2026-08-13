@@ -17,5 +17,7 @@ export default defineConfig({
    */
   retries: 1,
   outputDir: './e2e-artifacts/test-results',
-  reporter: [['list']],
+  // Lista na ekran + zbieranie przyczyn padów do TSV (M91) — bez tego seria
+  // przebiegów daje tylko „mignęło", a nie rozkład, który cokolwiek rozstrzyga.
+  reporter: [['list'], ['./e2e/reporter-flaki.ts']],
 });

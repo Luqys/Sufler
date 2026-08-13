@@ -250,6 +250,11 @@ export function makeConfigHomeWithMode(mode: 'dark' | 'light' | 'matrix'): strin
  */
 export function makeRawKeysClaudeBin(): string {
   const dir = mkdtempSync(join(tmpdir(), 'vn3o-bin-'));
+  // PRÓBOWANE I ODRZUCONE (M91): dopisanie `tee` przed `cat -v`, żeby zapisać
+  // surowe bajty do pliku i rozdzielić „nie doszło" od „nie narysowało się".
+  // Wstawienie potoku przenosi wejście `cat` z terminala na potok, a wtedy
+  // wypisuje on blokowo zamiast na bieżąco — scenariusz zaczął padać
+  // powtarzalnie. Pomiar nie może zaburzać tego, co mierzy.
   const script = `#!/bin/zsh
 echo "── Claude Code (atrapa klawiszy) ──"
 echo "? for shortcuts"

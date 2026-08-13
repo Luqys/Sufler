@@ -246,6 +246,33 @@ linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
 
+### M91 — aparatura do polowania na migotanie (zrobione)
+
+Po M82 migotanie jest rzadkie (1–2 na 130 uruchomień), ale nie zniknęło,
+a dwa WYŁĄCZNE przebiegi na sąsiednich commitach dały 2 flaki i 0 flak. Czyli
+pojedynczy przebieg nie rozstrzyga niczego, a kolejne hipotezy byłyby tak samo
+nieweryfikowalne jak dwie poprzednie — „zombie procesy" i „dławienie tła" —
+obie postawione i obie wycofane po sprawdzeniu.
+
+Reporter (`e2e/reporter-flaki.ts`) dopisuje wiersz TSV dla KAŻDEJ nieudanej
+próby, także tej naprawionej przez retry, z przyczyną w jednej z rozłącznych
+klas: `start-okna`, `tresc`, `widocznosc`, `liczba`, `inne`. Każda prowadzi
+gdzie indziej: brak okna to start procesu, treść to bajty albo render,
+widoczność to układ albo fokus. Zapis idzie do `e2e-artifacts/` (poza repo),
+więc serię kilkunastu przebiegów da się policzyć bez parsera.
+
+**Próbowane i odrzucone:** zapis surowych bajtów pty w atrapie `claude`
+(`tee` przed `cat -v`), żeby rozdzielić „nie doszło" od „nie narysowało się".
+Wstawienie potoku przenosi wejście `cat` z terminala na potok, a wtedy wypisuje
+on blokowo zamiast na bieżąco — scenariusz m66 zaczął padać powtarzalnie.
+Pomiar nie może zaburzać tego, co mierzy; zostawiony komentarz w `e2e/utils.ts`
+mówi to wprost, żeby ktoś nie spróbował drugi raz.
+
+Aparatura nie odpowiada jeszcze na pytanie „dlaczego" — do tego potrzeba serii
+kilkunastu przebiegów, czyli około godziny pracy maszyny. Po to jednak jest:
+serię może puścić ktokolwiek i kiedykolwiek, a wynik będzie rozkładem, nie
+anegdotą.
+
 ### M90 — diagnostyka po zapisie (zrobione)
 
 Ostatnia pozycja z backlogu po v1. Miała numer M84 i wypadła, gdy ten numer
