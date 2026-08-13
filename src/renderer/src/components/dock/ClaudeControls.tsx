@@ -8,6 +8,7 @@ import {
   type ClaudeEffort,
   type ClaudeModel,
 } from '../../../../shared/claude/controls';
+import type { StanSesji } from '../../../../shared/claude/session-header';
 import type { StringKey } from '../../../../shared/i18n';
 import { t as tNow, tf, useT } from '../../i18n';
 import { useDialogs } from '../../ui-dialogs';
@@ -33,6 +34,8 @@ const WYSILEK: ClaudeEffort[] = ['low', 'medium', 'high', 'xhigh', 'max'];
 interface Props {
   /** Karta, do której piszemy — sterowanie dotyczy JEJ sesji, nie „aktywnej". */
   ptyId: number;
+  /** Odczytany z wyjścia stan sesji: co jest USTAWIONE, nie co klikaliśmy (M92). */
+  stan: StanSesji;
   /** Otwarcie nowej karty Claude z gotowym poleceniem przejęcia pracy. */
   onHandover(prompt: string): void;
   first: boolean;
@@ -44,7 +47,7 @@ interface Props {
  * karty: komendy ukośnikowe albo — dla trybu uprawnień — shift+tab, bo CLI
  * nie ma na niego komendy.
  */
-export function ClaudeControls({ ptyId, onHandover, first, dockId }: Props): ReactElement {
+export function ClaudeControls({ ptyId, stan, onHandover, first, dockId }: Props): ReactElement {
   const t = useT();
   const { root } = useWorkspace();
   const { notify } = useDialogs();
@@ -122,6 +125,14 @@ export function ClaudeControls({ ptyId, onHandover, first, dockId }: Props): Rea
           className="dock-resume-menu claude-controls"
           data-testid={first ? `${dockId}-claude-controls-menu` : undefined}
         >
+          <p className="claude-controls-now" data-testid="claude-controls-now">
+            {stan.modelOpis
+              ? tf('claudeCtl.now', {
+                  model: stan.modelOpis,
+                  wysilek: stan.wysilek ?? t('claudeCtl.unknownShort'),
+                })
+              : t('claudeCtl.unknown')}
+          </p>
           <div className="claude-controls-group">
             <span className="claude-controls-label">{t('claudeCtl.model')}</span>
             <div className="claude-controls-row">
@@ -129,8 +140,9 @@ export function ClaudeControls({ ptyId, onHandover, first, dockId }: Props): Rea
                 <button
                   key={model.id}
                   type="button"
-                  className="bar-btn"
+                  className={`bar-btn${stan.model === model.id ? ' claude-controls-active' : ''}`}
                   data-testid={`claude-model-${model.id}`}
+                  aria-pressed={stan.model === model.id}
                   onClick={() => wyslij(modelCommand(model.id), 'claudeCtl.sent')}
                 >
                   {t(model.labelKey)}
@@ -146,8 +158,9 @@ export function ClaudeControls({ ptyId, onHandover, first, dockId }: Props): Rea
                 <button
                   key={poziom}
                   type="button"
-                  className="bar-btn"
+                  className={`bar-btn${stan.wysilek === poziom ? ' claude-controls-active' : ''}`}
                   data-testid={`claude-effort-${poziom}`}
+                  aria-pressed={stan.wysilek === poziom}
                   title={t('claudeCtl.effortHint')}
                   onClick={() => wyslij(effortCommand(poziom), 'claudeCtl.sent')}
                 >

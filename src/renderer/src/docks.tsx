@@ -10,6 +10,10 @@ import {
 } from 'react';
 import { createClaudeStatusTracker } from '../../shared/claude/claude-status';
 import {
+  createSessionStateTracker,
+  type StanSesji,
+} from '../../shared/claude/session-header';
+import {
   activateTab as activateTabState,
   activeTabs,
   addTab as addTabState,
@@ -70,6 +74,8 @@ interface DocksValue {
   insertToActiveClaude(text: string): boolean;
   /** Ostatnie polecenie wysłane w danej karcie (hook UserPromptSubmit) → id karty. */
   lastPrompts: Record<string, string>;
+  /** Aktualny model i głębokość myślenia sesji, czytane z jej wyjścia (M92). */
+  sessionStates: Record<string, StanSesji>;
 }
 
 const DocksContext = createContext<DocksValue | null>(null);
@@ -90,6 +96,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
   const { confirmDialog, notify } = useDialogs();
   const [docks, setDocksRaw] = useState<DocksState>(emptyDocksState);
   const [lastPrompts, setLastPrompts] = useState<Record<string, string>>({});
+  const [sessionStates, setSessionStates] = useState<Record<string, StanSesji>>({});
   const docksRef = useRef(docks);
   // Karty, których status przejęły hooki (M35) — heurystyka pty ich nie dotyka.
   // Bez tego spóźniony chunk wyjścia nadpisywał status ustawiony hookiem (wyścig).
@@ -113,7 +120,13 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
         // tylko dla zakładek `claude`.
         const doWpisania = options?.insert ?? null;
         let wpisane = doWpisania === null;
-        const onOutput =
+        const stanTracker =
+          kind === 'claude'
+            ? createSessionStateTracker((stan) => {
+                setSessionStates((current) => ({ ...current, [id]: stan }));
+              })
+            : null;
+        const statusTracker =
           kind === 'claude'
             ? createClaudeStatusTracker((activity) => {
                 applyDocks((state) => {
@@ -130,7 +143,14 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
                   wpisane = true;
                   window.api.ptyWrite(result.ptyId, doWpisania);
                 }
-              }).push
+              })
+            : null;
+        const onOutput =
+          statusTracker && stanTracker
+            ? (chunk: string): void => {
+                statusTracker.push(chunk);
+                stanTracker.push(chunk);
+              }
             : undefined;
         createTerminalInstance(id, result.ptyId, { kind, onOutput });
         applyDocks((state) => {
@@ -176,6 +196,14 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
         void window.api.ptyKill(found.tab.ptyId);
         disposeTerminalInstance(id);
         setLastPrompts((current) => {
+          if (!(id in current)) {
+            return current;
+          }
+          const next = { ...current };
+          delete next[id];
+          return next;
+        });
+        setSessionStates((current) => {
           if (!(id in current)) {
             return current;
           }
@@ -317,6 +345,7 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
         detachTab,
         insertToActiveClaude,
         lastPrompts,
+        sessionStates,
       }}
     >
       {children}

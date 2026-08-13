@@ -7,6 +7,7 @@ import { getLocale, useT } from '../../i18n';
 import { getTerminalInstance } from '../../terminals';
 import { useDialogs } from '../../ui-dialogs';
 import { useWorkspace } from '../../workspace';
+import { PUSTY_STAN } from '../../../../shared/claude/session-header';
 import { ClaudeControls } from './ClaudeControls';
 import { TerminalView } from './TerminalView';
 import { isOutsideWindow } from '../../../../shared/docks/detached';
@@ -173,6 +174,7 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
     splitTab,
     detachTab,
     lastPrompts,
+    sessionStates,
   } = useDocks();
   const { notify } = useDialogs();
   const t = useT();
@@ -300,6 +302,7 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
           {activeTab?.kind === 'claude' && (
             <ClaudeControls
               ptyId={activeTab.ptyId}
+              stan={sessionStates[activeTab.id] ?? PUSTY_STAN}
               first={first}
               dockId={dockId}
               onHandover={(prompt) =>

@@ -246,6 +246,27 @@ linia po linii. Transkrypty sięgają dziesiątek megabajtów, więc lista czyta
 tylko początek pliku (tytuł, gałąź, początek rozmowy), a pełne rozliczenie
 robi się strumieniowo dopiero po rozwinięciu wiersza.
 
+### M92 — panel mówi, co jest USTAWIONE (zrobione)
+
+Panel z M84 umiał tylko przełączać. Po kliknięciu nie było wiadomo, co
+właściwie obowiązuje, a po `--resume` albo po zmianie z klawiatury panel
+i sesja rozjeżdżały się w milczeniu — najgorszy rodzaj interfejsu, bo wygląda
+na źródło prawdy, a nim nie jest.
+
+Stan czytamy z WYJŚCIA sesji, nie z własnych kliknięć: CLI wypisuje model
+i głębokość myślenia w nagłówku (`Opus 5 (1M context) with xhigh · …`)
+i potwierdza zmianę osobnym wierszem (`Set model to sonnet`). Parser
+(`src/shared/claude/session-header.ts`) bierze pod uwagę OSTATNIE wystąpienie,
+bo w trakcie sesji potwierdzenie ma pierwszeństwo nad nagłówkiem startowym,
+a pola bez trafienia zostają puste — panel nie zgaduje, tylko mówi „jeszcze
+nieznane".
+
+Przy okazji sprzątanie: `src/shared/claude/usage.ts` żył wyłącznie dzięki
+własnemu testowi (żaden moduł produkcyjny go nie importował), a jego
+formatowanie miało ZASZYTE polskie skróty („tys.", „mln") — w dwujęzycznej
+aplikacji byłby to błąd. Produkcja używa `Intl.NumberFormat` z lokalizacją.
+Moduł i test usunięte.
+
 ### M91 — aparatura do polowania na migotanie (zrobione)
 
 Po M82 migotanie jest rzadkie (1–2 na 130 uruchomień), ale nie zniknęło,

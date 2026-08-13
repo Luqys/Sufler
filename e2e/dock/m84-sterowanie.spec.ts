@@ -15,6 +15,8 @@ function makeEchoingClaudeBin(): { dir: string; log: string } {
   const script = [
     '#!/bin/zsh',
     'echo "── Claude Code (atrapa sterowania) ──"',
+    // Nagłówek jak w prawdziwym CLI — z niego panel czyta stan (M92).
+    'echo "Opus 5 (1M context) with xhigh · Claude Max · konto@example.com"',
     'echo "? for shortcuts"',
     'stty raw -echo 2>/dev/null',
     // `cat` bez bufora: każdy bajt z pty ląduje w pliku i na ekranie.
@@ -64,6 +66,30 @@ test('przyciski wysyłają do sesji komendy, które CLI naprawdę zna', async ()
   expect(wejscie).toContain(`${String.fromCharCode(27)}[Z`);
 
   await page.screenshot({ path: 'e2e-artifacts/m84-sterowanie.png' });
+  await app.close();
+});
+
+test('panel pokazuje AKTUALNY model i głębokość myślenia, nie tylko przełączniki', async () => {
+  const fake = makeEchoingClaudeBin();
+  const app = await launchApp(makeConfigHome(), makeFixtureProject(), {
+    VISUALN3O_PATH_PREPEND: fake.dir,
+  });
+  const page = await app.firstWindow();
+
+  await page.getByTestId('bottom-new-claude').click();
+  await expect(page.locator('[data-testid=bottom-dock] .xterm')).toContainText('atrapa sterowania', {
+    timeout: 15_000,
+  });
+
+  await page.getByTestId('bottom-claude-controls').click();
+  // Stan wzięty z nagłówka sesji, nie z tego, co klikaliśmy.
+  await expect(page.getByTestId('claude-controls-now')).toContainText('Opus 5 (1M context)');
+  await expect(page.getByTestId('claude-controls-now')).toContainText('xhigh');
+  await expect(page.getByTestId('claude-model-opus')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('claude-model-sonnet')).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByTestId('claude-effort-xhigh')).toHaveAttribute('aria-pressed', 'true');
+
+  await page.screenshot({ path: 'e2e-artifacts/m92-stan-sesji.png' });
   await app.close();
 });
 

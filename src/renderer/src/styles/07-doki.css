@@ -492,7 +492,9 @@
 /* --- M84: sterowanie sesją Claude z paska karty --- */
 
 .claude-controls {
-  width: 268px;
+  /* Pięć poziomów myślenia mieści się w jednym rzędzie — inaczej „max"
+     spadał do drugiego i panel wyglądał na uszkodzony (M92). */
+  width: 320px;
   padding: 10px;
   display: flex;
   flex-direction: column;
@@ -537,4 +539,18 @@
 .claude-controls-handover:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+/* M92: panel mówi, co jest USTAWIONE, nie tylko co da się kliknąć. */
+.claude-controls-now {
+  margin: -2px 0 2px;
+  font-size: 11.5px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.claude-controls-row .bar-btn.claude-controls-active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
 }

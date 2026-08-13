@@ -710,4 +710,7 @@ export const EN: Record<StringKey, string> = {
   'claudeCtl.handoverNoSummary': 'The new session got {plik} without a summary — context still carries over.',
   'claudeCtl.handoverNoLog':
     'No session log to hand over — enable the log in Settings or send a prompt first.',
+  'claudeCtl.now': 'Now: {model} · thinking {wysilek}',
+  'claudeCtl.unknown': 'Model and thinking depth not known yet — they appear once the session prints its header.',
+  'claudeCtl.unknownShort': 'unknown',
 };

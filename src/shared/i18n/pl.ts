@@ -743,4 +743,7 @@ export const PL = {
   'claudeCtl.handoverNoSummary': 'Nowa sesja dostała {plik} bez streszczenia — kontekst i tak przechodzi.',
   'claudeCtl.handoverNoLog':
     'Brak dziennika sesji do przeniesienia — włącz dziennik w Ustawieniach albo wyślij najpierw polecenie.',
+  'claudeCtl.now': 'Teraz: {model} · myślenie {wysilek}',
+  'claudeCtl.unknown': 'Model i głębokość myślenia jeszcze nieznane — pokażą się, gdy sesja wypisze nagłówek.',
+  'claudeCtl.unknownShort': 'nieznane',
 } as const;
