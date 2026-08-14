@@ -261,6 +261,8 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
               }`}
               draggable
               data-status={tab.status}
+              data-kind={tab.kind}
+              data-failed={tab.failed === true ? 'true' : undefined}
               title={`${tab.title} — ${tab.cwd}`}
               onClick={() => activateTab(dockId, pane.id, tab.id)}
               onDragStart={(event) => {

@@ -48,8 +48,9 @@ export const PL = {
   'dock.resumeLoading': 'Szukam sesji…',
   'dock.resumeEmpty': 'Brak zapisanych sesji dla tego projektu.',
   'dock.resumeTabTitle': 'Claude ↺',
-  'dock.notifDone': 'Claude skończył pracę',
-  'dock.notifAttention': 'Claude czeka na zgodę',
+  'dock.notif.done': 'Claude skończył pracę',
+  'dock.notif.attention': 'Claude czeka na zgodę',
+  'dock.notif.error': 'Sesja Claude zakończyła się błędem',
   'dock.notifBody': 'Karta „{title}" — wróć do Suflera.',
   'dock.copyPrompt': 'Kopiuj polecenie: zaznaczenie, a bez niego ostatni prompt tej sesji',
   'dock.copyPromptOk': 'Polecenie skopiowane do schowka.',
@@ -124,6 +125,11 @@ export const PL = {
   'settings.tabsHint':
     'Zamknięcie karty z żywym procesem kończy go — dlatego domyślnie pytamy o potwierdzenie.',
   'settings.confirmCloseTab': 'Pytaj przed zamknięciem karty z działającym procesem',
+  'settings.notify': 'Dźwięki i powiadomienia',
+  'settings.notifyHint':
+    'Karta Claude świeci na niebiesko przy pytaniu o zgodę, na zielono po skończonej pracy i na czerwono, gdy sesja padła. Te same trzy zdarzenia mogą dawać znać dźwiękiem i powiadomieniem.',
+  'settings.notifySounds': 'Dźwięk przy zmianie stanu karty',
+  'settings.notifySystem': 'Powiadomienie systemowe, gdy okno jest w tle',
   'settings.hooks': 'Hooki Claude Code',
   'settings.hooksHint':
     'Komendy uruchamiane przez Claude Code na zdarzeniach sesji. Lista pokazuje wszystkie trzy warstwy ustawień.',

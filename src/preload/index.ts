@@ -61,6 +61,7 @@ import type { ClaudeSessionDetails, ClaudeSessionSummary } from '../shared/claud
 import type { KnowledgeGraph } from '../shared/knowledge/graph';
 import type { IdeSelection } from '../shared/system/ide-protocol';
 import type { LayoutState } from '../shared/docks/layout';
+import type { NotifyPrefs } from '../shared/docks/tab-signals';
 import type { UsageLimitsResult } from '../shared/claude/limits';
 import type { McpConfigServer, McpDetail } from '../shared/mcp/mcp';
 import type { McpAddInput } from '../shared/mcp/mcp-add';
@@ -241,6 +242,9 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.WorktreeMerge, root, branch),
   runDiagnostics: (root: string): Promise<DiagnosticsResult> =>
     ipcRenderer.invoke(IPC.DiagnosticsRun, root),
+  getNotifyPrefs: (): Promise<NotifyPrefs> => ipcRenderer.invoke(IPC.NotifyPrefsGet),
+  setNotifyPrefs: (prefs: NotifyPrefs): Promise<NotifyPrefs> =>
+    ipcRenderer.invoke(IPC.NotifyPrefsSet, prefs),
   getConfirmCloseTab: (): Promise<boolean> => ipcRenderer.invoke(IPC.ConfirmCloseTabGet),
   setConfirmCloseTab: (enabled: boolean): Promise<boolean> =>
     ipcRenderer.invoke(IPC.ConfirmCloseTabSet, enabled),

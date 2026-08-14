@@ -3,6 +3,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { TabKind } from '../shared/docks/dock-tabs';
+import type { NotifyPrefs } from '../shared/docks/tab-signals';
 import type { LayoutVisibilityKey } from '../shared/docks/layout';
 import type { HookEntry } from '../shared/skills/hooks-config';
 import type { HookLayer, HunkSelection } from '../shared/ipc';
@@ -32,7 +33,12 @@ import { runGitShowFile } from './git/git-show';
 import { runGitStatus } from './git/git-status';
 import { startIdeServer, stopIdeServer, updateIdeWorkspaceFolders } from './claude/ide-server';
 import { resolveNoteLinks } from './knowledge/note-index';
-import { isConfirmCloseTab, setConfirmCloseTab } from './window/dock-prefs';
+import {
+  getNotifyPrefs,
+  isConfirmCloseTab,
+  setConfirmCloseTab,
+  setNotifyPrefs,
+} from './window/dock-prefs';
 import { installAppMenu } from './window/menu';
 import { readMcpConfig, runMcpGet, runMcpList } from './mcp/index';
 import { closeMcpWatcher, watchMcpConfig } from './mcp/watcher';
@@ -348,6 +354,8 @@ void app.whenReady().then(() => {
   );
   ipcMain.handle(IPC.UsageHistoryGet, (_event, root: string) => readUsageHistory(root));
   ipcMain.handle(IPC.DiagnosticsRun, (_event, root: string) => runDiagnostics(root));
+  ipcMain.handle(IPC.NotifyPrefsGet, () => getNotifyPrefs());
+  ipcMain.handle(IPC.NotifyPrefsSet, (_event, prefs: NotifyPrefs) => setNotifyPrefs(prefs));
   ipcMain.handle(IPC.ConfirmCloseTabGet, () => isConfirmCloseTab());
   ipcMain.handle(IPC.ConfirmCloseTabSet, (_event, enabled: boolean) => setConfirmCloseTab(enabled));
   ipcMain.handle(IPC.DiagnosticsAutoGet, () => isDiagnosticsAuto());

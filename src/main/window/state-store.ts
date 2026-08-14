@@ -15,6 +15,8 @@ export interface AppState {
   sessionLog?: boolean;
   /** Pytanie przed zamknięciem karty z procesem (M99); brak wartości = pytamy. */
   confirmCloseTab?: boolean;
+  /** Dźwięki i powiadomienia o stanie kart (M100) — normalizowane w shared. */
+  notify?: unknown;
 }
 
 function stateFilePath(): string {
@@ -48,6 +50,9 @@ export function readState(): AppState {
     }
     if (typeof obj['confirmCloseTab'] === 'boolean') {
       state.confirmCloseTab = obj['confirmCloseTab'];
+    }
+    if (typeof obj['notify'] === 'object' && obj['notify'] !== null) {
+      state.notify = obj['notify'];
     }
     return state;
   } catch {

@@ -16,6 +16,12 @@ export interface DockTab {
   /** Uchwyt procesu w main. Przenoszenie między dokami/panelami nie zmienia ptyId. */
   ptyId: number;
   status: TabStatus;
+  /**
+   * Proces skończył się kodem innym niż 0 (M100). Osobne pole zamiast statusu
+   * `error`, bo dla całej reszty aplikacji taka karta to zwykłe `exited`:
+   * proces nie żyje, zamknięcie nie wymaga pytania, wznowienie ma sens.
+   */
+  failed?: boolean;
 }
 
 export interface DockPane {

@@ -1,5 +1,6 @@
 import type { Appearance } from './project/appearance';
 import type { ClaudeHookEvent } from './claude/claude-hooks';
+import type { NotifyPrefs } from './docks/tab-signals';
 import type { ClaudeSessionDetails, ClaudeSessionSummary } from './claude/claude-sessions';
 import type { TabKind } from './docks/dock-tabs';
 import type { IdeSelection } from './system/ide-protocol';
@@ -112,6 +113,8 @@ export const IPC = {
   DiagnosticsAutoSet: 'diagnostics:auto-set',
   ConfirmCloseTabGet: 'dock:confirm-close-get',
   ConfirmCloseTabSet: 'dock:confirm-close-set',
+  NotifyPrefsGet: 'dock:notify-get',
+  NotifyPrefsSet: 'dock:notify-set',
   TranscriptSearch: 'claude-sessions:search',
   WorktreeList: 'worktree:list',
   WorktreeDiff: 'worktree:diff',
@@ -507,6 +510,9 @@ export interface WindowApi {
   /** Pytanie przed zamknięciem karty z procesem (M99) — „nie pytaj więcej". */
   getConfirmCloseTab(): Promise<boolean>;
   setConfirmCloseTab(enabled: boolean): Promise<boolean>;
+  /** Dźwięki i powiadomienia o stanie kart Claude (M100). */
+  getNotifyPrefs(): Promise<NotifyPrefs>;
+  setNotifyPrefs(prefs: NotifyPrefs): Promise<NotifyPrefs>;
   /** Zużycie tokenów policzone z transkryptów projektu (M73). */
   getUsageHistory(root: string): Promise<UsageScan>;
   /** Hunki pliku wobec HEAD — commit po kawałkach (M85). */

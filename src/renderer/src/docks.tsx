@@ -29,8 +29,15 @@ import {
   type DockId,
   type DocksState,
   type TabKind,
+  type TabStatus,
 } from '../../shared/docks/dock-tabs';
+import {
+  shouldAnnounce,
+  signalForTransition,
+  type TabSignal,
+} from '../../shared/docks/tab-signals';
 import { t, tf } from './i18n';
+import { playTabSignal } from './sounds';
 import { createTerminalInstance, disposeTerminalInstance, serializeTerminal } from './terminals';
 import { useDialogs } from './ui-dialogs';
 import { useWorkspace } from './workspace';
@@ -101,6 +108,9 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
   // Karty, których status przejęły hooki (M35) — heurystyka pty ich nie dotyka.
   // Bez tego spóźniony chunk wyjścia nadpisywał status ustawiony hookiem (wyścig).
   const hookDrivenRef = useRef(new Set<string>());
+  /** Poprzednie statusy kart — na nich stoją ogłoszenia stanu (M100). */
+  const statusesRef = useRef(new Map<string, TabStatus>());
+  const lastSignalsRef = useRef(new Map<string, { signal: TabSignal; at: number }>());
 
   const applyDocks = useCallback((updater: (state: DocksState) => DocksState) => {
     docksRef.current = updater(docksRef.current);
@@ -299,11 +309,13 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
 
   // Wyjście procesu → status 'exited' na zakładce (proces ubijamy dopiero przy zamknięciu).
   useEffect(() => {
-    window.api.onPtyExit(({ ptyId }) => {
+    window.api.onPtyExit(({ ptyId, exitCode }) => {
       const exited = allTabs(docksRef.current).find((tab) => tab.ptyId === ptyId);
       if (exited) {
         hookDrivenRef.current.delete(exited.id);
-        applyDocks((state) => updateTabState(state, exited.id, { status: 'exited' }));
+        applyDocks((state) =>
+          updateTabState(state, exited.id, { status: 'exited', failed: exitCode !== 0 }),
+        );
       }
     });
   }, [applyDocks]);
@@ -333,16 +345,51 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
           status: kind === 'stop' ? 'idle' : 'needs-input',
         }),
       );
-      // Okno w tle → natywne powiadomienie macOS z możliwością powrotu.
-      if (!document.hasFocus() && typeof Notification !== 'undefined') {
-        const notification = new Notification(
-          kind === 'stop' ? t('dock.notifDone') : t('dock.notifAttention'),
-          { body: tf('dock.notifBody', { title: target.title }) },
-        );
-        notification.onclick = () => window.focus();
-      }
     });
   }, [applyDocks]);
+
+  /**
+   * Ogłoszenia stanu kart Claude (M100): dźwięk i powiadomienie w jednym
+   * miejscu, na przejściach statusu. Wcześniej powiadamiały wyłącznie hooki,
+   * przez co sesje bez hooków milczały, a zgon procesu nie odzywał się wcale.
+   * Ustawienia czytamy przy każdym sygnale — przełącznik ma działać od razu.
+   */
+  useEffect(() => {
+    const previous = statusesRef.current;
+    const current = new Map<string, TabStatus>();
+    const signals: Array<{ signal: TabSignal; title: string; id: string }> = [];
+    for (const tab of allTabs(docks)) {
+      current.set(tab.id, tab.status);
+      if (tab.kind !== 'claude') {
+        continue;
+      }
+      const signal = signalForTransition(previous.get(tab.id), tab.status, tab.failed === true);
+      const last = lastSignalsRef.current.get(tab.id);
+      if (signal && shouldAnnounce(last, signal, Date.now())) {
+        lastSignalsRef.current.set(tab.id, { signal, at: Date.now() });
+        signals.push({ signal, title: tab.title, id: tab.id });
+      }
+    }
+    statusesRef.current = current;
+    if (signals.length === 0) {
+      return;
+    }
+    void window.api.getNotifyPrefs().then((prefs) => {
+      for (const { signal, title } of signals) {
+        if (prefs.sounds) {
+          playTabSignal(signal);
+        }
+        // Powiadomienie systemowe ma sens, gdy okno jest w tle — inaczej
+        // dubluje kolor karty, który i tak masz przed oczami.
+        if (prefs.system && !document.hasFocus() && typeof Notification !== 'undefined') {
+          const notification = new Notification(t(`dock.notif.${signal}`), {
+            body: tf('dock.notifBody', { title }),
+          });
+          notification.onclick = () => window.focus();
+        }
+      }
+    });
+  }, [docks]);
 
   return (
     <DocksContext.Provider

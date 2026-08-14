@@ -12,6 +12,10 @@ import {
   type HookEvent,
 } from '../../../../shared/skills/hooks-config';
 import type { HookListEntry } from '../../../../shared/ipc';
+import {
+  DEFAULT_NOTIFY_PREFS,
+  type NotifyPrefs,
+} from '../../../../shared/docks/tab-signals';
 import { applyAppearance } from '../../appearance-client';
 import { useT } from '../../i18n';
 import { useDialogs } from '../../ui-dialogs';
@@ -29,6 +33,7 @@ export function SettingsView(): ReactElement {
   const [diagAuto, setDiagAuto] = useState(false);
   /** Pytanie przed zamknięciem karty z procesem (M99) — tu wraca po „nie pytaj więcej". */
   const [confirmClose, setConfirmClose] = useState(true);
+  const [notifyPrefs, setNotifyPrefsState] = useState<NotifyPrefs>(DEFAULT_NOTIFY_PREFS);
   const [hookEvent, setHookEvent] = useState<HookEvent>('PreToolUse');
   const [hookMatcher, setHookMatcher] = useState('');
   const [hookCommand, setHookCommand] = useState('');
@@ -44,6 +49,7 @@ export function SettingsView(): ReactElement {
     void window.api.getGlobalSessionLog().then(setGlobalLog);
     void window.api.getDiagnosticsAuto().then(setDiagAuto);
     void window.api.getConfirmCloseTab().then(setConfirmClose);
+    void window.api.getNotifyPrefs().then(setNotifyPrefsState);
   }, []);
 
   useEffect(refreshHooks, [refreshHooks]);
@@ -78,6 +84,12 @@ export function SettingsView(): ReactElement {
         }
         refreshHooks();
       });
+  };
+
+  const updateNotify = (patch: Partial<NotifyPrefs>): void => {
+    const next = { ...notifyPrefs, ...patch };
+    setNotifyPrefsState(next);
+    void window.api.setNotifyPrefs(next);
   };
 
   const updateAppearance = (patch: Partial<Appearance>): void => {
@@ -224,6 +236,30 @@ export function SettingsView(): ReactElement {
             }}
           />
           <span>{t('settings.confirmCloseTab')}</span>
+        </label>
+      </section>
+      <section className="settings-section" data-testid="notify-section">
+        <h3 className="view-title">{t('settings.notify')}</h3>
+        <p className="settings-hint">{t('settings.notifyHint')}</p>
+        <label className="settings-switch">
+          <input
+            type="checkbox"
+            role="switch"
+            data-testid="notify-sounds"
+            checked={notifyPrefs.sounds}
+            onChange={(event) => updateNotify({ sounds: event.target.checked })}
+          />
+          <span>{t('settings.notifySounds')}</span>
+        </label>
+        <label className="settings-switch">
+          <input
+            type="checkbox"
+            role="switch"
+            data-testid="notify-system"
+            checked={notifyPrefs.system}
+            onChange={(event) => updateNotify({ system: event.target.checked })}
+          />
+          <span>{t('settings.notifySystem')}</span>
         </label>
       </section>
       <section className="settings-section" data-testid="hooks-section">

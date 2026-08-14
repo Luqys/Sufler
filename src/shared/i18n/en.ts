@@ -42,8 +42,9 @@ export const EN: Record<StringKey, string> = {
   'dock.resumeLoading': 'Looking for sessions…',
   'dock.resumeEmpty': 'No saved sessions for this project.',
   'dock.resumeTabTitle': 'Claude ↺',
-  'dock.notifDone': 'Claude finished working',
-  'dock.notifAttention': 'Claude is waiting for approval',
+  'dock.notif.done': 'Claude finished working',
+  'dock.notif.attention': 'Claude is waiting for approval',
+  'dock.notif.error': 'The Claude session ended with an error',
   'dock.notifBody': 'Tab “{title}” — come back to Sufler.',
   'dock.copyPrompt': 'Copy prompt: the selection, or the session’s last prompt when nothing is selected',
   'dock.copyPromptOk': 'Prompt copied to the clipboard.',
@@ -116,6 +117,11 @@ export const EN: Record<StringKey, string> = {
   'settings.tabsHint':
     'Closing a tab with a live process terminates it — that is why we ask for confirmation by default.',
   'settings.confirmCloseTab': 'Ask before closing a tab with a running process',
+  'settings.notify': 'Sounds and notifications',
+  'settings.notifyHint':
+    'A Claude tab glows blue when it asks for approval, green when the work is done and red when the session died. The same three events can also play a sound and post a notification.',
+  'settings.notifySounds': 'Play a sound when a tab changes state',
+  'settings.notifySystem': 'System notification while the window is in the background',
   'settings.hooks': 'Claude Code hooks',
   'settings.hooksHint':
     'Commands Claude Code runs on session events. The list shows all three settings layers.',
