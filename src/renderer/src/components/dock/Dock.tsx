@@ -4,11 +4,12 @@ import { dropZoneFor, type DropZone } from '../../../../shared/docks/dock-drop';
 import type { DockId, DockPane, TabKind } from '../../../../shared/docks/dock-tabs';
 import { useDocks } from '../../docks';
 import { getLocale, useT } from '../../i18n';
-import { getTerminalInstance } from '../../terminals';
+import { getTerminalInstance, onTerminalFind, scrollTerminal } from '../../terminals';
 import { useDialogs } from '../../ui-dialogs';
 import { useWorkspace } from '../../workspace';
 import { PUSTY_STAN } from '../../../../shared/claude/session-header';
 import { ClaudeControls } from './ClaudeControls';
+import { TerminalSearch } from './TerminalSearch';
 import { TerminalView } from './TerminalView';
 import { isOutsideWindow } from '../../../../shared/docks/detached';
 
@@ -55,6 +56,29 @@ const ICON_COPY_PROMPT = (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
     <rect x="5.4" y="1.9" width="8.2" height="10.2" rx="1.5" />
     <path d="M10.6 14.1H3.9a1.5 1.5 0 0 1-1.5-1.5V4.4" />
+  </svg>
+);
+
+const ICON_TO_TOP = (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.6 2.6h10.8" />
+    <path d="M8 13.4V5.4" />
+    <path d="M4.6 8.8L8 5.4l3.4 3.4" />
+  </svg>
+);
+
+const ICON_TO_BOTTOM = (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.6 13.4h10.8" />
+    <path d="M8 2.6v8" />
+    <path d="M4.6 7.2L8 10.6l3.4-3.4" />
+  </svg>
+);
+
+const ICON_FIND = (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <circle cx="7" cy="7" r="4.3" />
+    <path d="M10.2 10.2l3.2 3.2" />
   </svg>
 );
 
@@ -180,9 +204,22 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
   const t = useT();
   /** null = brak przeciągania nad tym panelem; inaczej strefa upuszczenia. */
   const [dropZone, setDropZone] = useState<DropZone | null>(null);
+  /** Karta, nad którą otwarta jest szukajka (M101) — najwyżej jedna w panelu. */
+  const [searchTabId, setSearchTabId] = useState<string | null>(null);
 
   const activeTab = pane.tabs.find((tab) => tab.id === pane.activeId) ?? null;
   const first = paneIndex === 0;
+
+  // Cmd+F w terminalu tego panelu otwiera szukajkę nad jego kartą.
+  useEffect(
+    () =>
+      onTerminalFind((tabId) => {
+        if (pane.tabs.some((tab) => tab.id === tabId)) {
+          setSearchTabId(tabId);
+        }
+      }),
+    [pane.tabs],
+  );
 
   /**
    * Kopiowanie polecenia (zgłoszenie użytkowników): zaznaczenie w terminalu,
@@ -323,6 +360,39 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
               {ICON_COPY_PROMPT}
             </button>
           )}
+          {activeTab && (
+            <>
+              <button
+                type="button"
+                className="dock-add"
+                data-testid={first ? `${dockId}-scroll-top` : undefined}
+                title={t('dock.scrollTop')}
+                onClick={() => scrollTerminal(activeTab.id, 'top')}
+              >
+                {ICON_TO_TOP}
+              </button>
+              <button
+                type="button"
+                className="dock-add"
+                data-testid={first ? `${dockId}-scroll-bottom` : undefined}
+                title={t('dock.scrollBottom')}
+                onClick={() => scrollTerminal(activeTab.id, 'bottom')}
+              >
+                {ICON_TO_BOTTOM}
+              </button>
+              <button
+                type="button"
+                className={`dock-add${searchTabId === activeTab.id ? ' active' : ''}`}
+                data-testid={first ? `${dockId}-search` : undefined}
+                title={t('dock.search')}
+                onClick={() =>
+                  setSearchTabId((current) => (current === activeTab.id ? null : activeTab.id))
+                }
+              >
+                {ICON_FIND}
+              </button>
+            </>
+          )}
           <button
             type="button"
             className="dock-add"
@@ -365,7 +435,12 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
       </header>
       <div className="dock-body">
         {activeTab ? (
-          <TerminalView key={activeTab.id} tabId={activeTab.id} />
+          <div className="terminal-stack">
+            <TerminalView key={activeTab.id} tabId={activeTab.id} />
+            {searchTabId === activeTab.id && (
+              <TerminalSearch tabId={activeTab.id} onClose={() => setSearchTabId(null)} />
+            )}
+          </div>
         ) : (
           <div className="dock-empty">
             <p className="placeholder">{t('dock.empty')}</p>

@@ -6,6 +6,7 @@ import type { TabKind } from '../../shared/docks/dock-tabs';
 import { quotePathForPrompt } from '../../shared/editor/media';
 import { createWheelNormalizer } from '../../shared/system/scroll';
 import { CLAUDE_NEWLINE, isClaudeNewline } from '../../shared/claude/terminal-keys';
+import { scrollTargetLine, type TerminalMatch } from '../../shared/docks/terminal-search';
 import { FLAVOR_EVENT, isDarkTheme, isMatrixFlavor } from './appearance-client';
 import { t } from './i18n';
 
@@ -167,17 +168,21 @@ export function createTerminalInstance(
   term.loadAddon(serialize);
   term.open(host);
   term.onData((data) => window.api.ptyWrite(ptyId, data));
-  if (kind === 'claude') {
-    // Shift+Enter = nowa linia w poleceniu. W zwykłym terminalu zostawiamy
-    // domyślne zachowanie (Shift+Enter zatwierdza), bo powłoka nie zna ESC+CR.
-    term.attachCustomKeyEventHandler((event) => {
-      if (isClaudeNewline(event)) {
-        window.api.ptyWrite(ptyId, CLAUDE_NEWLINE);
-        return false;
+  term.attachCustomKeyEventHandler((event) => {
+    if (event.type === 'keydown' && event.metaKey && event.key.toLowerCase() === 'f') {
+      for (const listener of findListeners) {
+        listener(tabId);
       }
-      return true;
-    });
-  }
+      return false;
+    }
+    // Shift+Enter = nowa linia w poleceniu Claude. W zwykłym terminalu zostaje
+    // domyślne zachowanie (Shift+Enter zatwierdza), bo powłoka nie zna ESC+CR.
+    if (kind === 'claude' && isClaudeNewline(event)) {
+      window.api.ptyWrite(ptyId, CLAUDE_NEWLINE);
+      return false;
+    }
+    return true;
+  });
   // Wklejenie obrazka (np. zrzutu ekranu): schowek ma bitmapę bez tekstu —
   // zapisujemy ją do pliku i wklejamy ścieżkę (Claude Code czyta obrazki po
   // ścieżce). Nasłuch w fazie capture wyprzedza własny handler xterm.
@@ -246,6 +251,70 @@ export function createTerminalInstance(
 
 export function getTerminalInstance(tabId: string): TerminalInstance | null {
   return instances.get(tabId) ?? null;
+}
+
+/* --- M101: przewijanie i szukanie w buforze --- */
+
+export function scrollTerminal(tabId: string, where: 'top' | 'bottom'): void {
+  const instance = instances.get(tabId);
+  if (!instance) {
+    return;
+  }
+  if (where === 'top') {
+    instance.term.scrollToTop();
+  } else {
+    instance.term.scrollToBottom();
+  }
+  instance.term.focus();
+}
+
+/**
+ * Treść bufora wiersz po wierszu — razem ze scrollbackiem. `translateToString`
+ * z przycinaniem spacji: TUI Claude Code dopycha wiersze do szerokości okna,
+ * a wtedy każdy wiersz kończyłby się setką spacji.
+ */
+export function terminalLines(tabId: string): string[] {
+  const instance = instances.get(tabId);
+  if (!instance) {
+    return [];
+  }
+  const buffer = instance.term.buffer.active;
+  const lines: string[] = [];
+  for (let index = 0; index < buffer.length; index += 1) {
+    lines.push(buffer.getLine(index)?.translateToString(true) ?? '');
+  }
+  return lines;
+}
+
+/**
+ * Przewinięcie do trafienia i zaznaczenie go. Zaznaczenie zamiast dekoracji:
+ * rysuje je sam xterm (więc widać je w każdym motywie i przy każdym rendererze),
+ * a przy okazji trafienie da się od razu skopiować.
+ */
+export function revealTerminalMatch(tabId: string, match: TerminalMatch): void {
+  const instance = instances.get(tabId);
+  if (!instance) {
+    return;
+  }
+  const { term } = instance;
+  term.scrollToLine(scrollTargetLine(match.line, term.rows));
+  term.select(match.column, match.line, match.length);
+}
+
+export function clearTerminalMatch(tabId: string): void {
+  instances.get(tabId)?.term.clearSelection();
+}
+
+/**
+ * Cmd+F wewnątrz terminala. Klawiatura należy do xterma, więc skrót łapiemy
+ * w jego obsłudze i wołamy nasłuchujących — inaczej nie miałby jak wyjść poza
+ * kanwę i otworzyć szukajki w Reakcie.
+ */
+const findListeners = new Set<(tabId: string) => void>();
+
+export function onTerminalFind(listener: (tabId: string) => void): () => void {
+  findListeners.add(listener);
+  return () => findListeners.delete(listener);
 }
 
 /** Zserializowany bufor terminala (scrollback) — do przenosin między oknami. */
