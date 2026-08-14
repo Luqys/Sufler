@@ -24,3 +24,8 @@ jobs:
       - run: npm test
       # Testy Playwright uruchamiają okna Electrona — potrzebny wirtualny ekran.
       - run: npm run e2e
+        env:
+          # Bundlowanie Monaco przekracza domyślny limit sterty Node na runnerze
+          # (build w `npm run e2e` padał z „heap out of memory", exit 134).
+          # Ten sam zapas co w workflow wydania.
+          NODE_OPTIONS: --max-old-space-size=6144
