@@ -37,7 +37,7 @@ test('Ustawienia: segmentowane przełączniki, pełny opis i zrzuty w trzech mot
   await app.close();
 });
 
-test('nakładka grafu: tryby w równych rzędach, stan aktywny przycisku', async () => {
+test('pasek grafu: tryby w jednym rzędzie, legenda tylko z grupami', async () => {
   // Graf z połączeniami — nakładka na pustym płótnie niczego nie dowodzi.
   const project = makeFixtureProject();
   writeFileSync(
@@ -61,10 +61,26 @@ test('nakładka grafu: tryby w równych rzędach, stan aktywny przycisku', async
   await expect(page.getByTestId('graph-stats')).toContainText('5 notatek', { timeout: 15_000 });
   await expect(page.getByTestId('graph-stats')).toContainText('4 połączenia');
 
-  // Pięć trybów układa się w dwa rzędy — żaden nie wystaje poza kartę legendy.
+  /*
+   * Od M105 tryby siedzą w pasku nad płótnem, a nie w karcie legendy. Pięć
+   * przycisków stoi w jednym rzędzie (te same współrzędne Y), a pasek niczego
+   * nie ucina — wcześniej „Przelicz" wyjeżdżał poza krawędź.
+   */
+  const bar = page.getByTestId('graph-bar');
+  await expect(bar).toBeVisible();
+  const tryby = ['graph-mode-author', 'graph-mode-tags', 'graph-mode-fresh'];
+  const gorne = await Promise.all(
+    tryby.map(async (id) => Math.round((await page.getByTestId(id).boundingBox())!.y)),
+  );
+  expect(new Set(gorne).size).toBe(1);
+  const przyciete = await bar.evaluate(
+    (element) => element.scrollWidth > element.clientWidth + 1,
+  );
+  expect(przyciete).toBe(false);
+
+  // Karta legendy niesie już tylko grupy — bez przełącznika trybów.
   const legend = page.getByTestId('graph-legend');
-  const overflow = await legend.evaluate((element) => element.scrollWidth > element.clientWidth + 1);
-  expect(overflow).toBe(false);
+  await expect(legend.getByTestId('graph-mode-tags')).toHaveCount(0);
 
   const orphans = page.getByTestId('graph-orphans');
   await orphans.click();

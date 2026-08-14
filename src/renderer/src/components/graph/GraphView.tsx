@@ -534,6 +534,66 @@ export function GraphView(): ReactElement {
 
   return (
     <div className="graph-view" data-testid="graph-view">
+      {/*
+        * M105: jeden pasek nad płótnem zamiast dwóch pływających kart w rogach.
+        * Wcześniej statystyki, szukajka i dwa przyciski tłoczyły się w kafelku
+        * po lewej (przy węższym oknie „Przelicz" spadał do drugiego rzędu),
+        * a pięć trybów układało się 3+2 w karcie legendy po prawej. Teraz
+        * sterowanie jest w jednym rzędzie, a karta po prawej niesie już tylko
+        * legendę grup.
+        */}
+      <div className="graph-bar" data-testid="graph-bar">
+        <span className="graph-stats" data-testid="graph-stats">
+          {graph
+            ? `${tp('unit.notes', graph.nodes.length - hiddenOrphans.size)} · ${tp('unit.edges', graph.edges.length)}${
+                matches !== null ? ` · ${tp('unit.matches', matches.size)}` : ''
+              }`
+            : t('graph.building')}
+        </span>
+        <input
+          className="graph-search"
+          data-testid="graph-search"
+          type="search"
+          placeholder={t('graph.searchPh')}
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              submitSearch();
+            } else if (event.key === 'Escape') {
+              setQuery('');
+            }
+          }}
+        />
+        <div className="graph-mode segmented" role="group" aria-label={t('graph.modeAria')}>
+          {MODES.map((entry) => (
+            <button
+              key={entry.id}
+              type="button"
+              className={`segmented-btn graph-mode-btn${mode === entry.id ? ' active' : ''}`}
+              data-testid={entry.testId}
+              onClick={() => switchMode(entry.id)}
+            >
+              {t(entry.labelKey)}
+            </button>
+          ))}
+        </div>
+        <div className="graph-bar-actions">
+          <button
+            type="button"
+            className={`bar-btn graph-orphans-btn${hideOrphans ? ' graph-orphans-on' : ''}`}
+            data-testid="graph-orphans"
+            title={t('graph.orphansTitle')}
+            onClick={() => setHideOrphans((previous) => !previous)}
+          >
+            {t('graph.hideOrphans')}
+          </button>
+          <button type="button" className="bar-btn" data-testid="graph-refresh" onClick={refresh}>
+            {t('graph.relayout')}
+          </button>
+        </div>
+      </div>
+      <div className="graph-body">
       <canvas
         ref={canvasRef}
         className="graph-canvas"
@@ -597,57 +657,8 @@ export function GraphView(): ReactElement {
           transform.scale = next;
         }}
       />
-      <div className="graph-overlay">
-        <span className="graph-stats" data-testid="graph-stats">
-          {graph
-            ? `${tp('unit.notes', graph.nodes.length - hiddenOrphans.size)} · ${tp('unit.edges', graph.edges.length)}${
-                matches !== null ? ` · ${tp('unit.matches', matches.size)}` : ''
-              }`
-            : t('graph.building')}
-        </span>
-        <input
-          className="graph-search"
-          data-testid="graph-search"
-          type="search"
-          placeholder={t('graph.searchPh')}
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              submitSearch();
-            } else if (event.key === 'Escape') {
-              setQuery('');
-            }
-          }}
-        />
-        <button
-          type="button"
-          className={`bar-btn graph-orphans-btn${hideOrphans ? ' graph-orphans-on' : ''}`}
-          data-testid="graph-orphans"
-          title={t('graph.orphansTitle')}
-          onClick={() => setHideOrphans((previous) => !previous)}
-        >
-          {t('graph.hideOrphans')}
-        </button>
-        <button type="button" className="bar-btn" data-testid="graph-refresh" onClick={refresh}>
-          {t('graph.relayout')}
-        </button>
-      </div>
       {graph && grouping.groups.length > 0 && (
         <div className="graph-legend" data-testid="graph-legend">
-          <div className="graph-mode" role="group" aria-label={t('graph.modeAria')}>
-            {MODES.map((entry) => (
-              <button
-                key={entry.id}
-                type="button"
-                className={`graph-mode-btn${mode === entry.id ? ' active' : ''}`}
-                data-testid={entry.testId}
-                onClick={() => switchMode(entry.id)}
-              >
-                {t(entry.labelKey)}
-              </button>
-            ))}
-          </div>
           <span className="accent-popover-title">{t(grouping.titleKey)}</span>
           {grouping.groups.map((group) => (
             <button
@@ -742,6 +753,7 @@ export function GraphView(): ReactElement {
         </div>
       )}
       <p className="graph-hint placeholder">{t('graph.hint')}</p>
+      </div>
     </div>
   );
 }

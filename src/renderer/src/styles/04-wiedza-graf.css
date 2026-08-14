@@ -308,12 +308,44 @@
 /* --- Graf wiedzy --- */
 
 .graph-view {
-  position: relative;
   flex: 1;
   min-width: 0;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   background: var(--bg);
+}
+
+/*
+ * M105: pasek sterowania na pełną szerokość zamiast pływającego kafelka.
+ * Nieprzezroczyste tło i krawędź pod spodem — element interfejsu, a nie
+ * przyklejona do płótna naklejka, przez którą prześwitywały węzły.
+ */
+.graph-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  font-size: 11.5px;
+  color: var(--text);
+}
+
+.graph-bar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.graph-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
 }
 
 .graph-canvas {
@@ -327,29 +359,12 @@
   cursor: grabbing;
 }
 
-.graph-overlay {
-  position: absolute;
-  top: 10px;
-  left: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 7px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--panel) 82%, transparent);
-  backdrop-filter: blur(10px) saturate(1.15);
-  box-shadow: 0 6px 18px rgb(0 0 0 / 0.14);
-  font-size: 11.5px;
-  color: var(--text);
-}
-
 /* „Przelicz" jako przycisk-duch z glifem odświeżania. */
 /* M77: wszystkie kontrolki paska w jednej metryce (24 px) i z jednym promieniem. */
-.graph-overlay .bar-btn {
+.graph-bar .bar-btn {
   display: inline-flex;
   align-items: center;
-  height: 24px;
+  height: 26px;
   border: none;
   border-radius: 7px;
   padding: 0 9px;
@@ -358,12 +373,12 @@
   transition: background 0.15s ease;
 }
 
-.graph-overlay .bar-btn::before {
+.graph-bar .bar-btn::before {
   content: '↻';
   margin-right: 5px;
 }
 
-.graph-overlay .bar-btn:hover {
+.graph-bar .bar-btn:hover {
   background: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
@@ -389,11 +404,11 @@
   color: var(--muted);
 }
 
-.graph-overlay .bar-btn.graph-orphans-btn::before {
+.graph-bar .bar-btn.graph-orphans-btn::before {
   content: '◌';
 }
 
-.graph-overlay .bar-btn.graph-orphans-on {
+.graph-bar .bar-btn.graph-orphans-on {
   background: color-mix(in srgb, var(--accent) 26%, transparent);
   box-shadow: inset 0 0 0 1px var(--accent);
 }
@@ -404,7 +419,7 @@
 
 .graph-legend {
   position: absolute;
-  top: 10px;
+  top: 12px;
   right: 12px;
   display: flex;
   flex-direction: column;
@@ -433,20 +448,24 @@
  * zawijały się na 3 + 2 i rozciągały do pełnej szerokości, więc drugi rząd
  * miał przyciski półtora raza szersze od pierwszego.
  */
+/*
+ * Pięć trybów w jednym rzędzie paska — bez rzędu 3+2 w karcie legendy.
+ * Wysokość jak reszta paska (26 px): licznik, szukajka, tryby i przyciski
+ * stoją na wspólnej metryce, którą pilnuje spec M77.
+ */
 .graph-mode {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
+  margin-top: 0;
+  flex: none;
   padding: 2px;
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--text) 8%, transparent);
 }
 
 .graph-mode-btn {
-  padding: 4px 6px;
-  font: inherit;
-  font-size: 10.5px;
-  font-weight: 500;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  font-size: 11px;
+  white-space: nowrap;
   color: var(--muted);
   background: none;
   border: none;

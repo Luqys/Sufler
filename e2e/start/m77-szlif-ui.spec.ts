@@ -75,7 +75,7 @@ test('ekran startowy pokazuje ikonę aplikacji, nie osobny rysunek', async () =>
   await app.close();
 });
 
-test('panel Sesje bez wykresu dobowego; nakładka grafu w jednej metryce', async () => {
+test('panel Sesje bez wykresu dobowego; pasek grafu w jednej metryce', async () => {
   const app = await launchApp(makeConfigHome(), makeFixtureProject());
   const page = await app.firstWindow();
 
@@ -85,11 +85,11 @@ test('panel Sesje bez wykresu dobowego; nakładka grafu w jednej metryce', async
   await expect(page.locator('[data-testid=usage-bars]')).toHaveCount(0);
   await expect(page.locator('[data-testid=usage-bar]')).toHaveCount(0);
 
-  // Nakładka grafu: licznik, szukajka i przyciski mają wspólną wysokość.
+  // Pasek grafu (M105): licznik, szukajka, tryby i przyciski w jednej metryce.
   await page.getByTestId('rail-knowledge').click();
   await expect(page.getByTestId('graph-stats')).toBeVisible();
   const heights = await page
-    .locator('.graph-overlay > *')
+    .locator('.graph-bar > *')
     .evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().height)));
   expect(heights.length).toBeGreaterThanOrEqual(4);
   expect([...new Set(heights)]).toHaveLength(1);

@@ -90,11 +90,6 @@
   gap: 8px;
 }
 
-.graph-mode {
-  flex-wrap: wrap;
-  row-gap: 3px;
-}
-
 .graph-legend .accent-popover-title {
   white-space: nowrap;
   overflow: hidden;
@@ -375,7 +370,11 @@
 }
 
 .graph-search {
-  width: 150px;
+  /* W pasku pole oddaje miejsce trybom i przyciskom, ale nie znika. */
+  flex: 1 1 140px;
+  min-width: 96px;
+  max-width: 220px;
+  width: auto;
   height: 26px;
   padding: 0 10px;
   border-radius: 8px;
@@ -388,28 +387,12 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
-/* Pięć trybów mieści się w dwóch równych rzędach zamiast zostawiać sierotę. */
+/* Karta legendy niesie od M105 samą legendę — tryby przeniosły się do paska. */
 .graph-legend {
-  min-width: 214px;
+  min-width: 190px;
   max-width: 268px;
   padding: 9px 11px 11px;
   gap: 7px;
-}
-
-.graph-mode {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 9px;
-}
-
-.graph-mode-btn {
-  flex: 1 1 calc(33.333% - 2px);
-  min-width: 0;
-  padding: 4px 6px;
-  font-size: 10px;
-  letter-spacing: 0.1px;
 }
 
 .graph-legend .accent-popover-title {
@@ -424,12 +407,8 @@
   align-self: flex-start;
 }
 
-.graph-overlay {
-  flex-wrap: wrap;
-  max-width: calc(100% - 300px);
-}
-
-.graph-overlay .graph-stats {
+/* Licznik ustępuje miejsca reszcie paska, gdy okno jest wąskie (M105). */
+.graph-bar .graph-stats {
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
