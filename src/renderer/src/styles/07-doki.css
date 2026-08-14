@@ -108,6 +108,13 @@
   font-size: 12px;
 }
 
+.dock-tabs-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
 .dock-tabs {
   flex: 1;
   min-width: 0;
@@ -115,6 +122,53 @@
   align-items: stretch;
   overflow-x: auto;
   scrollbar-width: none;
+}
+
+/*
+ * M107: ciasny pasek dotąd po prostu ucinał kartę na krawędzi — bez śladu,
+ * że dalej coś jest, i bez sposobu na dojechanie tam myszą. Strzałki siedzą
+ * NAD paskiem (nie obok), żeby nie zabierać szerokości, gdy nie są potrzebne.
+ */
+.tabs-scroll {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 20px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.tabs-scroll.left {
+  left: 0;
+  /* Gradient wtapia strzałkę w tło nagłówka i pokazuje, że karta jest ucięta. */
+  background: linear-gradient(to right, var(--panel) 60%, transparent);
+}
+
+.tabs-scroll.right {
+  right: 0;
+  background: linear-gradient(to left, var(--panel) 60%, transparent);
+}
+
+.tabs-scroll:hover {
+  color: var(--text);
+}
+
+/* Za krawędzią stoi zapalona karta (M100) — strzałka przejmuje jej kolor. */
+.tabs-scroll[data-signal='done'] {
+  color: var(--ok);
+}
+
+.tabs-scroll[data-signal='needs-input'] {
+  color: #3b82f6;
+}
+
+.tabs-scroll[data-signal='failed'] {
+  color: var(--danger);
 }
 
 .dock-title {
@@ -146,6 +200,13 @@
   flex: none;
   display: flex;
   align-items: center;
+}
+
+/* Długi tytuł nie zjada całego paska — reszta kart zostaje w zasięgu wzroku. */
+.dock-tab-title {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dock-tab.exited .dock-tab-title {

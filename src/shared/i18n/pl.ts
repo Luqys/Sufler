@@ -39,6 +39,8 @@ export const PL = {
   'dock.newTerminal': 'Nowy terminal w tym panelu',
   'dock.statusDone': 'Claude skończył pracę',
   'dock.statusAttention': 'Claude czeka na zgodę',
+  'dock.scrollTabsLeft': 'Przewiń karty w lewo',
+  'dock.scrollTabsRight': 'Przewiń karty w prawo',
   'dock.empty': 'Kliknij +, aby otworzyć terminal lub sesję Claude.',
   'dock.spawnFailed': 'Nie udało się uruchomić procesu: {error}',
   'dock.closeTitle': 'Zamknąć kartę?',

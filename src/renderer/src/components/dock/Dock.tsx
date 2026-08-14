@@ -1,7 +1,23 @@
-import { useEffect, useRef, useState, type DragEvent, type ReactElement } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type DragEvent,
+  type ReactElement,
+  type WheelEvent,
+} from 'react';
 import type { ClaudeSessionEntry } from '../../../../shared/claude/claude-sessions';
 import { dropZoneFor, type DropZone } from '../../../../shared/docks/dock-drop';
 import type { DockId, DockPane, TabKind } from '../../../../shared/docks/dock-tabs';
+import {
+  NO_OVERFLOW,
+  sameOverflow,
+  scrollStep,
+  tabSignal,
+  tabsOverflow,
+  type TabSignal,
+} from '../../../../shared/docks/tab-scroll';
 import { useDocks } from '../../docks';
 import { getLocale, useT } from '../../i18n';
 import { useWorkspace } from '../../workspace';
@@ -52,6 +68,18 @@ const ICON_RESUME = (
     <path d="M13.5 8a5.5 5.5 0 1 1-1.7-3.9" />
     <path d="M13.7 1.9v2.7H11" />
     <path d="M8 5.2v3l2 1.2" />
+  </svg>
+);
+
+const ICON_CHEVRON_LEFT = (
+  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 3.2L5.2 8 10 12.8" />
+  </svg>
+);
+
+const ICON_CHEVRON_RIGHT = (
+  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 3.2L10.8 8 6 12.8" />
   </svg>
 );
 
@@ -166,9 +194,68 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
   const t = useT();
   /** null = brak przeciągania nad tym panelem; inaczej strefa upuszczenia. */
   const [dropZone, setDropZone] = useState<DropZone | null>(null);
+  const tabsRef = useRef<HTMLDivElement>(null);
+  /** Co nie mieści się na pasku zakładek — stąd biorą się strzałki (M107). */
+  const [overflow, setOverflow] = useState(NO_OVERFLOW);
 
   const activeTab = pane.tabs.find((tab) => tab.id === pane.activeId) ?? null;
   const first = paneIndex === 0;
+
+  // Pomiar paska: co wyjechało za krawędź i czy niesie sygnał. Karty podają
+  // swój sygnał atrybutem, więc pomiar nie musi znać modelu zakładek.
+  const measure = useCallback((): void => {
+    const el = tabsRef.current;
+    if (!el) {
+      return;
+    }
+    const boxes = Array.from(el.querySelectorAll<HTMLElement>('.dock-tab')).map((node) => ({
+      offset: node.offsetLeft,
+      width: node.offsetWidth,
+      signal: (node.dataset['signal'] ?? 'none') as TabSignal,
+    }));
+    const next = tabsOverflow(boxes, el.scrollLeft, el.clientWidth);
+    setOverflow((prev) => (sameOverflow(prev, next) ? prev : next));
+  }, []);
+
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (!el) {
+      return;
+    }
+    measure();
+    el.addEventListener('scroll', measure, { passive: true });
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => {
+      el.removeEventListener('scroll', measure);
+      observer.disconnect();
+    };
+  }, [measure]);
+
+  // Nowa karta, zmiana tytułu albo stanu zmienia szerokość zawartości paska.
+  useEffect(measure, [measure, pane.tabs]);
+
+  // Aktywna karta zawsze w widoku — świeża sesja ląduje na końcu paska.
+  useEffect(() => {
+    tabsRef.current
+      ?.querySelector('.dock-tab.active')
+      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [pane.activeId]);
+
+  const scrollTabs = (direction: -1 | 1): void => {
+    const el = tabsRef.current;
+    if (el) {
+      el.scrollBy({ left: direction * scrollStep(el.clientWidth), behavior: 'smooth' });
+    }
+  };
+
+  // Mysz z jednym kółkiem nie przewinie poziomo — zamieniamy oś.
+  const onTabsWheel = (event: WheelEvent<HTMLDivElement>): void => {
+    const el = tabsRef.current;
+    if (el && Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+      el.scrollLeft += event.deltaY;
+    }
+  };
 
   /** Strefa upuszczenia z pozycji kursora nad panelem (środek albo krawędź). */
   const zoneFrom = (event: DragEvent<HTMLElement>): DropZone => {
@@ -215,54 +302,84 @@ function PaneView({ dockId, pane, paneIndex, title }: PaneViewProps): ReactEleme
       onDrop={onDrop}
     >
       <header className="dock-header">
-        <div className="dock-tabs">
-          {pane.tabs.length === 0 && <span className="dock-title">{title}</span>}
-          {pane.tabs.map((tab) => (
-            <div
-              key={tab.id}
-              className={`dock-tab${tab.id === pane.activeId ? ' active' : ''}${
-                tab.status === 'exited' ? ' exited' : ''
-              }`}
-              draggable
-              data-status={tab.status}
-              data-kind={tab.kind}
-              data-failed={tab.failed === true ? 'true' : undefined}
-              title={`${tab.title} — ${tab.cwd}`}
-              onClick={() => activateTab(dockId, pane.id, tab.id)}
-              onDragStart={(event) => {
-                event.dataTransfer.setData(DND_MIME, tab.id);
-                event.dataTransfer.effectAllowed = 'move';
-              }}
-              onDragEnd={(event) => {
-                // Upuszczenie poza oknem → sesja wyjeżdża do osobnego okna.
-                if (isOutsideWindow(event, window)) {
-                  detachTab(tab.id);
-                }
-              }}
-            >
-              <span className="dock-tab-icon">{dockTabIcon(tab.kind)}</span>
-              {tab.kind === 'claude' &&
-                tab.id !== pane.activeId &&
-                (tab.status === 'idle' || tab.status === 'needs-input') && (
-                  <span
-                    className={`status-dot ${tab.status === 'idle' ? 'done' : 'attention'}`}
-                    title={tab.status === 'idle' ? t('dock.statusDone') : t('dock.statusAttention')}
-                  />
-                )}
-              <span className="dock-tab-title">{tab.title}</span>
-              <button
-                type="button"
-                className="tab-close"
-                title={t('common.closeTab')}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  closeTab(tab.id);
+        <div className="dock-tabs-wrap">
+          <div className="dock-tabs" ref={tabsRef} onWheel={onTabsWheel}>
+            {pane.tabs.length === 0 && <span className="dock-title">{title}</span>}
+            {pane.tabs.map((tab) => (
+              <div
+                key={tab.id}
+                className={`dock-tab${tab.id === pane.activeId ? ' active' : ''}${
+                  tab.status === 'exited' ? ' exited' : ''
+                }`}
+                draggable
+                data-status={tab.status}
+                data-kind={tab.kind}
+                data-failed={tab.failed === true ? 'true' : undefined}
+                data-signal={tabSignal(tab.kind, tab.status, tab.failed === true)}
+                title={`${tab.title} — ${tab.cwd}`}
+                onClick={() => activateTab(dockId, pane.id, tab.id)}
+                onDragStart={(event) => {
+                  event.dataTransfer.setData(DND_MIME, tab.id);
+                  event.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragEnd={(event) => {
+                  // Upuszczenie poza oknem → sesja wyjeżdża do osobnego okna.
+                  if (isOutsideWindow(event, window)) {
+                    detachTab(tab.id);
+                  }
                 }}
               >
-                ×
-              </button>
-            </div>
-          ))}
+                <span className="dock-tab-icon">{dockTabIcon(tab.kind)}</span>
+                {tab.kind === 'claude' &&
+                  tab.id !== pane.activeId &&
+                  (tab.status === 'idle' || tab.status === 'needs-input') && (
+                    <span
+                      className={`status-dot ${tab.status === 'idle' ? 'done' : 'attention'}`}
+                      title={
+                        tab.status === 'idle' ? t('dock.statusDone') : t('dock.statusAttention')
+                      }
+                    />
+                  )}
+                <span className="dock-tab-title">{tab.title}</span>
+                <button
+                  type="button"
+                  className="tab-close"
+                  title={t('common.closeTab')}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    closeTab(tab.id);
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+          {/* Ciasny pasek: strzałki na krawędziach dojeżdżają do schowanych kart. */}
+          {overflow.left && (
+            <button
+              type="button"
+              className="tabs-scroll left"
+              data-testid={first ? `${dockId}-tabs-left` : undefined}
+              data-signal={overflow.leftSignal}
+              title={t('dock.scrollTabsLeft')}
+              onClick={() => scrollTabs(-1)}
+            >
+              {ICON_CHEVRON_LEFT}
+            </button>
+          )}
+          {overflow.right && (
+            <button
+              type="button"
+              className="tabs-scroll right"
+              data-testid={first ? `${dockId}-tabs-right` : undefined}
+              data-signal={overflow.rightSignal}
+              title={t('dock.scrollTabsRight')}
+              onClick={() => scrollTabs(1)}
+            >
+              {ICON_CHEVRON_RIGHT}
+            </button>
+          )}
         </div>
         <div className="dock-add-wrap">
           <button

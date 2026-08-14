@@ -33,6 +33,8 @@ export const EN: Record<StringKey, string> = {
   'dock.newTerminal': 'New terminal in this pane',
   'dock.statusDone': 'Claude finished working',
   'dock.statusAttention': 'Claude is waiting for approval',
+  'dock.scrollTabsLeft': 'Scroll tabs left',
+  'dock.scrollTabsRight': 'Scroll tabs right',
   'dock.empty': 'Click + to open a terminal or a Claude session.',
   'dock.spawnFailed': 'Failed to start the process: {error}',
   'dock.closeTitle': 'Close this tab?',
