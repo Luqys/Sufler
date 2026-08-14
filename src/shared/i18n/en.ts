@@ -187,6 +187,7 @@ export const EN: Record<StringKey, string> = {
   'accent.green': 'Green',
   'accent.violet': 'Violet',
   'accent.pink': 'Pink',
+  'themeToggle.aria': 'Light or dark theme',
   'themeToggle.toLight': 'Switch to the light theme',
   'themeToggle.toDark': 'Switch to the dark theme',
   'themeToggle.holdHint': ' · hold to pick the accent color',

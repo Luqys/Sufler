@@ -197,6 +197,7 @@ export const PL = {
   'accent.green': 'Zieleń',
   'accent.violet': 'Fiolet',
   'accent.pink': 'Róż',
+  'themeToggle.aria': 'Motyw jasny lub ciemny',
   'themeToggle.toLight': 'Przełącz na motyw jasny',
   'themeToggle.toDark': 'Przełącz na motyw ciemny',
   'themeToggle.holdHint': ' · przytrzymaj, aby wybrać kolor przewodni',

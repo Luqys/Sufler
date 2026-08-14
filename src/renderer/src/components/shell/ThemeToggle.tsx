@@ -4,14 +4,14 @@ import { applyAccent, applyAppearance, FLAVOR_EVENT, isDarkTheme } from '../../a
 import { useT } from '../../i18n';
 
 const ICON_SUN = (
-  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
     <circle cx="8" cy="8" r="3.2" />
     <path d="M8 1.2v1.8M8 13v1.8M1.2 8H3M13 8h1.8M3.2 3.2l1.3 1.3M11.5 11.5l1.3 1.3M12.8 3.2l-1.3 1.3M4.5 11.5l-1.3 1.3" />
   </svg>
 );
 
 const ICON_MOON = (
-  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round">
+  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round">
     <path d="M13.3 9.9A5.9 5.9 0 0 1 6.1 2.7a5.9 5.9 0 1 0 7.2 7.2Z" />
   </svg>
 );
@@ -19,8 +19,11 @@ const ICON_MOON = (
 const LONG_PRESS_MS = 500;
 
 /**
- * Klik: jasny↔ciemny (akcent nietknięty; „Systemowy" wraca przez Cmd+,).
- * Przytrzymanie (albo prawy klik): wybór koloru przewodniego.
+ * Suwak jasny↔ciemny (M106): pozycja gałki mówi, w którym motywie jesteś,
+ * bez zgadywania, czy ikona pokazuje stan bieżący, czy docelowy — pojedynczy
+ * glif słońca/księżyca dawał się czytać na oba sposoby. Akcent zostaje
+ * nietknięty („Systemowy" wraca przez Cmd+,), przytrzymanie albo prawy klik
+ * dalej otwiera wybór koloru przewodniego.
  */
 export function ThemeToggle(): ReactElement {
   const t = useT();
@@ -74,7 +77,10 @@ export function ThemeToggle(): ReactElement {
     <div className="theme-toggle-wrap">
       <button
         type="button"
-        className="titlebar-btn"
+        className={`theme-slider${dark ? ' dark' : ''}`}
+        role="switch"
+        aria-checked={dark}
+        aria-label={t('themeToggle.aria')}
         data-testid="theme-quick-toggle"
         title={(dark ? t('themeToggle.toLight') : t('themeToggle.toDark')) + t('themeToggle.holdHint')}
         onPointerDown={() => {
@@ -99,7 +105,8 @@ export function ThemeToggle(): ReactElement {
           openPicker();
         }}
       >
-        {dark ? ICON_SUN : ICON_MOON}
+        {/* Ikona jedzie z gałką: pozycja mówi „gdzie jesteś", glif to potwierdza. */}
+        <span className="theme-slider-knob">{dark ? ICON_MOON : ICON_SUN}</span>
       </button>
       {pickerOpen && (
         <>

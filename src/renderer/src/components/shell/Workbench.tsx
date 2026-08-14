@@ -56,8 +56,15 @@ const ICON_SETTINGS = (
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <circle cx="8" cy="8" r="2.1" />
-    <path d="M8 1.6v1.6M8 12.8v1.6M14.4 8h-1.6M3.2 8H1.6M12.5 3.5l-1.1 1.1M4.6 11.4l-1.1 1.1M12.5 12.5l-1.1-1.1M4.6 4.6L3.5 3.5" />
+    {/*
+      * M106: suwaki zamiast zębatki z ośmioma promieniami. Tamta w rozmiarze
+      * 15 px była nie do odróżnienia od słońca na przełączniku motywu obok —
+      * dwa różne przyciski w jednym pasku wyglądały tak samo.
+      */}
+    <path d="M2.4 4.3h11.2M2.4 8h11.2M2.4 11.7h11.2" />
+    <circle cx="5.6" cy="4.3" r="1.6" fill="currentColor" stroke="none" />
+    <circle cx="10.4" cy="8" r="1.6" fill="currentColor" stroke="none" />
+    <circle cx="6.8" cy="11.7" r="1.6" fill="currentColor" stroke="none" />
   </svg>
 );
 
@@ -419,6 +426,13 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
       <header className="titlebar">
         <span className="titlebar-title">Sufler — {baseName(root)}</span>
         <div className="titlebar-actions">
+          {/*
+            * M106: przyciski w grupach zamiast jednego ciągu ikon. Sprawdzenie
+            * projektu, Ustawienia, Samouczek i logowanie to akcje aplikacji;
+            * trzy szyby układu to osobna rodzina — wspólne tło grupy mówi to
+            * bez czytania podpowiedzi.
+            */}
+          <div className="titlebar-group">
           <button
             type="button"
             className={`titlebar-btn diag-btn${diagnostyka.running ? ' running' : ''}${
@@ -465,8 +479,11 @@ export function Workbench({ initialLayout }: { initialLayout: LayoutState }): Re
           >
             {ICON_CLAUDE_SPARK}
           </button>
+          </div>
           <ThemeToggle />
-          <LayoutToggles layout={layout} onToggle={toggleVisibility} />
+          <div className="titlebar-group">
+            <LayoutToggles layout={layout} onToggle={toggleVisibility} />
+          </div>
           <UsageIndicator />
         </div>
       </header>

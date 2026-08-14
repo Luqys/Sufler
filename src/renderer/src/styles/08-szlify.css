@@ -474,8 +474,26 @@
   font-size: 15px;
 }
 
+/* M106: rodziny przycisków rozdzielone odstępem, każda na własnym tle. */
 .titlebar-actions {
-  gap: 3px;
+  gap: 8px;
+}
+
+.titlebar-group {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 2px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+/* Wewnątrz grupy przyciski są odrobinę niższe, ale wciąż wygodne w kliknięciu
+   (spec M53 pilnuje 30×28) — pasek ma 38 px, grupa z ramką musi się zmieścić. */
+.titlebar-group .titlebar-btn {
+  width: 30px;
+  height: 28px;
+  border-radius: 8px;
 }
 
 /* M54: przycisk streszczenia przy dzienniku sesji */
