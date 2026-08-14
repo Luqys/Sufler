@@ -474,6 +474,14 @@ export const PL = {
   'skills.claudeMd': 'Pliki CLAUDE.md',
   'skills.claudeMdHint': 'Długi CLAUDE.md to rozdmuchany kontekst — Claude gubi wtedy instrukcje.',
   'skills.new': '+ Skill',
+  'skills.newShort': '+ Skill',
+  'skills.newAgentShort': '+ Agent',
+  'skills.newRuleShort': '+ Reguła',
+  'skills.delete': 'Usuń skill',
+  'skills.deleteTitle': 'Usunąć skill?',
+  'skills.deleteMessage': 'Skill „{name}" zniknie razem z całym katalogiem:\n{path}',
+  'skills.deleted': 'Skill „{name}" usunięty.',
+  'skills.deleteFailed': 'Nie udało się usunąć skilla.',
   'skills.toggleTitle':
     'Włącz/wyłącz skill — zapis skillOverrides w .claude/settings.local.json (tylko ten projekt)',
   'skills.toggleUnreadable':

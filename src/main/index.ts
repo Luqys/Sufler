@@ -70,6 +70,7 @@ import {
   createAgent,
   createRule,
   createSkill,
+  deleteSkill,
   readSkillsSnapshot,
   setAgentEnabled,
   setSkillEnabled,
@@ -273,6 +274,7 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.SkillsToggle, (_event, root: string, name: string, enabled: boolean) =>
     setSkillEnabled(root, name, enabled),
   );
+  ipcMain.handle(IPC.SkillsDelete, (_event, root: string, path: string) => deleteSkill(root, path));
   ipcMain.handle(IPC.AgentsToggle, (_event, root: string, name: string, enabled: boolean) =>
     setAgentEnabled(root, name, enabled),
   );

@@ -16,17 +16,12 @@ import { AgentCreateDialog } from '../dialogs/AgentCreateDialog';
 import { RuleCreateDialog } from '../dialogs/RuleCreateDialog';
 import { SkillCreateDialog } from '../dialogs/SkillCreateDialog';
 
-const ICON_AGENT = (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
-    <circle cx="8" cy="5.2" r="2.6" />
-    <path d="M3.2 13.4c.6-2.4 2.5-3.7 4.8-3.7s4.2 1.3 4.8 3.7" />
-  </svg>
-);
-
-const ICON_RULE = (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
-    <path d="M4 2.2h8v11.6H4z" />
-    <path d="M6.2 5.6h3.6M6.2 8h3.6M6.2 10.4h2.2" />
+const ICON_TRASH = (
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.8 4.2h10.4" />
+    <path d="M6.4 4.2V2.8h3.2v1.4" />
+    <path d="M4.2 4.2l.6 8.4a1 1 0 0 0 1 .9h4.4a1 1 0 0 0 1-.9l.6-8.4" />
+    <path d="M6.7 6.6v4.4M9.3 6.6v4.4" />
   </svg>
 );
 
@@ -49,6 +44,10 @@ interface RowProps {
   /** Delikatnie zielone tło włączonego skilla/agenta. */
   tinted?: boolean;
   toggle?: RowToggle;
+  /** Kosz po prawej stronie wiersza (M103) — na razie tylko skille. */
+  onDelete?(): void;
+  deleteLabel?: string;
+  deleteTestid?: string;
   onOpen(path: string): void;
   onMetaClick?(): void;
 }
@@ -61,6 +60,9 @@ function EntryRow({
   dimmed,
   tinted,
   toggle,
+  onDelete,
+  deleteLabel,
+  deleteTestid,
   onOpen,
   onMetaClick,
 }: RowProps): ReactElement {
@@ -84,6 +86,18 @@ function EntryRow({
         </span>
         {description && <span className="skill-desc">{description}</span>}
       </button>
+      {onDelete && (
+        <button
+          type="button"
+          className="skill-delete"
+          data-testid={deleteTestid}
+          title={deleteLabel}
+          aria-label={deleteLabel}
+          onClick={onDelete}
+        >
+          {ICON_TRASH}
+        </button>
+      )}
       {toggle && (
         <label className="skill-toggle" title={toggle.label}>
           <input
@@ -124,7 +138,7 @@ export function SkillsPanel(): ReactElement {
   const t = useT();
   const { root, openFile } = useWorkspace();
   const { insertToActiveClaude } = useDocks();
-  const { notify } = useDialogs();
+  const { confirmDialog, notify } = useDialogs();
   const [snapshot, setSnapshot] = useState<SkillsSnapshot | null>(null);
   const [creating, setCreating] = useState<'skill' | 'agent' | 'rule' | null>(null);
   const rootRef = useRef(root);
@@ -153,6 +167,31 @@ export function SkillsPanel(): ReactElement {
     if (!insertToActiveClaude(`/${name}`)) {
       notify(t('common.noClaudeSession'), 'error');
     }
+  };
+
+  /** Usunięcie skilla: pytamy, bo kasujemy cały jego katalog z dysku. */
+  const removeSkill = (skill: SkillEntry): void => {
+    void confirmDialog({
+      title: t('skills.deleteTitle'),
+      // W pytaniu pokazujemy katalog, bo to on znika — nie sam SKILL.md.
+      message: tf('skills.deleteMessage', {
+        name: skill.name,
+        path: skill.path.replace(/\/SKILL\.md$/i, ''),
+      }),
+      confirmLabel: t('skills.delete'),
+      danger: true,
+    }).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      void window.api.deleteSkill(rootRef.current, skill.path).then((result) => {
+        notify(
+          result.ok ? tf('skills.deleted', { name: skill.name }) : t('skills.deleteFailed'),
+          result.ok ? 'success' : 'error',
+        );
+        refresh();
+      });
+    });
   };
 
   const toggleSkill = (skill: SkillEntry, next: boolean): void => {
@@ -244,6 +283,9 @@ export function SkillsPanel(): ReactElement {
         testid: `skill-toggle-${skill.name}`,
         onChange: (next) => toggleSkill(skill, next),
       }}
+      onDelete={() => removeSkill(skill)}
+      deleteLabel={t('skills.delete')}
+      deleteTestid={`skill-delete-${skill.name}`}
       onOpen={openFile}
       onMetaClick={() => insertSlash(skill.name)}
     />
@@ -251,41 +293,40 @@ export function SkillsPanel(): ReactElement {
 
   return (
     <div className="skills-panel" data-testid="skills-panel">
-      <div className="skills-toolbar">
+      {/*
+        * M103: trzy akcje tworzenia w jednym segmentowanym pasku. Wcześniej
+        * obwiedziony „+ Skill" sąsiadował z dwiema nagimi ikonami dosuniętymi
+        * do prawej — trzy różne wagi w jednym rzędzie, bez wspólnej krawędzi.
+        * Teraz jeden rząd równych pól: co jest do klikania, widać od razu,
+        * a ikony dostały etykiety zamiast samych podpowiedzi.
+        */}
+      <div className="skills-toolbar segmented" role="group">
         <button
           type="button"
-          className="btn-primary"
+          className="segmented-btn"
           data-testid="skills-new"
           title={t('skills.create.hint')}
           onClick={() => setCreating('skill')}
         >
-          {t('skills.new')}
+          {t('skills.newShort')}
         </button>
-        {/*
-          * M94: trzy pełne etykiety nie mieszczą się w pasku bocznym — „+ Nowy
-          * skill" łamał się na trzy wiersze, a pozostałe były ucięte do „+ N…".
-          * Akcja główna zostaje z etykietą, dwie rzadsze schodzą do ikon
-          * z podpowiedzią; identyfikatory testowe bez zmian.
-          */}
         <button
           type="button"
-          className="tree-toolbtn"
+          className="segmented-btn"
           data-testid="agents-new"
           title={t('agents.create.hint')}
-          aria-label={t('skills.newAgent')}
           onClick={() => setCreating('agent')}
         >
-          {ICON_AGENT}
+          {t('skills.newAgentShort')}
         </button>
         <button
           type="button"
-          className="tree-toolbtn"
+          className="segmented-btn"
           data-testid="rules-new"
           title={t('rules.create.hint')}
-          aria-label={t('skills.newRule')}
           onClick={() => setCreating('rule')}
         >
-          {ICON_RULE}
+          {t('skills.newRuleShort')}
         </button>
       </div>
       <Group title={t('skills.project')} count={snapshot.projectSkills.length}>

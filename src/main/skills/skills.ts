@@ -1,4 +1,4 @@
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { agentAvailability, buildAgentFile, denyRulesOf, withAgentDeny } from '../../shared/skills/agents';
@@ -9,6 +9,7 @@ import {
   buildSkillFile,
   effectiveOverride,
   overridesOf,
+  skillDirToDelete,
   toggledOverrides,
   validateSkillName,
 } from '../../shared/skills/skills';
@@ -21,6 +22,7 @@ import type {
   RuleEntry,
   SkillCreateInput,
   SkillCreateResult,
+  SkillDeleteResult,
   SkillEntry,
   SkillScope,
   SkillToggleResult,
@@ -250,6 +252,28 @@ export async function readSkillsSnapshot(root: string): Promise<SkillsSnapshot> 
     )
     .sort((a, b) => a.name.localeCompare(b.name));
   return { projectSkills, personalSkills, agents, rules, commands, claudeMd };
+}
+
+/**
+ * Usunięcie skilla: kasujemy jego katalog razem z zawartością. Ścieżkę
+ * przepuszcza `skillDirToDelete` — z okna przychodzi zwykły string, więc
+ * zbiór celów rekurencyjnego `rm` musi być zamknięty po stronie main.
+ */
+export async function deleteSkill(root: string, path: string): Promise<SkillDeleteResult> {
+  const dir = skillDirToDelete(path, [
+    skillsDirForScope(root, 'project'),
+    skillsDirForScope(root, 'personal'),
+  ]);
+  if (dir === null) {
+    return { ok: false, error: 'outside' };
+  }
+  try {
+    await rm(dir, { recursive: true, force: false });
+    return { ok: true };
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    return { ok: false, error: code === 'ENOENT' ? 'not-found' : 'delete-failed' };
+  }
 }
 
 export function skillsDirForScope(root: string, scope: SkillScope): string {

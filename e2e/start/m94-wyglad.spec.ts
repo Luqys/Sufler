@@ -14,7 +14,7 @@ async function styl(page: import('@playwright/test').Page, selektor: string, wla
   );
 }
 
-test('M94: hierarchia przycisków i plakietek — jedna akcja główna, reszta cicha', async () => {
+test('M94: hierarchia przycisków i plakietek — równorzędny pasek akcji, ciche plakietki', async () => {
   const project = makeFixtureProject();
   mkdirSync(join(project, '.claude', 'skills', 'przykladowy'), { recursive: true });
   writeFileSync(
@@ -32,19 +32,26 @@ test('M94: hierarchia przycisków i plakietek — jedna akcja główna, reszta c
   await expect(page.getByTestId('skills-panel')).toBeVisible();
 
   /*
-   * Akcja główna ma wyróżnienie, dwie pozostałe są ciche — nie trzy identyczne
-   * obwódki. Sprawdzamy SZEROKOŚĆ obwódki, nie kolor: przy `border: none`
-   * przeglądarka liczy `border-*-color` jako kolor tekstu, więc kolor nic
-   * o obwódce nie mówi (pierwsza wersja tego testu padła właśnie na tym).
+   * Od M103 trzy akcje tworzenia są równorzędne i siedzą w jednym pasku
+   * segmentowanym: ta sama waga pisma i żadnych obwódek. Sprawdzamy SZEROKOŚĆ
+   * obwódki, nie kolor: przy `border: none` przeglądarka liczy `border-*-color`
+   * jako kolor tekstu, więc kolor nic o obwódce nie mówi (pierwsza wersja tego
+   * testu padła właśnie na tym).
    */
-  const glowna = await styl(page, '[data-testid=skills-new]', 'font-weight');
-  const cichaObwodka = await styl(page, '[data-testid=agents-new]', 'border-top-width');
-  expect(Number(glowna)).toBeGreaterThanOrEqual(600);
-  expect(cichaObwodka === '0px' || cichaObwodka === '').toBe(true);
+  const wagi = await Promise.all(
+    ['skills-new', 'agents-new', 'rules-new'].map((id) =>
+      styl(page, `[data-testid=${id}]`, 'font-weight'),
+    ),
+  );
+  expect(new Set(wagi).size).toBe(1);
+  const obwodka = await styl(page, '[data-testid=agents-new]', 'border-top-width');
+  expect(obwodka === '0px' || obwodka === '').toBe(true);
 
-  // Etykieta głównej akcji mieści się w jednym wierszu (łamała się na trzy).
-  const wysokoscGlownej = (await page.getByTestId('skills-new').boundingBox())!.height;
-  expect(wysokoscGlownej).toBeLessThan(34);
+  // Etykiety mieszczą się w jednym wierszu — żadna się nie łamie.
+  for (const id of ['skills-new', 'agents-new', 'rules-new']) {
+    const wysokosc = (await page.getByTestId(id).boundingBox())!.height;
+    expect(wysokosc).toBeLessThan(34);
+  }
 
   // Plakietka nie udaje przycisku: bez obwódki.
   const plakietkaBorder = await styl(page, '.badge', 'border-style');

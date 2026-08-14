@@ -54,6 +54,7 @@ export const IPC = {
   SkillsChanged: 'skills:changed',
   SkillsCreate: 'skills:create',
   SkillsToggle: 'skills:toggle',
+  SkillsDelete: 'skills:delete',
   AgentsToggle: 'skills:agent-toggle',
   SessionLogGet: 'session-log:get',
   SessionLogSet: 'session-log:set',
@@ -278,6 +279,10 @@ export type SkillToggleResult =
   | { ok: true; enabled: boolean }
   | { ok: false; error: 'settings-unreadable' | 'write-failed' };
 
+export type SkillDeleteResult =
+  | { ok: true }
+  | { ok: false; error: 'outside' | 'not-found' | 'delete-failed' };
+
 export interface AgentCreateInput {
   name: string;
   description: string;
@@ -423,6 +428,8 @@ export interface WindowApi {
   createSkill(root: string, input: SkillCreateInput): Promise<SkillCreateResult>;
   /** Przełącznik skillOverrides w <root>/.claude/settings.local.json. */
   setSkillEnabled(root: string, name: string, enabled: boolean): Promise<SkillToggleResult>;
+  /** Usunięcie skilla razem z jego katalogiem (M103). */
+  deleteSkill(root: string, path: string): Promise<SkillDeleteResult>;
   /** Przełącznik subagenta: reguła Agent(nazwa) w permissions.deny settings.local.json. */
   setAgentEnabled(root: string, name: string, enabled: boolean): Promise<SkillToggleResult>;
   /** Dziennik sesji Claude (M52) — automatyczny zapis przebiegu pracy do .md. */

@@ -111,3 +111,25 @@ export function buildSkillFile(draft: SkillDraft): string {
   const body = draft.body.trim();
   return `---\n${stringify(frontmatter)}---\n${body === '' ? '' : `\n${body}\n`}`;
 }
+
+/**
+ * Katalog do skasowania przy usuwaniu skilla albo null, gdy ścieżka nie jest
+ * plikiem SKILL.md leżącym BEZPOŚREDNIO w jednym z podanych katalogów skilli.
+ *
+ * Kasujemy katalog, nie sam plik: skill to katalog z SKILL.md i tym, co autor
+ * położył obok (skrypty, referencje). Warunek „bezpośrednio w katalogu skilli"
+ * jest tu barierą bezpieczeństwa — usuwanie rekurencyjne po ścieżce z UI musi
+ * mieć zamknięty zbiór celów, a nie ufać temu, co przyszło z okna.
+ */
+export function skillDirToDelete(skillPath: string, allowedSkillDirs: string[]): string | null {
+  const parts = skillPath.split('/');
+  if (parts.length < 3 || parts.includes('..') || parts[parts.length - 1] !== 'SKILL.md') {
+    return null;
+  }
+  const trim = (value: string): string => value.replace(/\/+$/, '');
+  const parent = trim(parts.slice(0, -2).join('/'));
+  if (parent === '' || !allowedSkillDirs.some((dir) => trim(dir) === parent)) {
+    return null;
+  }
+  return parts.slice(0, -1).join('/');
+}

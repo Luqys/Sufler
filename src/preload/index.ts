@@ -49,6 +49,7 @@ import {
   type ImportPathsResult,
   type RestoreResult,
   type SummaryResult,
+  type SkillDeleteResult,
   type SkillToggleResult,
   type SkillsSnapshot,
   type TreeChangedEvent,
@@ -119,6 +120,8 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.SkillsCreate, root, input),
   setSkillEnabled: (root: string, name: string, enabled: boolean): Promise<SkillToggleResult> =>
     ipcRenderer.invoke(IPC.SkillsToggle, root, name, enabled),
+  deleteSkill: (root: string, path: string): Promise<SkillDeleteResult> =>
+    ipcRenderer.invoke(IPC.SkillsDelete, root, path),
   setAgentEnabled: (root: string, name: string, enabled: boolean): Promise<SkillToggleResult> =>
     ipcRenderer.invoke(IPC.AgentsToggle, root, name, enabled),
   getSessionLogEnabled: (): Promise<boolean> => ipcRenderer.invoke(IPC.SessionLogGet),
