@@ -21,14 +21,8 @@ const STATE_KEY: Record<McpServerView['state'], StringKey> = {
   unknown: 'mcp.stateUnknown',
 };
 
-const ICON_ADD = (
-  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-    <path d="M8 3.4v9.2M3.4 8h9.2" />
-  </svg>
-);
-
 const ICON_REFRESH = (
-  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
     <path d="M13.4 8a5.4 5.4 0 1 1-1.6-3.8" />
     <path d="M13.6 1.8v2.8h-2.8" />
   </svg>
@@ -104,27 +98,34 @@ export function McpPanel(): ReactElement {
 
   return (
     <div className="mcp-panel" data-testid="mcp-panel">
-      <div className="mcp-toolbar">
-        <span className="mcp-note">{checking ? t('mcp.checking') : t('mcp.source')}</span>
+      {/*
+        * M104: akcje w jednym pasku z etykietami, źródło danych schodzi pod
+        * spód. Wcześniej nad listą stał urwany opis „Konfiguracja + `claude
+        * mcp list`" i dwie nagie ikony dosunięte do prawej — z tego rzędu nie
+        * dało się wyczytać, że cokolwiek jest do kliknięcia.
+        */}
+      <div className="mcp-toolbar segmented" role="group">
         <button
           type="button"
-          className="tree-toolbtn"
+          className="segmented-btn"
           data-testid="mcp-add"
           title={t('mcp.add.title')}
           onClick={() => setCreating(true)}
         >
-          {ICON_ADD}
+          {t('mcp.addShort')}
         </button>
         <button
           type="button"
-          className="tree-toolbtn"
+          className="segmented-btn mcp-refresh-btn"
           data-testid="mcp-refresh"
           title={t('mcp.refresh')}
           onClick={refresh}
         >
           {ICON_REFRESH}
+          {t('mcp.refreshShort')}
         </button>
       </div>
+      <p className="mcp-note">{checking ? t('mcp.checking') : t('mcp.source')}</p>
       {creating && (
         <McpCreateDialog
           onClose={() => setCreating(false)}
@@ -154,9 +155,18 @@ export function McpPanel(): ReactElement {
             >
               <span className={`mcp-dot ${server.state}`} />
               <span className="mcp-icon">{mcpIconFor(server.name)}</span>
-              <span className="mcp-name">{server.name}</span>
-              <span className="mcp-transport">{server.transport}</span>
-              {server.scope && <span className="badge">{server.scope}</span>}
+              {/*
+                * Nazwa w pierwszym wierszu, transport i zakres w drugim (M104):
+                * w jednym rzędzie nazwa dostawała resztki po plakietkach
+                * i zostawało z niej „s…". Ten sam układ co wiersz commita.
+                */}
+              <span className="mcp-row-main">
+                <span className="mcp-name">{server.name}</span>
+                <span className="mcp-row-meta">
+                  <span className="mcp-transport">{server.transport}</span>
+                  {server.scope && <span className="badge">{server.scope}</span>}
+                </span>
+              </span>
               <span className={`mcp-chevron${isOpen ? ' open' : ''}`}>▸</span>
             </button>
             {server.name.toLowerCase() === 'obsidian' && server.state === 'error' && (
@@ -165,21 +175,59 @@ export function McpPanel(): ReactElement {
               </div>
             )}
             {isOpen && (
-              <div className="mcp-details">
-                {server.detail && <div className="mcp-detail-line">{server.detail}</div>}
+              /*
+               * Szczegóły jako karta z parami klucz–wartość w dwóch kolumnach:
+               * wcześniej leciały jednym ciągiem „klucz: wartość" i przy dłuższym
+               * adresie zlewały się w akapit, w którym nie było widać, gdzie
+               * kończy się jedna wartość, a zaczyna następna.
+               */
+              <dl className="mcp-details" data-testid="mcp-details">
+                <div className="mcp-detail-row">
+                  <dt>{t('mcp.detailState')}</dt>
+                  <dd>
+                    <span className={`mcp-dot ${server.state}`} />
+                    {t(STATE_KEY[server.state])}
+                    {server.detail && <span className="mcp-detail-note">{server.detail}</span>}
+                  </dd>
+                </div>
+                {/*
+                  * Adres i transport pokazujemy z własnej konfiguracji tylko
+                  * wtedy, gdy CLI nic nie podało — inaczej karta powtarzałaby
+                  * to samo dwa razy (Command/Args/Type z `claude mcp get`).
+                  */}
+                {!(Array.isArray(serverDetails) && serverDetails.length > 0) && (
+                  <>
+                    <div className="mcp-detail-row">
+                      <dt>{t('mcp.detailTarget')}</dt>
+                      <dd className="mcp-detail-mono">{server.target}</dd>
+                    </div>
+                    <div className="mcp-detail-row">
+                      <dt>{t('mcp.detailTransport')}</dt>
+                      <dd>
+                        {server.transport}
+                        {server.scope && <span className="badge">{server.scope}</span>}
+                      </dd>
+                    </div>
+                  </>
+                )}
                 {serverDetails === 'loading' && (
-                  <div className="mcp-detail-line placeholder">{t('mcp.loadingDetails')}</div>
+                  <div className="mcp-detail-row">
+                    <dd className="placeholder">{t('mcp.loadingDetails')}</dd>
+                  </div>
                 )}
                 {Array.isArray(serverDetails) && serverDetails.length === 0 && (
-                  <div className="mcp-detail-line placeholder">{t('mcp.noDetails')}</div>
+                  <div className="mcp-detail-row">
+                    <dd className="placeholder">{t('mcp.noDetails')}</dd>
+                  </div>
                 )}
                 {Array.isArray(serverDetails) &&
                   serverDetails.map((pair) => (
-                    <div key={pair.key} className="mcp-detail-line">
-                      <span className="mcp-detail-key">{pair.key}:</span> {pair.value}
+                    <div key={pair.key} className="mcp-detail-row">
+                      <dt>{pair.key}</dt>
+                      <dd className="mcp-detail-mono">{pair.value}</dd>
                     </div>
                   ))}
-              </div>
+              </dl>
             )}
           </div>
         );

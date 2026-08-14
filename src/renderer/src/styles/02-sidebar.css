@@ -297,13 +297,32 @@ body.dragging-horizontal .splitter.horizontal::after {
 
 .mcp-toolbar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  margin-bottom: 2px;
+  margin: 0 0 6px;
 }
 
+.mcp-toolbar.segmented {
+  margin-top: 0;
+}
+
+.mcp-toolbar .segmented-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 4px;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.mcp-toolbar .segmented-btn svg {
+  flex: none;
+}
+
+/* Źródło danych to podpis pod paskiem, nie sąsiad przycisków. */
 .mcp-note {
+  margin: 0 2px 8px;
   font-size: 11px;
   color: var(--muted);
   overflow: hidden;
@@ -364,7 +383,24 @@ body.dragging-horizontal .splitter.horizontal::after {
   border: 1.5px solid var(--muted);
 }
 
+.mcp-row-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.mcp-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+}
+
 .mcp-name {
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -388,19 +424,61 @@ body.dragging-horizontal .splitter.horizontal::after {
 }
 
 .mcp-details {
-  padding: 2px 8px 6px 22px;
+  margin: 2px 6px 8px 8px;
+  padding: 7px 9px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 5px;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--text) 5%, transparent);
 }
 
-.mcp-detail-line {
+/*
+ * Etykieta nad wartością, nie obok: pasek boczny ma ~190 px, a kolumna klucza
+ * zabierała z tego jedną trzecią — adresy łamały się wtedy co drugie słowo.
+ */
+.mcp-detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   font-size: 11.5px;
-  color: var(--text);
-  word-break: break-word;
 }
 
-.mcp-detail-key {
+.mcp-detail-row dt {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mcp-detail-row dd {
+  margin: 0;
+  color: var(--text);
+  /* Łamiemy między słowami; adresy bez spacji dostają własną regułę niżej. */
+  overflow-wrap: break-word;
+}
+
+/* Kropka stanu płynie w wierszu z tekstem, a nie nad nim. */
+.mcp-detail-row dd .mcp-dot {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+.mcp-detail-row dd .badge {
+  margin-left: 5px;
+}
+
+.mcp-detail-mono {
+  font-family: var(--mono, ui-monospace, 'SF Mono', Menlo, monospace);
+  font-size: 11px;
+  display: block;
+  /* Adres bez spacji musi się złamać gdziekolwiek — inaczej rozpycha panel. */
+  overflow-wrap: anywhere;
+}
+
+.mcp-detail-note {
+  display: block;
   color: var(--muted);
 }
 

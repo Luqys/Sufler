@@ -75,9 +75,10 @@ test('panel MCP łączy konfigurację ze stanem z CLI', async () => {
   const cliOnly = panel.locator('.mcp-server', { hasText: 'dziala' });
   await expect(cliOnly).toHaveAttribute('data-state', 'connected');
 
-  // Rozwinięcie pokazuje szczegóły z `claude mcp get`.
+  // Rozwinięcie pokazuje szczegóły z `claude mcp get`. Od M104 klucz i wartość
+  // są w dwóch kolumnach, więc dwukropek zniknął z tekstu klucza.
   await testServer.locator('.mcp-row').click();
-  await expect(testServer.getByText('Command:')).toBeVisible();
+  await expect(testServer.getByText('Command', { exact: true })).toBeVisible();
   await expect(testServer.getByText('Project config (shared via .mcp.json)')).toBeVisible();
 
   await page.screenshot({ path: 'e2e-artifacts/m6-panel-mcp.png' });
