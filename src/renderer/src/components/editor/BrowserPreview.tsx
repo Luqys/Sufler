@@ -27,6 +27,49 @@ interface WebviewIpcMessageEvent extends Event {
 const DEFAULT_URL = 'http://localhost:3000';
 
 /**
+ * Strzałki i przeładowanie były znakami tekstowymi („←", „→", „⟳"). Font
+ * rysuje je cienką kreską w rozmiarze pisma paska, więc na tle paska ginęły —
+ * a przygaszone (stan „nie ma dokąd cofnąć") znikały prawie zupełnie. Ikony
+ * kreślone jak reszta aplikacji: 16×16, `currentColor`, kreska 1.6.
+ */
+function ArrowGlyph({ dir }: { dir: 'back' | 'forward' }): ReactElement {
+  const d =
+    dir === 'back' ? 'M12.4 8H3.9M7.3 4.6 3.9 8l3.4 3.4' : 'M3.6 8h8.5M8.7 4.6 12.1 8l-3.4 3.4';
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <path
+        d={d}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ReloadGlyph(): ReactElement {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      {/*
+       * Okrąg z przerwą po prawej, w przerwie grot. Grot jest celowo duży
+       * (~4 px podstawy): przy 16 px mniejszy zlewa się z końcem łuku i cała
+       * ikona czyta się jak litera „C".
+       */}
+      <path
+        d="M12.6 10A4.8 4.8 0 1 1 11.7 4.4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path d="M12.6 7.2 8.7 4.9l4.4-2.1z" fill="currentColor" />
+    </svg>
+  );
+}
+
+/**
  * Adres przeżywa zamknięcie i ponowne otwarcie zakładki podglądu — osobno
  * dla każdej karty, bo podglądów może być kilka (np. localhost:3000 obok
  * localhost:5173).
@@ -148,25 +191,25 @@ export function BrowserPreview({ path }: { path: string }): ReactElement {
       <div className="preview-toolbar">
         <button
           type="button"
-          className="bar-btn preview-nav"
+          className="bar-btn preview-icon-btn preview-nav"
           data-testid="preview-back"
           title={t('preview.back')}
           aria-label={t('preview.back')}
           onClick={() => navigate(-1)}
           disabled={!canBack}
         >
-          ←
+          <ArrowGlyph dir="back" />
         </button>
         <button
           type="button"
-          className="bar-btn preview-nav"
+          className="bar-btn preview-icon-btn preview-nav"
           data-testid="preview-forward"
           title={t('preview.forward')}
           aria-label={t('preview.forward')}
           onClick={() => navigate(1)}
           disabled={!canForward}
         >
-          →
+          <ArrowGlyph dir="forward" />
         </button>
         <input
           type="text"
@@ -187,12 +230,14 @@ export function BrowserPreview({ path }: { path: string }): ReactElement {
         </button>
         <button
           type="button"
-          className="bar-btn"
+          className="bar-btn preview-icon-btn"
+          data-testid="preview-reload"
           title={t('preview.reload')}
+          aria-label={t('preview.reload')}
           onClick={() => webviewRef.current?.reload()}
           disabled={!currentUrl}
         >
-          ⟳
+          <ReloadGlyph />
         </button>
         <button
           type="button"

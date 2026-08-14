@@ -598,14 +598,42 @@
   background: var(--panel);
 }
 
-/* Strzałki historii: kwadratowe, bez odstępu między sobą — jedna para. */
-.preview-nav {
-  width: 24px;
+/*
+ * Przyciski ikonowe paska (strzałki, przeładowanie). Baza `.bar-btn` jest
+ * celowo cicha — przezroczysta, w kolorze `--muted` — co dla etykiet
+ * tekstowych działa, ale ikona bez tła i w szarości na tle paska po prostu
+ * ginie. Tu ikona dostaje kolor tekstu i własny kafelek. Selektor przez
+ * `.preview-toolbar`, bo `.bar-btn:disabled` z 06-edytor.css ładuje się
+ * później i przy równej wadze nadpisałby stan wyłączony.
+ */
+.preview-toolbar .preview-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
   padding: 0;
-  font-size: 13px;
-  line-height: 1;
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  color: var(--text);
 }
 
+.preview-toolbar .preview-icon-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--text) 16%, transparent);
+  color: var(--text);
+}
+
+/*
+ * Wyłączony to nie „niewidoczny": zamiast gasić krycie do 0.45 (kontrast
+ * spadał poniżej 2.5:1) ściszamy do koloru `--muted`, który zostaje czytelny.
+ */
+.preview-toolbar .preview-icon-btn:disabled {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--border) 55%, transparent);
+  background: transparent;
+  color: var(--muted);
+}
+
+/* Strzałki historii bez odstępu między sobą — jedna para. */
 .preview-nav + .preview-nav {
   margin-left: -4px;
 }
