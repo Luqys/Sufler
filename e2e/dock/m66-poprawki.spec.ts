@@ -10,11 +10,11 @@ import {
 
 /**
  * M66 — poprawki ze zgłoszeń użytkowników: Shift+Enter jako nowa linia
- * w karcie Claude, przycisk kopiowania polecenia, druga przeglądarka
- * i jednolite tempo przewijania.
+ * w karcie Claude, druga przeglądarka i jednolite tempo przewijania.
+ * (Przycisk kopiowania polecenia zniknął z paska w M108.)
  */
 
-test('Shift+Enter łamie polecenie na nową linię, a przycisk kopiuje zaznaczenie', async () => {
+test('Shift+Enter łamie polecenie na nową linię', async () => {
   const app = await launchApp(makeConfigHome(), makeFixtureProject(), {
     VISUALN3O_PATH_PREPEND: makeRawKeysClaudeBin(),
   });
@@ -36,22 +36,7 @@ test('Shift+Enter łamie polecenie na nową linię, a przycisk kopiuje zaznaczen
   await expect(terminal).toContainText('def^M', { timeout: 15_000 });
   await expect(terminal).not.toContainText('def^[');
 
-  // Zaznaczenie myszą w terminalu → przycisk „Kopiuj polecenie" bierze je do schowka.
-  const box = await terminal.boundingBox();
-  if (!box) {
-    throw new Error('terminal bez geometrii');
-  }
-  await page.mouse.move(box.x + 8, box.y + 6);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width - 12, box.y + 24, { steps: 8 });
-  await page.mouse.up();
-
-  await page.getByTestId('right-copy-prompt').click();
-  await expect
-    .poll(() => app.evaluate(({ clipboard }) => clipboard.readText()), { timeout: 10_000 })
-    .toContain('Claude Code');
-
-  await page.screenshot({ path: 'e2e-artifacts/m66-shift-enter-kopiowanie.png' });
+  await page.screenshot({ path: 'e2e-artifacts/m66-shift-enter.png' });
   await app.close();
 });
 

@@ -10,10 +10,6 @@ import {
 } from 'react';
 import { createClaudeStatusTracker } from '../../shared/claude/claude-status';
 import {
-  createSessionStateTracker,
-  type StanSesji,
-} from '../../shared/claude/session-header';
-import {
   activateTab as activateTabState,
   activeTabs,
   addTab as addTabState,
@@ -51,11 +47,6 @@ interface AddTabOptions {
   paneId?: string;
   /** Podział przestrzeni: nowa sesja ląduje w świeżym panelu tuż za wskazanym. */
   splitAfterPaneId?: string;
-  /**
-   * Tekst wpisany do świeżej sesji, gdy tylko wstanie (M84: przejęcie pracy).
-   * Czekamy na gotowość CLI — wpis przed startem przepadłby w pustce.
-   */
-  insert?: string;
   /** Katalog startowy pty — domyślnie korzeń projektu (worktree'y, M72). */
   cwd?: string;
 }
@@ -79,10 +70,6 @@ interface DocksValue {
   detachTab(id: string): void;
   /** Wpisuje tekst do pty aktywnej sesji Claude (preferuje aktywne zakładki paneli). */
   insertToActiveClaude(text: string): boolean;
-  /** Ostatnie polecenie wysłane w danej karcie (hook UserPromptSubmit) → id karty. */
-  lastPrompts: Record<string, string>;
-  /** Aktualny model i głębokość myślenia sesji, czytane z jej wyjścia (M92). */
-  sessionStates: Record<string, StanSesji>;
 }
 
 const DocksContext = createContext<DocksValue | null>(null);
@@ -102,8 +89,6 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
   const { root } = useWorkspace();
   const { confirmDialog, notify } = useDialogs();
   const [docks, setDocksRaw] = useState<DocksState>(emptyDocksState);
-  const [lastPrompts, setLastPrompts] = useState<Record<string, string>>({});
-  const [sessionStates, setSessionStates] = useState<Record<string, StanSesji>>({});
   const docksRef = useRef(docks);
   // Karty, których status przejęły hooki (M35) — heurystyka pty ich nie dotyka.
   // Bez tego spóźniony chunk wyjścia nadpisywał status ustawiony hookiem (wyścig).
@@ -128,14 +113,6 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
         const id = `tab-${nextTabNumber++}`;
         // Wskaźnik statusu: heurystyka na strumieniu wyjściowym pty,
         // tylko dla zakładek `claude`.
-        const doWpisania = options?.insert ?? null;
-        let wpisane = doWpisania === null;
-        const stanTracker =
-          kind === 'claude'
-            ? createSessionStateTracker((stan) => {
-                setSessionStates((current) => ({ ...current, [id]: stan }));
-              })
-            : null;
         const statusTracker =
           kind === 'claude'
             ? createClaudeStatusTracker((activity) => {
@@ -146,22 +123,11 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
                   }
                   return updateTabState(state, id, { status: activity });
                 });
-                // Przejęcie pracy (M84): świeża sesja dostaje prompt dopiero,
-                // gdy CLI zgłosi gotowość — wpis wysłany wcześniej wpadłby
-                // w pustkę, zanim powstanie pole wejściowe.
-                if (!wpisane && doWpisania !== null && activity !== 'running') {
-                  wpisane = true;
-                  window.api.ptyWrite(result.ptyId, doWpisania);
-                }
               })
             : null;
-        const onOutput =
-          statusTracker && stanTracker
-            ? (chunk: string): void => {
-                statusTracker.push(chunk);
-                stanTracker.push(chunk);
-              }
-            : undefined;
+        const onOutput = statusTracker
+          ? (chunk: string): void => statusTracker.push(chunk)
+          : undefined;
         createTerminalInstance(id, result.ptyId, { kind, onOutput });
         applyDocks((state) => {
           let next = state;
@@ -205,22 +171,6 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
       const finish = (): void => {
         void window.api.ptyKill(found.tab.ptyId);
         disposeTerminalInstance(id);
-        setLastPrompts((current) => {
-          if (!(id in current)) {
-            return current;
-          }
-          const next = { ...current };
-          delete next[id];
-          return next;
-        });
-        setSessionStates((current) => {
-          if (!(id in current)) {
-            return current;
-          }
-          const next = { ...current };
-          delete next[id];
-          return next;
-        });
         applyDocks((state) => closeTabState(state, id));
       };
       if (found.tab.status === 'exited') {
@@ -324,19 +274,15 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
   // przejmuje kartę na wyłączność (hookDrivenRef) — heurystyka strumienia pty
   // zostaje fallbackiem wyłącznie dla sesji bez hooków.
   useEffect(() => {
-    window.api.onClaudeHookEvent(({ ptyId, kind, prompt }) => {
+    window.api.onClaudeHookEvent(({ ptyId, kind }) => {
       const target = allTabs(docksRef.current).find(
         (tab) => tab.ptyId === ptyId && tab.kind === 'claude' && tab.status !== 'exited',
       );
       if (!target) {
         return;
       }
+      // Samo polecenie nie mówi nic o statusie karty — status zostaje w spokoju.
       if (kind === 'prompt') {
-        // Samo polecenie nie mówi nic o statusie karty — zapamiętujemy treść
-        // (przycisk „Kopiuj polecenie") i zostawiamy status w spokoju.
-        if (prompt) {
-          setLastPrompts((current) => ({ ...current, [target.id]: prompt }));
-        }
         return;
       }
       hookDrivenRef.current.add(target.id);
@@ -403,8 +349,6 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
         splitTab,
         detachTab,
         insertToActiveClaude,
-        lastPrompts,
-        sessionStates,
       }}
     >
       {children}
