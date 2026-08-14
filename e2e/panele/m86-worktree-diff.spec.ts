@@ -14,6 +14,7 @@ test('M86: worktree pokazuje, co wniósł wobec gałęzi projektu, a klik otwier
   const page = await app.firstWindow();
 
   await page.getByTestId('rail-git').click();
+  await page.getByTestId('rail-git-points').click();
   await page.getByTestId('worktree-name').fill('m86-praca');
   await page.getByTestId('worktree-new').click();
 

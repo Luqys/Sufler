@@ -113,6 +113,45 @@ body.dragging-horizontal .splitter.horizontal::after {
   background: var(--accent);
 }
 
+/*
+ * M102: pod-ikony gita. Wysuwają się pod główną ikoną tylko przy otwartym
+ * panelu — pasek zostaje krótki, a trzy widoki gita są jedno kliknięcie stąd,
+ * zamiast leżeć jeden pod drugim w panelu i spychać się nawzajem poza ekran.
+ */
+.rail-subrail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 40px;
+  margin: 2px 0 4px;
+  padding: 3px 0;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+.rail-sub {
+  width: 28px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: color-mix(in srgb, var(--text) 55%, transparent);
+  cursor: pointer;
+}
+
+.rail-sub:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+}
+
+.rail-sub.active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
 .sidebar-view {
   flex: 1;
   min-width: 0;

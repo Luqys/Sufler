@@ -14,6 +14,7 @@ test('M72: worktree z panelu — sesja startuje w nim, praca wraca scaleniem', a
   const page = await app.firstWindow();
 
   await page.getByTestId('rail-git').click();
+  await page.getByTestId('rail-git-points').click();
   const section = page.getByTestId('worktrees');
   await expect(section).toBeVisible();
   // Na starcie jest tylko katalog główny projektu.
@@ -69,6 +70,7 @@ test('M72: usunięcie pyta o zgodę i nie rusza worktree z niezapisanymi zmianam
   const page = await app.firstWindow();
 
   await page.getByTestId('rail-git').click();
+  await page.getByTestId('rail-git-points').click();
   await page.getByTestId('worktree-name').fill('m82-do-usuniecia');
   await page.getByTestId('worktree-new').click();
 

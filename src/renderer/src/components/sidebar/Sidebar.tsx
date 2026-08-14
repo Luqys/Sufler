@@ -1,7 +1,15 @@
-import { type ReactElement } from 'react';
+import { Fragment, type ReactElement } from 'react';
 import type { StringKey } from '../../../../shared/i18n';
 import { useT } from '../../i18n';
-import { selectSidebarView, useSidebarView, type SidebarView } from '../../sidebar-view';
+import {
+  GIT_TABS,
+  selectGitTab,
+  selectSidebarView,
+  useGitTab,
+  useSidebarView,
+  type GitTab,
+  type SidebarView,
+} from '../../sidebar-view';
 import { useWorkspace } from '../../workspace';
 import { FileTree } from './FileTree';
 import { GitPanel } from './GitPanel';
@@ -72,6 +80,33 @@ const ICON_SESSIONS = (
   </svg>
 );
 
+/** Pod-ikony gita (M102): zmiany, historia, punkty przywracania. */
+const ICON_GIT_CHANGES = (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <path d="M8 3.4v9.2M3.4 8h9.2" />
+  </svg>
+);
+
+const ICON_GIT_HISTORY = (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <path d="M3 4.2h10M3 8h10M3 11.8h6" />
+  </svg>
+);
+
+const ICON_GIT_POINTS = (
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M13.2 8a5.2 5.2 0 1 1-1.6-3.7" />
+    <path d="M13.4 2v2.7h-2.7" />
+    <path d="M8 5.2V8l2 1.2" />
+  </svg>
+);
+
+const GIT_TAB_ICONS: Record<GitTab, ReactElement> = {
+  changes: ICON_GIT_CHANGES,
+  history: ICON_GIT_HISTORY,
+  points: ICON_GIT_POINTS,
+};
+
 const RAIL_ITEMS: RailItem[] = [
   { id: 'files', labelKey: 'sidebar.rail.files', icon: ICON_FILES },
   { id: 'search', labelKey: 'sidebar.rail.search', icon: ICON_SEARCH },
@@ -86,6 +121,7 @@ export function Sidebar(): ReactElement {
   const { root, openKnowledgeGraph } = useWorkspace();
   const t = useT();
   const view = useSidebarView();
+  const gitTab = useGitTab();
 
   const selectView = (id: SidebarView): void => {
     selectSidebarView(id);
@@ -99,8 +135,8 @@ export function Sidebar(): ReactElement {
     <aside className="sidebar" data-testid="sidebar">
       <nav className="icon-rail" aria-label={t('sidebar.aria')}>
         {RAIL_ITEMS.map((item) => (
+          <Fragment key={item.id}>
           <button
-            key={item.id}
             type="button"
             className={`rail-btn${view === item.id ? ' active' : ''}`}
             title={t(item.labelKey)}
@@ -125,6 +161,25 @@ export function Sidebar(): ReactElement {
           >
             {item.icon}
           </button>
+          {/* Pod-ikony gita wysuwają się pod jego ikoną, gdy panel jest otwarty. */}
+          {item.id === 'git' && view === 'git' && (
+            <div className="rail-subrail" data-testid="rail-git-tabs">
+              {GIT_TABS.map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  className={`rail-sub${gitTab === tab ? ' active' : ''}`}
+                  title={t(`git.tab.${tab}`)}
+                  data-testid={`rail-git-${tab}`}
+                  aria-pressed={gitTab === tab}
+                  onClick={() => selectGitTab(tab)}
+                >
+                  {GIT_TAB_ICONS[tab]}
+                </button>
+              ))}
+            </div>
+          )}
+          </Fragment>
         ))}
       </nav>
       <section className="sidebar-view">
@@ -136,7 +191,8 @@ export function Sidebar(): ReactElement {
           <SearchPanel />
         </div>
         <div className={`view-panel pad${view === 'git' ? '' : ' hidden'}`}>
-          <h2 className="view-title">{t('sidebar.view.git')}</h2>
+          {/* Nagłówek mówi, który z trzech widoków gita jest na wierzchu (M102). */}
+          <h2 className="view-title">{t(`git.tab.${gitTab}`)}</h2>
           <GitPanel key={root} />
         </div>
         <div className={`view-panel pad scroll${view === 'sessions' ? '' : ' hidden'}`}>

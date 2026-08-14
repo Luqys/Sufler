@@ -40,6 +40,8 @@ test('punkt przywracania powstaje przy poleceniu i cofa zmiany Claude', async ()
   });
 
   await page.getByTestId('rail-git').click();
+  // Punkty przywracania mieszkają od M102 w trzeciej podzakładce gita.
+  await page.getByTestId('rail-git-points').click();
   const rows = page.getByTestId('checkpoint-row');
   await expect(rows.first()).toBeVisible({ timeout: 15_000 });
   await expect(rows.first()).toContainText('Przepisz moduł aplikacji');

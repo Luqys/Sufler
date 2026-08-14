@@ -102,7 +102,9 @@ test('panel Git: klik w zmianę roboczą i plik commita otwiera diff w Monaco', 
   await expect(page.locator('.monaco-diff-editor')).toBeVisible();
   await page.screenshot({ path: 'e2e-artifacts/m33-diff-roboczy.png' });
 
-  // Diff pliku z commita (init ma README.md i src/app.ts).
+  // Diff pliku z commita (init ma README.md i src/app.ts) — historia to od
+  // M102 osobna podzakładka gita.
+  await page.getByTestId('rail-git-history').click();
   await page.getByTestId('git-commit').first().click();
   const commitFile = page.getByTestId('git-commit-file').filter({ hasText: 'README.md' });
   await expect(commitFile).toBeVisible();

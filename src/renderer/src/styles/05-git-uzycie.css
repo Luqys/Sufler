@@ -359,9 +359,13 @@
  * pokazywał ani jednego commita.
  */
 .git-changes {
-  flex: 0 1 auto;
+  /*
+   * M102: zmiany robocze mają własny widok, więc biorą całą wysokość panelu.
+   * Limit 42% z M93 pilnował, żeby nie zepchnęły historii poza ekran — teraz
+   * historia jest w osobnej zakładce i nie ma czego spychać.
+   */
+  flex: 1;
   min-height: 0;
-  max-height: 42%;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -965,4 +969,23 @@
   white-space: nowrap;
   color: var(--text-dim);
   font-family: var(--mono, ui-monospace, monospace);
+}
+
+/* M102: widok „punkty i worktree'y" przewija się sam, bez ruszania paska narzędzi. */
+.git-tab-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.git-tab-body.scroll {
+  overflow-y: auto;
+}
+
+.git-changes.hidden,
+.git-list.hidden,
+.git-tab-body.hidden {
+  display: none;
 }

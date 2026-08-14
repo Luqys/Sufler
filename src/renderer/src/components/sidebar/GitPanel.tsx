@@ -16,6 +16,7 @@ import type {
   GitStatusFile,
 } from '../../../../shared/ipc';
 import { getLocale, t, tf, useT } from '../../i18n';
+import { useGitTab } from '../../sidebar-view';
 import { fullDateTime, relativeTime } from '../../relative-time';
 import { useDialogs } from '../../ui-dialogs';
 import { useWorkspace } from '../../workspace';
@@ -201,6 +202,7 @@ function Checkpoints({ root }: { root: string }): ReactElement | null {
 
 export function GitPanel(): ReactElement {
   const t = useT();
+  const tab = useGitTab();
   const { notify } = useDialogs();
   const { root, openDiffTab, openWorklogTab } = useWorkspace();
   const [result, setResult] = useState<GitLogResult | null>(null);
@@ -411,15 +413,31 @@ export function GitPanel(): ReactElement {
           {ICON_REFRESH}
         </button>
       </div>
-      <Checkpoints root={root} />
-      <Worktrees root={root} />
+      {/*
+        * Wszystkie trzy widoki są zamontowane, przełącznik tylko je ukrywa:
+        * dzięki temu wpisany opis commita, nazwa nowej gałęzi i rozwinięte
+        * commity przeżywają skok do sąsiedniej podzakładki i z powrotem.
+        */}
+      <div
+        className={`git-tab-body scroll${tab === 'points' ? '' : ' hidden'}`}
+        data-testid="git-points"
+      >
+        <Checkpoints root={root} />
+        <Worktrees root={root} />
+      </div>
       {result === null && <p className="placeholder">{t('git.loading')}</p>}
       {result !== null && !result.ok && <p className="placeholder">{t('git.notRepo')}</p>}
-      {result?.ok && result.commits.length === 0 && (
+      {tab === 'changes' && result?.ok && changes.length === 0 && (
+        <p className="placeholder">{t('git.noChanges')}</p>
+      )}
+      {tab === 'history' && result?.ok && result.commits.length === 0 && (
         <p className="placeholder">{t('git.noCommits')}</p>
       )}
       {result?.ok && changes.length > 0 && (
-        <div className="git-changes" data-testid="git-changes">
+        <div
+          className={`git-changes${tab === 'changes' ? '' : ' hidden'}`}
+          data-testid="git-changes"
+        >
           <div className="view-title git-changes-title">
             <span>
               {t('git.changesTitle')} <span className="group-count">{changes.length}</span>
@@ -538,7 +556,7 @@ export function GitPanel(): ReactElement {
           </div>
         </div>
       )}
-      <div className="git-list">
+      <div className={`git-list${tab === 'history' ? '' : ' hidden'}`}>
         {result?.ok &&
           result.commits.map((commit, index) => {
             const isOpen = expanded.has(commit.hash);

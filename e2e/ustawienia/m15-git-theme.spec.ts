@@ -22,6 +22,8 @@ test('panel Git pokazuje historię commitów z listą zmienionych plików', asyn
   await expect(panel).toBeVisible();
   await expect(panel.locator('.git-branch')).toBeVisible();
 
+  // Historia commitów to od M102 druga podzakładka gita.
+  await page.getByTestId('rail-git-history').click();
   const commits = page.getByTestId('git-commit');
   await expect(commits).toHaveCount(2);
   await expect(commits.first()).toContainText('drugi commit');
