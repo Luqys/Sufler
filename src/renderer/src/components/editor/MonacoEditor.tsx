@@ -1,10 +1,8 @@
 import { useEffect, useRef, type ReactElement } from 'react';
 import type { RevealTarget } from '../../workspace';
 import { getModel } from '../../editor/models';
-import { t } from '../../i18n';
 import { frontmatterRange, monaco } from '../../monaco-setup';
 import { createWheelNormalizer } from '../../../../shared/system/scroll';
-import { useDialogs } from '../../ui-dialogs';
 
 /** Pozycje kursora/scrolla per plik — przetrwają przełączanie zakładek. */
 const viewStates = new Map<string, monaco.editor.ICodeEditorViewState | null>();
@@ -21,9 +19,6 @@ export function MonacoEditor({ path, reveal }: MonacoEditorProps): ReactElement 
   const hostRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const currentPathRef = useRef<string | null>(null);
-  const { notify } = useDialogs();
-  const notifyRef = useRef(notify);
-  notifyRef.current = notify;
 
   useEffect(() => {
     const host = hostRef.current;
@@ -39,34 +34,6 @@ export function MonacoEditor({ path, reveal }: MonacoEditorProps): ReactElement 
       padding: { top: 8 },
     });
     editorRef.current = editor;
-    // Warstwa 3 Obsidiana (M36): zaznaczenie → dopisanie pod nagłówek
-    // notatki dziennej przez Local REST API pluginu.
-    editor.addAction({
-      id: 'sufler.send-to-daily-note',
-      label: t('obsidian.sendAction'),
-      contextMenuGroupId: '9_sufler',
-      contextMenuOrder: 1,
-      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyL],
-      run: (ed) => {
-        const selection = ed.getSelection();
-        const model = ed.getModel();
-        if (!selection || !model || selection.isEmpty()) {
-          notifyRef.current(t('obsidian.sendEmpty'), 'info');
-          return;
-        }
-        void window.api.sendToDailyNote(model.getValueInRange(selection)).then((result) => {
-          if (result.ok) {
-            notifyRef.current(t('obsidian.sendOk'), 'success');
-          } else if (result.error === 'not-configured') {
-            notifyRef.current(t('obsidian.sendNotConfigured'), 'error');
-          } else if (result.error === 'unreachable') {
-            notifyRef.current(t('obsidian.sendUnreachable'), 'error');
-          } else {
-            notifyRef.current(t('obsidian.sendRejected'), 'error');
-          }
-        });
-      },
-    });
     // Kółko myszy tym samym krokiem, co reszta aplikacji: Monaco przewija
     // wprost deltą zdarzenia (~100 px = ~6 linii), gładzik zostaje natywny.
     // Nasłuch w fazie przechwytywania na hoście wyprzedza obsługę Monaco.

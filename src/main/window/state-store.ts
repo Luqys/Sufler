@@ -1,6 +1,5 @@
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { ObsidianRestConfig } from '../../shared/knowledge/obsidian-rest';
 import { configDir } from './layout-store';
 
 export interface AppState {
@@ -12,8 +11,6 @@ export interface AppState {
   vaultPath?: string;
   /** Motyw i akcent (normalizowane w shared/appearance). */
   appearance?: unknown;
-  /** Local REST API — „wyślij do notatki dziennej" (M36). */
-  obsidian?: ObsidianRestConfig;
   /** Dziennik sesji Claude (M52); brak wartości = włączony. */
   sessionLog?: boolean;
 }
@@ -46,16 +43,6 @@ export function readState(): AppState {
     }
     if (typeof obj['sessionLog'] === 'boolean') {
       state.sessionLog = obj['sessionLog'];
-    }
-    if (typeof obj['obsidian'] === 'object' && obj['obsidian'] !== null) {
-      const source = obj['obsidian'] as Record<string, unknown>;
-      const obsidian: ObsidianRestConfig = {};
-      for (const key of ['url', 'apiKey', 'dailyFile', 'dailyHeading'] as const) {
-        if (typeof source[key] === 'string') {
-          obsidian[key] = source[key];
-        }
-      }
-      state.obsidian = obsidian;
     }
     return state;
   } catch {

@@ -1,14 +1,13 @@
 /**
- * Warstwa 3 integracji z Obsidianem (M36): indeks nazwa→ścieżka dla
- * wikilinków i PATCH do notatki dziennej przez plugin Local REST API.
+ * Indeks notatek vaulta: nazwa → ścieżka, pod wikilinki [[Notatka]] w Monaco
+ * (M36). Wysyłka zaznaczenia do notatki dziennej Obsidiana odpadła w M98 —
+ * właściciel projektu nigdy jej nie używał, a ciągnęła za sobą konfigurację
+ * pluginu Local REST API w Ustawieniach.
  */
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import type { SendToNoteResult } from '../../shared/ipc';
-import { buildAppendRequest, type ObsidianRestConfig } from '../../shared/knowledge/obsidian-rest';
 import { noteIndexKey } from '../../shared/knowledge/wikilinks';
 import { getVaultPath } from '../project/project';
-import { readState, writeState } from '../window/state-store';
 
 const INDEX_TTL_MS = 5_000;
 const SKIP_DIRS = new Set(['.obsidian', '.trash', 'node_modules', '.git']);
@@ -77,40 +76,4 @@ export function resolveNoteLinks(names: string[]): Record<string, string | null>
     result[name] = index.get(noteIndexKey(name)) ?? null;
   }
   return result;
-}
-
-export function getObsidianConfig(): ObsidianRestConfig {
-  return readState().obsidian ?? {};
-}
-
-export function setObsidianConfig(config: ObsidianRestConfig): ObsidianRestConfig {
-  const cleaned: ObsidianRestConfig = {};
-  for (const key of ['url', 'apiKey', 'dailyFile', 'dailyHeading'] as const) {
-    const value = config[key];
-    if (typeof value === 'string' && value.trim() !== '') {
-      cleaned[key] = value.trim();
-    }
-  }
-  writeState({ ...readState(), obsidian: cleaned });
-  return cleaned;
-}
-
-/** Dopisanie treści pod nagłówek notatki dziennej (Operation: append). */
-export async function sendToDailyNote(content: string): Promise<SendToNoteResult> {
-  const request = buildAppendRequest(getObsidianConfig(), content, new Date());
-  if (!request) {
-    return { ok: false, error: 'not-configured' };
-  }
-  try {
-    const response = await fetch(request.url, {
-      method: 'PATCH',
-      headers: request.headers,
-      body: request.body,
-      signal: AbortSignal.timeout(5_000),
-    });
-    return response.ok ? { ok: true } : { ok: false, error: 'rejected' };
-  } catch {
-    // Serwer żyje tylko przy otwartym Obsidianie — to normalny przypadek.
-    return { ok: false, error: 'unreachable' };
-  }
 }

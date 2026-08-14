@@ -31,13 +31,7 @@ import { commitHunks, readFileHunks } from './git/hunk-commit';
 import { runGitShowFile } from './git/git-show';
 import { runGitStatus } from './git/git-status';
 import { startIdeServer, stopIdeServer, updateIdeWorkspaceFolders } from './claude/ide-server';
-import {
-  getObsidianConfig,
-  resolveNoteLinks,
-  sendToDailyNote,
-  setObsidianConfig,
-} from './knowledge/obsidian';
-import type { ObsidianRestConfig } from '../shared/knowledge/obsidian-rest';
+import { resolveNoteLinks } from './knowledge/note-index';
 import { installAppMenu } from './window/menu';
 import { readMcpConfig, runMcpGet, runMcpList } from './mcp/index';
 import { closeMcpWatcher, watchMcpConfig } from './mcp/watcher';
@@ -388,14 +382,7 @@ void app.whenReady().then(() => {
   ipcMain.handle(IPC.ClaudeSessionsDetails, (_event, root: string, id: string) =>
     readClaudeSessionDetails(root, id),
   );
-  ipcMain.handle(IPC.ObsidianResolveLinks, (_event, names: string[]) =>
-    resolveNoteLinks(names),
-  );
-  ipcMain.handle(IPC.ObsidianSendDaily, (_event, content: string) => sendToDailyNote(content));
-  ipcMain.handle(IPC.ObsidianConfigGet, () => getObsidianConfig());
-  ipcMain.handle(IPC.ObsidianConfigSet, (_event, config: ObsidianRestConfig) =>
-    setObsidianConfig(config),
-  );
+  ipcMain.handle(IPC.ResolveNoteLinks, (_event, names: string[]) => resolveNoteLinks(names));
   ipcMain.handle(IPC.ProjectListFiles, (_event, root: string) => runListFiles(root));
   ipcMain.handle(IPC.TreeWatchDirs, (event, dirs: string[]) => {
     const win = BrowserWindow.fromWebContents(event.sender);

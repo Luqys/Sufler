@@ -12,7 +12,6 @@ import {
   type HookEvent,
 } from '../../../../shared/skills/hooks-config';
 import type { HookListEntry } from '../../../../shared/ipc';
-import type { ObsidianRestConfig } from '../../../../shared/knowledge/obsidian-rest';
 import { applyAppearance } from '../../appearance-client';
 import { useT } from '../../i18n';
 import { useDialogs } from '../../ui-dialogs';
@@ -23,7 +22,6 @@ export function SettingsView(): ReactElement {
   const { root, chooseProject } = useWorkspace();
   const t = useT();
   const [appearance, setAppearanceState] = useState<Appearance>(DEFAULT_APPEARANCE);
-  const [obsidian, setObsidian] = useState<ObsidianRestConfig>({});
   const [sessionLog, setSessionLog] = useState(true);
   const [globalLog, setGlobalLog] = useState(false);
   const [hooks, setHooks] = useState<HookListEntry[]>([]);
@@ -40,7 +38,6 @@ export function SettingsView(): ReactElement {
 
   useEffect(() => {
     void window.api.getAppearance().then(setAppearanceState);
-    void window.api.getObsidianConfig().then(setObsidian);
     void window.api.getSessionLogEnabled().then(setSessionLog);
     void window.api.getGlobalSessionLog().then(setGlobalLog);
     void window.api.getDiagnosticsAuto().then(setDiagAuto);
@@ -78,13 +75,6 @@ export function SettingsView(): ReactElement {
         }
         refreshHooks();
       });
-  };
-
-  const updateObsidian = (patch: Partial<ObsidianRestConfig>): void => {
-    setObsidian((current) => ({ ...current, ...patch }));
-  };
-  const saveObsidian = (): void => {
-    void window.api.setObsidianConfig(obsidian);
   };
 
   const updateAppearance = (patch: Partial<Appearance>): void => {
@@ -297,55 +287,6 @@ export function SettingsView(): ReactElement {
           </button>
         </div>
         <p className="settings-hint">{t('settings.hooksWriteHint')}</p>
-      </section>
-      <section className="settings-section">
-        <h3 className="view-title">{t('settings.obsidianTitle')}</h3>
-        <p className="settings-hint">{t('settings.obsidianIntro')}</p>
-        <div className="settings-fields">
-          <label className="settings-field">
-            <span>{t('settings.obsidianApiKey')}</span>
-            <input
-              type="password"
-              data-testid="obsidian-api-key"
-              value={obsidian.apiKey ?? ''}
-              onChange={(event) => updateObsidian({ apiKey: event.target.value })}
-              onBlur={saveObsidian}
-            />
-          </label>
-          <label className="settings-field">
-            <span>{t('settings.obsidianUrl')}</span>
-            <input
-              type="text"
-              data-testid="obsidian-url"
-              placeholder="http://127.0.0.1:27123"
-              value={obsidian.url ?? ''}
-              onChange={(event) => updateObsidian({ url: event.target.value })}
-              onBlur={saveObsidian}
-            />
-          </label>
-          <label className="settings-field">
-            <span>{t('settings.obsidianDailyFile')}</span>
-            <input
-              type="text"
-              data-testid="obsidian-daily-file"
-              placeholder="Dziennik/{date}.md"
-              value={obsidian.dailyFile ?? ''}
-              onChange={(event) => updateObsidian({ dailyFile: event.target.value })}
-              onBlur={saveObsidian}
-            />
-          </label>
-          <label className="settings-field">
-            <span>{t('settings.obsidianDailyHeading')}</span>
-            <input
-              type="text"
-              data-testid="obsidian-daily-heading"
-              value={obsidian.dailyHeading ?? ''}
-              onChange={(event) => updateObsidian({ dailyHeading: event.target.value })}
-              onBlur={saveObsidian}
-            />
-          </label>
-        </div>
-        <p className="settings-hint">{t('settings.obsidianHint')}</p>
       </section>
       <section className="settings-section">
         <h3 className="view-title">{t('settings.config')}</h3>

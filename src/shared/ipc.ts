@@ -8,7 +8,6 @@ import type { LayoutState, LayoutVisibilityKey } from './docks/layout';
 import type { UsageLimitsResult } from './claude/limits';
 import type { McpConfigServer, McpDetail, McpListEntry } from './mcp/mcp';
 import type { McpAddInput } from './mcp/mcp-add';
-import type { ObsidianRestConfig } from './knowledge/obsidian-rest';
 import type { Checkpoint } from './git/checkpoints';
 import type { DetachedTarget } from './docks/detached';
 import type { ImportSkip } from './project/import-drop';
@@ -123,10 +122,7 @@ export const IPC = {
   ClaudeSessionsList: 'claude-sessions:list',
   ClaudeSessionsDetails: 'claude-sessions:details',
   ClaudeHookEvent: 'claude-hooks:event',
-  ObsidianResolveLinks: 'obsidian:resolve-links',
-  ObsidianSendDaily: 'obsidian:send-daily',
-  ObsidianConfigGet: 'obsidian:config-get',
-  ObsidianConfigSet: 'obsidian:config-set',
+  ResolveNoteLinks: 'notes:resolve-links',
   ProjectListFiles: 'project:list-files',
 } as const;
 
@@ -152,10 +148,6 @@ export type McpAddResult =
 export type ListFilesResult =
   | { ok: true; files: string[]; truncated: boolean }
   | { ok: false; error: string };
-
-export type SendToNoteResult =
-  | { ok: true }
-  | { ok: false; error: 'not-configured' | 'unreachable' | 'rejected' };
 
 /** Żądanie serwera „ide" do renderera (openDiff, openFile, getOpenEditors…). */
 export interface IdeBridgeRequestPayload {
@@ -527,10 +519,6 @@ export interface WindowApi {
   onClaudeHookEvent(listener: (event: ClaudeHookEvent) => void): void;
   /** Wikilinki: nazwy notatek → ścieżki absolutne w vaultcie (null = brak). */
   resolveNoteLinks(names: string[]): Promise<Record<string, string | null>>;
-  /** Zaznaczenie → dopisanie pod nagłówek notatki dziennej (Local REST API). */
-  sendToDailyNote(content: string): Promise<SendToNoteResult>;
-  getObsidianConfig(): Promise<ObsidianRestConfig>;
-  setObsidianConfig(config: ObsidianRestConfig): Promise<ObsidianRestConfig>;
   /** Pliki projektu (ścieżki względne) do szybkiego otwierania Cmd+P. */
   listProjectFiles(root: string): Promise<ListFilesResult>;
 }

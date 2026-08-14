@@ -1,5 +1,5 @@
 /**
- * Wikilinki w Monaco (M36, warstwa 3 integracji z Obsidianem): czysta logika
+ * Wikilinki w Monaco (M36): czysta logika
  * znajdowania [[nazwa]] w treści — dekoracje-linki podpina renderer.
  */
 

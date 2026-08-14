@@ -143,25 +143,6 @@ export const PL = {
   'settings.sessionLogGlobal': 'Także dla sesji poza Suflerem',
   'settings.sessionLogGlobalHint':
     'Instaluje skrypt w ~/.claude i wpina go w globalne hooki Claude Code, więc dziennik powstaje również dla sesji uruchamianych w zwykłym terminalu. Twoje pozostałe hooki zostają nietknięte.',
-  'settings.obsidianTitle': 'Obsidian — notatka dzienna',
-  'settings.obsidianIntro':
-    'Opcjonalne. Wymaga pluginu Local REST API uruchomionego w Obsidianie.',
-  'settings.obsidianApiKey': 'Klucz API (plugin Local REST API)',
-  'settings.obsidianUrl': 'Adres serwera',
-  'settings.obsidianDailyFile': 'Plik notatki — {date} to dzisiejsza data',
-  'settings.obsidianDailyHeading': 'Nagłówek docelowy',
-  'settings.obsidianHint':
-    'Zaznacz tekst w edytorze i użyj Cmd+Shift+L (albo menu kontekstowego), aby dopisać go pod wskazany nagłówek.',
-
-  // Warstwa 3 Obsidiana (M36)
-  'obsidian.sendAction': 'Wyślij zaznaczenie do notatki dziennej',
-  'obsidian.sendOk': 'Dopisano do notatki dziennej.',
-  'obsidian.sendEmpty': 'Zaznacz najpierw tekst do wysłania.',
-  'obsidian.sendNotConfigured':
-    'Uzupełnij konfigurację Obsidiana w Ustawieniach (klucz API, plik, nagłówek).',
-  'obsidian.sendUnreachable':
-    'Brak połączenia z Obsidianem — uruchom Obsidiana z włączonym pluginem Local REST API.',
-  'obsidian.sendRejected': 'Obsidian odrzucił zapis — sprawdź klucz API i nagłówek.',
 
   // Szybkie otwieranie Cmd+P (M37)
   'quickOpen.placeholder': 'Szukaj pliku po nazwie…',
@@ -396,7 +377,6 @@ export const PL = {
   'help.keys.quickOpen': 'szybkie otwieranie pliku po nazwie',
   'help.keys.save': 'zapisz plik',
   'help.keys.settings': 'ustawienia',
-  'help.keys.daily': 'wyślij zaznaczenie do notatki dziennej Obsidiana',
 
   // Panel wiedzy
   'knowledge.hint':

@@ -574,7 +574,7 @@
   color: var(--muted);
 }
 
-/* M36: pola konfiguracji Obsidiana w Ustawieniach */
+/* Pola formularzy w Ustawieniach (hooki, konfiguracja) */
 .settings-fields {
   display: flex;
   flex-direction: column;

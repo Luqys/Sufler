@@ -24,12 +24,12 @@ test('drzewo bez vaulta: skonfigurowany vault nie pojawia się ani w drzewie, an
   await expect(page.getByTestId('vault-add')).toHaveCount(0);
   await expect(tree.getByText('Dziennik.md')).toHaveCount(0);
 
-  // Od M47 vault zniknął także z Ustawień — Obsidian został przy notatce dziennej.
+  // Od M47 vault zniknął z Ustawień, a od M98 nie ma tam już nic o Obsidianie
+  // — vault żyje wyłącznie jako indeks wikilinków.
   await page.keyboard.press('Meta+Comma');
   const dialog = page.getByTestId('settings-view');
   await expect(dialog).toBeVisible();
-  await expect(dialog).not.toContainText('Vault Obsidiana');
-  await expect(dialog).toContainText('Obsidian — notatka dzienna');
+  await expect(dialog).not.toContainText('Obsidian');
 
   await page.screenshot({ path: 'e2e-artifacts/m40-bez-vaulta.png' });
   await app.close();

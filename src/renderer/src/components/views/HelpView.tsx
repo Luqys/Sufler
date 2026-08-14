@@ -26,7 +26,6 @@ const SHORTCUTS: Array<{ keys: string; labelKey: StringKey }> = [
   { keys: 'Cmd+P', labelKey: 'help.keys.quickOpen' },
   { keys: 'Cmd+S', labelKey: 'help.keys.save' },
   { keys: 'Cmd+,', labelKey: 'help.keys.settings' },
-  { keys: 'Cmd+Shift+L', labelKey: 'help.keys.daily' },
 ];
 
 /** Samouczek jako karta w obszarze edytora (M47) — przewodnik po aplikacji. */

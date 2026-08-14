@@ -13,11 +13,11 @@ test('Ustawienia: segmentowane przełączniki, pełny opis i zrzuty w trzech mot
 
   // Podtytuł i opisy sekcji zamiast gołych nagłówków.
   await expect(view).toContainText('zmiany zapisują się od razu');
-  await expect(view).toContainText('Wymaga pluginu Local REST API');
+  await expect(view).toContainText('Dziennik sesji');
 
-  // Podpowiedź o Cmd+Shift+L jest w całości widoczna (nie ucięta wielokropkiem).
+  // Ostatnia podpowiedź jest w całości widoczna (nie ucięta wielokropkiem).
   const hint = view.locator('.settings-hint').last();
-  await expect(hint).toContainText('pod wskazany nagłówek');
+  await expect(hint).toContainText('settings.local.json');
   const clipped = await hint.evaluate(
     (element) => element.scrollWidth > element.clientWidth + 1,
   );

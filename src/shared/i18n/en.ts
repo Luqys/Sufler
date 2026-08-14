@@ -135,23 +135,6 @@ export const EN: Record<StringKey, string> = {
   'settings.sessionLogGlobal': 'Also for sessions outside Sufler',
   'settings.sessionLogGlobalHint':
     'Installs a script in ~/.claude and wires it into the global Claude Code hooks, so the log is written for sessions started in a plain terminal too. Your other hooks stay untouched.',
-  'settings.obsidianTitle': 'Obsidian — daily note',
-  'settings.obsidianIntro': 'Optional. Requires the Local REST API plugin running in Obsidian.',
-  'settings.obsidianApiKey': 'API key (Local REST API plugin)',
-  'settings.obsidianUrl': 'Server address',
-  'settings.obsidianDailyFile': 'Note file — {date} is today’s date',
-  'settings.obsidianDailyHeading': 'Target heading',
-  'settings.obsidianHint':
-    'Select text in the editor and use Cmd+Shift+L (or the context menu) to append it under the chosen heading.',
-
-  'obsidian.sendAction': 'Send selection to the daily note',
-  'obsidian.sendOk': 'Appended to the daily note.',
-  'obsidian.sendEmpty': 'Select some text to send first.',
-  'obsidian.sendNotConfigured':
-    'Complete the Obsidian configuration in Settings (API key, file, heading).',
-  'obsidian.sendUnreachable':
-    'Cannot reach Obsidian — launch Obsidian with the Local REST API plugin enabled.',
-  'obsidian.sendRejected': 'Obsidian rejected the write — check the API key and heading.',
 
   'quickOpen.placeholder': 'Search files by name…',
   'quickOpen.empty': 'No matching files.',
@@ -376,7 +359,6 @@ export const EN: Record<StringKey, string> = {
   'help.keys.quickOpen': 'quick open a file by name',
   'help.keys.save': 'save the file',
   'help.keys.settings': 'settings',
-  'help.keys.daily': 'send the selection to the Obsidian daily note',
 
   'knowledge.hint':
     'All the project’s markdown notes in one place. The knowledge outline (`MCP `konspekt``) updates itself on every note change, and Claude fetches it with the MCP `konspekt` tool — it always knows what lives where.',

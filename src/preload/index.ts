@@ -64,8 +64,6 @@ import type { LayoutState } from '../shared/docks/layout';
 import type { UsageLimitsResult } from '../shared/claude/limits';
 import type { McpConfigServer, McpDetail } from '../shared/mcp/mcp';
 import type { McpAddInput } from '../shared/mcp/mcp-add';
-import type { ObsidianRestConfig } from '../shared/knowledge/obsidian-rest';
-import type { SendToNoteResult } from '../shared/ipc';
 
 const api: WindowApi = {
   getLayout: (): Promise<LayoutState> => ipcRenderer.invoke(IPC.LayoutGet),
@@ -263,13 +261,7 @@ const api: WindowApi = {
     );
   },
   resolveNoteLinks: (names: string[]): Promise<Record<string, string | null>> =>
-    ipcRenderer.invoke(IPC.ObsidianResolveLinks, names),
-  sendToDailyNote: (content: string): Promise<SendToNoteResult> =>
-    ipcRenderer.invoke(IPC.ObsidianSendDaily, content),
-  getObsidianConfig: (): Promise<ObsidianRestConfig> =>
-    ipcRenderer.invoke(IPC.ObsidianConfigGet),
-  setObsidianConfig: (config: ObsidianRestConfig): Promise<ObsidianRestConfig> =>
-    ipcRenderer.invoke(IPC.ObsidianConfigSet, config),
+    ipcRenderer.invoke(IPC.ResolveNoteLinks, names),
   listProjectFiles: (root: string): Promise<ListFilesResult> =>
     ipcRenderer.invoke(IPC.ProjectListFiles, root),
 };
