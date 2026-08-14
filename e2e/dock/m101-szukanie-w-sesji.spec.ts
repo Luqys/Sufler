@@ -12,7 +12,9 @@ test('skoki na koniec i początek sesji oraz szukanie frazy w buforze', async ()
 
   // Bufor dłuższy niż ekran: 200 numerowanych wierszy plus jedna igła.
   // Czekamy na znak zachęty — wpisanie polecenia przed nim gubi początek.
-  await expect(dock.locator('.xterm')).toContainText('vn3o-proj-', { timeout: 15_000 });
+  // Sam znak, nie nazwa katalogu: runner CI wita bashem („bash-3.2$"),
+  // który nie wypisuje w zachęcie nic o projekcie.
+  await expect(dock.locator('.xterm')).toContainText(/[$%]/, { timeout: 15_000 });
   await dock.locator('.xterm').click();
   await page.keyboard.type('for i in $(seq 1 200); do echo "wiersz $i"; done; echo IGLA-SZUKANA');
   await page.keyboard.press('Enter');
