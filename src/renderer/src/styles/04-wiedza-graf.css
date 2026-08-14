@@ -188,6 +188,29 @@
   gap: 8px;
 }
 
+/* „Nie pytaj więcej" (M99) — przy lewej krawędzi, wyraźnie poniżej treści. */
+.confirm-dont-ask {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.confirm-dont-ask input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.confirm-dont-ask:hover {
+  color: var(--text);
+}
+
 /*
  * M94: przycisk zatwierdzenia w dialogu ma własny, pełny wygląd. Wcześniej
  * pożyczał klasę `welcome-open` z ekranu startowego i dokładał zaszytą czerwień

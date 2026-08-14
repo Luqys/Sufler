@@ -217,16 +217,28 @@ export function DocksProvider({ children }: { children: ReactNode }): ReactEleme
         finish();
         return;
       }
-      // Zamknięcie karty ubija proces — pytamy, dopóki żyje.
-      void confirmDialog({
-        title: t('dock.closeTitle'),
-        message: tf('dock.closeMessage', { title: found.tab.title }),
-        confirmLabel: t('common.close'),
-        danger: true,
-      }).then((accepted) => {
-        if (accepted) {
+      // Zamknięcie karty ubija proces — pytamy, dopóki żyje. Ustawienie czytamy
+      // przy każdym kliknięciu (M99), bo przełącznik w Ustawieniach ma działać
+      // od razu; podręczna kopia w rendererze rozjeżdżałaby się z nim po cichu.
+      void window.api.getConfirmCloseTab().then((ask) => {
+        if (!ask) {
           finish();
+          return;
         }
+        void confirmDialog({
+          title: t('dock.closeTitle'),
+          message: tf('dock.closeMessage', { title: found.tab.title }),
+          confirmLabel: t('common.close'),
+          danger: true,
+          dontAsk: {
+            label: t('dock.closeDontAsk'),
+            onChoice: () => void window.api.setConfirmCloseTab(false),
+          },
+        }).then((accepted) => {
+          if (accepted) {
+            finish();
+          }
+        });
       });
     },
     [applyDocks, confirmDialog],

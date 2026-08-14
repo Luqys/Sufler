@@ -37,6 +37,7 @@ export const EN: Record<StringKey, string> = {
   'dock.spawnFailed': 'Failed to start the process: {error}',
   'dock.closeTitle': 'Close this tab?',
   'dock.closeMessage': 'Tab “{title}” has a running process — it will be terminated.',
+  'dock.closeDontAsk': 'Don’t ask again — close right away',
   'dock.resume': 'Resume a saved Claude session of this project',
   'dock.resumeLoading': 'Looking for sessions…',
   'dock.resumeEmpty': 'No saved sessions for this project.',
@@ -111,6 +112,10 @@ export const EN: Record<StringKey, string> = {
   'settings.diagnosticsHint':
     'The ✓ button in the title bar runs the check; results open as a “Problems” tab. Below you can run it automatically after saving a file (throttled: a burst of saves gives one run).',
   'settings.diagnosticsAuto': 'Check after saving a file',
+  'settings.tabs': 'Tabs and processes',
+  'settings.tabsHint':
+    'Closing a tab with a live process terminates it — that is why we ask for confirmation by default.',
+  'settings.confirmCloseTab': 'Ask before closing a tab with a running process',
   'settings.hooks': 'Claude Code hooks',
   'settings.hooksHint':
     'Commands Claude Code runs on session events. The list shows all three settings layers.',

@@ -13,6 +13,8 @@ export interface AppState {
   appearance?: unknown;
   /** Dziennik sesji Claude (M52); brak wartości = włączony. */
   sessionLog?: boolean;
+  /** Pytanie przed zamknięciem karty z procesem (M99); brak wartości = pytamy. */
+  confirmCloseTab?: boolean;
 }
 
 function stateFilePath(): string {
@@ -43,6 +45,9 @@ export function readState(): AppState {
     }
     if (typeof obj['sessionLog'] === 'boolean') {
       state.sessionLog = obj['sessionLog'];
+    }
+    if (typeof obj['confirmCloseTab'] === 'boolean') {
+      state.confirmCloseTab = obj['confirmCloseTab'];
     }
     return state;
   } catch {

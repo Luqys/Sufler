@@ -241,6 +241,9 @@ const api: WindowApi = {
     ipcRenderer.invoke(IPC.WorktreeMerge, root, branch),
   runDiagnostics: (root: string): Promise<DiagnosticsResult> =>
     ipcRenderer.invoke(IPC.DiagnosticsRun, root),
+  getConfirmCloseTab: (): Promise<boolean> => ipcRenderer.invoke(IPC.ConfirmCloseTabGet),
+  setConfirmCloseTab: (enabled: boolean): Promise<boolean> =>
+    ipcRenderer.invoke(IPC.ConfirmCloseTabSet, enabled),
   getDiagnosticsAuto: (): Promise<boolean> => ipcRenderer.invoke(IPC.DiagnosticsAutoGet),
   setDiagnosticsAuto: (enabled: boolean): Promise<boolean> =>
     ipcRenderer.invoke(IPC.DiagnosticsAutoSet, enabled),

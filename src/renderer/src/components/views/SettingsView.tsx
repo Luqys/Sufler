@@ -27,6 +27,8 @@ export function SettingsView(): ReactElement {
   const [hooks, setHooks] = useState<HookListEntry[]>([]);
   /** „Sprawdzaj po zapisie" (M90) — od M95 mieszka tu, bo to ustawienie trwałe. */
   const [diagAuto, setDiagAuto] = useState(false);
+  /** Pytanie przed zamknięciem karty z procesem (M99) — tu wraca po „nie pytaj więcej". */
+  const [confirmClose, setConfirmClose] = useState(true);
   const [hookEvent, setHookEvent] = useState<HookEvent>('PreToolUse');
   const [hookMatcher, setHookMatcher] = useState('');
   const [hookCommand, setHookCommand] = useState('');
@@ -41,6 +43,7 @@ export function SettingsView(): ReactElement {
     void window.api.getSessionLogEnabled().then(setSessionLog);
     void window.api.getGlobalSessionLog().then(setGlobalLog);
     void window.api.getDiagnosticsAuto().then(setDiagAuto);
+    void window.api.getConfirmCloseTab().then(setConfirmClose);
   }, []);
 
   useEffect(refreshHooks, [refreshHooks]);
@@ -203,6 +206,24 @@ export function SettingsView(): ReactElement {
             }}
           />
           <span>{t('settings.diagnosticsAuto')}</span>
+        </label>
+      </section>
+      <section className="settings-section" data-testid="tabs-section">
+        <h3 className="view-title">{t('settings.tabs')}</h3>
+        <p className="settings-hint">{t('settings.tabsHint')}</p>
+        <label className="settings-switch">
+          <input
+            type="checkbox"
+            role="switch"
+            data-testid="confirm-close-tab"
+            checked={confirmClose}
+            onChange={(event) => {
+              const next = event.target.checked;
+              setConfirmClose(next);
+              void window.api.setConfirmCloseTab(next);
+            }}
+          />
+          <span>{t('settings.confirmCloseTab')}</span>
         </label>
       </section>
       <section className="settings-section" data-testid="hooks-section">

@@ -21,6 +21,13 @@ export interface ConfirmOptions {
   confirmLabel?: string;
   cancelLabel?: string;
   danger?: boolean;
+  /**
+   * „Nie pytaj więcej" (M99). Decyzja wraca osobnym wywołaniem, a nie w wyniku
+   * dialogu, bo pytanie o zgodę i zapamiętanie odpowiedzi to dwie różne
+   * sprawy — dzięki temu pozostałe wywołania `confirmDialog` zostają bez zmian.
+   * Wołane tylko przy potwierdzeniu: zaznaczenie + Anuluj niczego nie zapamiętuje.
+   */
+  dontAsk?: { label: string; onChoice(checked: boolean): void };
 }
 
 type ToastTone = 'info' | 'success' | 'error';
@@ -56,20 +63,28 @@ let nextToastId = 1;
 export function DialogProvider({ children }: { children: ReactNode }): ReactElement {
   const t = useT();
   const [pending, setPending] = useState<PendingConfirm | null>(null);
+  const [dontAsk, setDontAsk] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const pendingRef = useRef(pending);
   pendingRef.current = pending;
+  const dontAskRef = useRef(dontAsk);
+  dontAskRef.current = dontAsk;
 
   const confirmDialog = useCallback((options: ConfirmOptions): Promise<boolean> => {
     return new Promise((resolve) => {
       // Nowe pytanie zastępuje poprzednie (poprzednie = anulowane).
       pendingRef.current?.resolve(false);
+      setDontAsk(false);
       setPending({ options, resolve });
     });
   }, []);
 
   const settle = useCallback((result: boolean) => {
-    pendingRef.current?.resolve(result);
+    const current = pendingRef.current;
+    if (result && dontAskRef.current) {
+      current?.options.dontAsk?.onChoice(true);
+    }
+    current?.resolve(result);
     setPending(null);
   }, []);
 
@@ -111,6 +126,17 @@ export function DialogProvider({ children }: { children: ReactNode }): ReactElem
           >
             {pending.options.title && <h3 className="confirm-title">{pending.options.title}</h3>}
             <p className="confirm-message">{pending.options.message}</p>
+            {pending.options.dontAsk && (
+              <label className="confirm-dont-ask">
+                <input
+                  type="checkbox"
+                  data-testid="confirm-dont-ask"
+                  checked={dontAsk}
+                  onChange={(event) => setDontAsk(event.target.checked)}
+                />
+                <span>{pending.options.dontAsk.label}</span>
+              </label>
+            )}
             <div className="confirm-actions">
               <button
                 type="button"

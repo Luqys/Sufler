@@ -43,6 +43,7 @@ export const PL = {
   'dock.spawnFailed': 'Nie udało się uruchomić procesu: {error}',
   'dock.closeTitle': 'Zamknąć kartę?',
   'dock.closeMessage': 'Karta „{title}" ma działający proces — zostanie zakończony.',
+  'dock.closeDontAsk': 'Nie pytaj więcej — zamykaj od razu',
   'dock.resume': 'Wznów zapisaną sesję Claude tego projektu',
   'dock.resumeLoading': 'Szukam sesji…',
   'dock.resumeEmpty': 'Brak zapisanych sesji dla tego projektu.',
@@ -119,6 +120,10 @@ export const PL = {
   'settings.diagnosticsHint':
     'Sprawdzenie uruchamia przycisk ✓ na pasku tytułu; wyniki otwierają się jako karta „Problemy". Poniżej można je włączyć automatycznie po zapisie pliku (z dławikiem: seria zapisów daje jeden przebieg).',
   'settings.diagnosticsAuto': 'Sprawdzaj po zapisie pliku',
+  'settings.tabs': 'Karty i procesy',
+  'settings.tabsHint':
+    'Zamknięcie karty z żywym procesem kończy go — dlatego domyślnie pytamy o potwierdzenie.',
+  'settings.confirmCloseTab': 'Pytaj przed zamknięciem karty z działającym procesem',
   'settings.hooks': 'Hooki Claude Code',
   'settings.hooksHint':
     'Komendy uruchamiane przez Claude Code na zdarzeniach sesji. Lista pokazuje wszystkie trzy warstwy ustawień.',

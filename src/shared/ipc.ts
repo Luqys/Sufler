@@ -110,6 +110,8 @@ export const IPC = {
   DiagnosticsRun: 'diagnostics:run',
   DiagnosticsAutoGet: 'diagnostics:auto-get',
   DiagnosticsAutoSet: 'diagnostics:auto-set',
+  ConfirmCloseTabGet: 'dock:confirm-close-get',
+  ConfirmCloseTabSet: 'dock:confirm-close-set',
   TranscriptSearch: 'claude-sessions:search',
   WorktreeList: 'worktree:list',
   WorktreeDiff: 'worktree:diff',
@@ -502,6 +504,9 @@ export interface WindowApi {
   /** „Sprawdzaj projekt po zapisie" — przełącznik trybu automatycznego (M90). */
   getDiagnosticsAuto(): Promise<boolean>;
   setDiagnosticsAuto(enabled: boolean): Promise<boolean>;
+  /** Pytanie przed zamknięciem karty z procesem (M99) — „nie pytaj więcej". */
+  getConfirmCloseTab(): Promise<boolean>;
+  setConfirmCloseTab(enabled: boolean): Promise<boolean>;
   /** Zużycie tokenów policzone z transkryptów projektu (M73). */
   getUsageHistory(root: string): Promise<UsageScan>;
   /** Hunki pliku wobec HEAD — commit po kawałkach (M85). */

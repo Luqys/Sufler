@@ -32,6 +32,7 @@ import { runGitShowFile } from './git/git-show';
 import { runGitStatus } from './git/git-status';
 import { startIdeServer, stopIdeServer, updateIdeWorkspaceFolders } from './claude/ide-server';
 import { resolveNoteLinks } from './knowledge/note-index';
+import { isConfirmCloseTab, setConfirmCloseTab } from './window/dock-prefs';
 import { installAppMenu } from './window/menu';
 import { readMcpConfig, runMcpGet, runMcpList } from './mcp/index';
 import { closeMcpWatcher, watchMcpConfig } from './mcp/watcher';
@@ -347,6 +348,8 @@ void app.whenReady().then(() => {
   );
   ipcMain.handle(IPC.UsageHistoryGet, (_event, root: string) => readUsageHistory(root));
   ipcMain.handle(IPC.DiagnosticsRun, (_event, root: string) => runDiagnostics(root));
+  ipcMain.handle(IPC.ConfirmCloseTabGet, () => isConfirmCloseTab());
+  ipcMain.handle(IPC.ConfirmCloseTabSet, (_event, enabled: boolean) => setConfirmCloseTab(enabled));
   ipcMain.handle(IPC.DiagnosticsAutoGet, () => isDiagnosticsAuto());
   ipcMain.handle(IPC.DiagnosticsAutoSet, (_event, enabled: boolean) => setDiagnosticsAuto(enabled));
   ipcMain.handle(IPC.TranscriptSearch, (_event, root: string, query: string) =>
