@@ -8,6 +8,7 @@ import {
   MAX_NOTCHES,
   MOUSE_STEP_LINES,
   notchesOf,
+  wheelScrollsScrollback,
 } from '../../src/shared/system/scroll';
 
 const METRICS = { lineHeight: 20, viewport: 400 };
@@ -116,5 +117,17 @@ describe('createWheelNormalizer', () => {
     );
     expect(Number.isFinite(result.pixels)).toBe(true);
     expect(result.pixels).toBeGreaterThan(0);
+  });
+});
+
+describe('wheelScrollsScrollback', () => {
+  it('w zwykłym buforze kółko przewija scrollback terminala', () => {
+    expect(wheelScrollsScrollback('normal')).toBe(true);
+  });
+
+  it('ekran alternatywny należy do programu — kółko idzie do niego', () => {
+    // Claude Code, vim i less rysują na własnej planszy bez scrollbacku:
+    // przejęcie kółka zjadałoby raport myszy, którym program przewija widok.
+    expect(wheelScrollsScrollback('alternate')).toBe(false);
   });
 });

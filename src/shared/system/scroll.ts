@@ -12,6 +12,24 @@
 
 export type WheelDevice = 'mouse' | 'trackpad';
 
+/** Bufor xterma: zwykły (ze scrollbackiem) albo ekran alternatywny programu. */
+export type TerminalBuffer = 'normal' | 'alternate';
+
+/**
+ * Czy kółko przewija NASZ scrollback, czy należy do programu w terminalu.
+ *
+ * Program w ekranie alternatywnym (Claude Code, vim, less) dostaje własną,
+ * czystą planszę — bufor przewijania tam nie istnieje (`baseY` stoi na zerze),
+ * a widok przewija sam program, gdy włączy raportowanie myszy. Nasze przejęcie
+ * zdarzenia (`preventDefault` + `stopPropagation` + `scrollLines`) zjadało je
+ * wtedy bez śladu: xterm nie wysyłał raportu kółka do pty, a `scrollLines`
+ * nie miało czego przewinąć. Objaw: w karcie Claude nie da się cofnąć widoku
+ * kółkiem ani szybkim gestem gładzika (grubsza delta idzie ścieżką „myszy").
+ */
+export function wheelScrollsScrollback(buffer: TerminalBuffer): boolean {
+  return buffer === 'normal';
+}
+
 /** Wycinek zdarzenia `wheel`, na którym pracuje normalizacja. */
 export interface WheelSample {
   deltaY: number;

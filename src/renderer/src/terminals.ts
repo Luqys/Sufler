@@ -4,7 +4,7 @@ import { Terminal, type ITheme } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 import type { TabKind } from '../../shared/docks/dock-tabs';
 import { quotePathForPrompt } from '../../shared/editor/media';
-import { createWheelNormalizer } from '../../shared/system/scroll';
+import { createWheelNormalizer, wheelScrollsScrollback } from '../../shared/system/scroll';
 import { CLAUDE_NEWLINE, isClaudeNewline } from '../../shared/claude/terminal-keys';
 import { FLAVOR_EVENT, isDarkTheme, isMatrixFlavor } from './appearance-client';
 import { t } from './i18n';
@@ -205,11 +205,20 @@ export function createTerminalInstance(
   // krok w wierszach zrównuje tempo; gładzik zostaje pod natywną obsługą
   // xterma. stopPropagation w fazie przechwytywania — inaczej xterm przewinąłby
   // bufor po raz drugi.
+  //
+  // Przejmujemy je TYLKO wtedy, gdy jest co przewijać, czyli w zwykłym buforze
+  // (M109) — patrz `wheelScrollsScrollback`.
   const wheelNormalizer = createWheelNormalizer();
   host.addEventListener(
     'wheel',
     (event) => {
       if (event.ctrlKey || event.metaKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+        return;
+      }
+      // Ekran alternatywny należy do programu — oddajemy mu kółko nietknięte
+      // (xterm wyśle raport myszy albo strzałki), zamiast zjadać je własnym
+      // przewijaniem nieistniejącego scrollbacku.
+      if (!wheelScrollsScrollback(term.buffer.active.type)) {
         return;
       }
       const rowsElement = host.querySelector<HTMLElement>('.xterm-rows');
